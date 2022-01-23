@@ -5,7 +5,7 @@ add_compile_options($<$<CXX_COMPILER_ID:MSVC>:/MP>)
 
 set(LIB_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/Reflect/inc)
 file(GLOB LIB_SOURCE_FILES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/Reflect/src/*/*.cpp)
-file(GLOB LIB_HEADER_FILES CONFIGURE_DEPENDS ${LIB_INCLUDE_DIR}/*/*.h)
+file(GLOB LIB_HEADER_FILES CONFIGURE_DEPENDS ${LIB_INCLUDE_DIR}/*/*.h ${LIB_INCLUDE_DIR}/*.h)
 
 #===============================================================================
 # LIBRARY
@@ -13,4 +13,4 @@ file(GLOB LIB_HEADER_FILES CONFIGURE_DEPENDS ${LIB_INCLUDE_DIR}/*/*.h)
 add_subdirectory(Reflect)
 add_subdirectory(ReflectDLL)
 add_subdirectory(ReflectEXE)
-#add_subdirectory(ReflectTest)
+add_subdirectory(ReflectTest)
