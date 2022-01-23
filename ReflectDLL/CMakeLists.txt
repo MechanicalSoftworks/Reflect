@@ -1,0 +1,17 @@
+add_library(ReflectDLL SHARED
+	${LIB_SOURCE_FILES}
+	${LIB_HEADER_FILES}
+)
+
+target_include_directories(ReflectDLL
+    PUBLIC
+		$<INSTALL_INTERFACE:include>
+		$<BUILD_INTERFACE:${LIB_INCLUDE_DIR}}>
+	PRIVATE
+        ${LIB_INCLUDE_DIR}
+)
+
+install(TARGETS ReflectDLL DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(FILES 
+	${CMAKE_CURRENT_SOURCE_DIR}/inc/*
+	DESTINATION include)
