@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Reflect.h"
-#include "Generated/TestStrcuts_reflect_generated.h"
+#include "TestStrcuts.reflect.h"
 
 /// <summary>
 /// Example class.

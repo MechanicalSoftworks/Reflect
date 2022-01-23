@@ -11,7 +11,7 @@ namespace Reflect
 		{
 			CodeGenerate::IncludeHeader(addtionalOptions.IncludePCHString, file);
 		}
-		CodeGenerate::IncludeHeader("../" + data.FileName + ".h", file);
+		CodeGenerate::IncludeHeader(data.FileName + ".h", file);
 		file << "\n";
 
 		for (auto& reflectData : data.ReflectData)

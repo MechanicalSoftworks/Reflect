@@ -26,10 +26,10 @@ namespace Reflect
 		CodeGenerate::IncludeHeader("Core/Util.h", file);
 
 		file << "\n";
-		file << "#ifdef " + data.FileName + ReflectFileGeneratePrefix + "_h\n";
-		file << "#error \"" + data.FileName + ReflectFileGeneratePrefix + ".h" + " already included, missing 'pragma once' in " + data.FileName + ".h\"\n";
-		file << "#endif " + data.FileName + ReflectFileGeneratePrefix + "_h\n";
-		file << "#define " + data.FileName + ReflectFileGeneratePrefix + "_h\n\n";
+		file << "#ifdef " + data.FileName + ReflectFileHeaderGuard + "_h\n";
+		file << "#error \"" + data.FileName + ReflectFileHeaderGuard + ".h" + " already included, missing 'pragma once' in " + data.FileName + ".h\"\n";
+		file << "#endif " + data.FileName + ReflectFileHeaderGuard + "_h\n";
+		file << "#define " + data.FileName + ReflectFileHeaderGuard + "_h\n\n";
 
 		WriteMacros(data, file, addtionalOptions);
 	}

@@ -22,16 +22,11 @@ namespace Reflect
 		CodeGenerateHeader header;
 		CodeGenerateSource source;
 
-		if (!std::filesystem::exists(data.FilePath + "/Generated"))
-		{
-			std::filesystem::create_directory(data.FilePath + "/Generated");
-		}
-
-		std::ofstream file = OpenFile(data.FilePath + "/Generated/" + data.FileName + ReflectFileGeneratePrefix + ".h");
+		std::ofstream file = OpenFile(data.FilePath + "/" + data.FileName + ReflectFileGeneratePrefix + ".h");
 		header.GenerateHeader(data, file, addtionalOptions);
 		CloseFile(file);
 
-		file = OpenFile(data.FilePath + "/Generated/" + data.FileName + ReflectFileGeneratePrefix + ".cpp");
+		file = OpenFile(data.FilePath + "/" + data.FileName + ReflectFileGeneratePrefix + ".cpp");
 		source.GenerateSource(data, file, addtionalOptions);
 		CloseFile(file);
 	}
