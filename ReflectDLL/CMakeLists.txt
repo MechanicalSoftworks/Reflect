@@ -11,7 +11,5 @@ target_include_directories(ReflectDLL
         ${LIB_INCLUDE_DIR}
 )
 
+target_compile_definitions(ReflectDLL PRIVATE -DPLATFORM_WINDOWS -DREFLECT_DLL_EXPORT)
 install(TARGETS ReflectDLL DESTINATION ${CMAKE_INSTALL_PREFIX})
-install(FILES 
-	${CMAKE_CURRENT_SOURCE_DIR}/inc/*
-	DESTINATION include)
