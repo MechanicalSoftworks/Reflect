@@ -12,5 +12,5 @@ std::string Player::GetId() const
 
 void Player::PrintHelloWorld()
 {
-	printf("Hello World!");
+	printf("Hello World!\n");
 }

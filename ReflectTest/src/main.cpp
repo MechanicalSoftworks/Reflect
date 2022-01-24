@@ -1,13 +1,22 @@
 #include "Reflect.h"
 #include "TestStrcuts.h"
 #include <iostream>
+#include <cstdlib>
+
+#ifdef _MSC_VER
+void* aligned_alloc(std::size_t size, std::size_t alignment) { return _aligned_malloc(size, alignment); }
+void aligned_free(void* p) noexcept { _aligned_free(p); }
+#else
+void* aligned_alloc(std::size_t size, std::size_t alignment) { return std::aligned_alloc(size, alignment); }
+void aligned_free(void* p) noexcept { std::free(p); }
+#endif
 
 void FuncNoReturn()
 {
 	// Get a function with no return value.
 	Player player;
 	auto playerGetId = player.GetFunction("PrintHelloWorld");
-	playerGetId.Invoke();
+	std::cout << Reflect::ReflectReturnCodeToString(playerGetId.Invoke());
 }
 
 void FuncReturnValue()
@@ -17,7 +26,7 @@ void FuncReturnValue()
 	Player player;
 	Reflect::ReflectFunction playerGetId = player.GetFunction("GetId");
 	std::string playerId;
-	playerGetId.Invoke(&playerId);
+	std::cout << Reflect::ReflectReturnCodeToString(playerGetId.Invoke(&playerId)) << ", Id = " << playerId << std::endl;
 }
 
 void FuncWithParameters()
@@ -33,9 +42,8 @@ void FuncWithParameters()
 	int intParameter = 8;
 	args.AddArg(&intParameter);
 
-	int returnCount;
-	std::cout << Reflect::ReflectReturnCodeToString(parameterFunc.Invoke(&returnCount, args));
-	std::cout << Reflect::ReflectReturnCodeToString(parameterFunc.Invoke(&returnCount, args));
+	int returnCount = -1;
+	std::cout << Reflect::ReflectReturnCodeToString(parameterFunc.Invoke(&returnCount, args)) << ", FriendsCount = " << returnCount << std::endl;
 }
 
 void GetMemberWithFlags()
@@ -49,8 +57,12 @@ void GetMemberWithFlags()
 
 void StaticClass()
 {
-	const auto& staticClass = Player::StaticClass;
-	staticClass.GetMembers({ "Public" });
+	const auto& staticClass = *Reflect::Class::Lookup("Player");
+	Player* player = static_cast<Player *>(aligned_alloc(staticClass.GetRawSize(), staticClass.GetAlignment()));
+	staticClass.Constructor(player);
+	player->Tick();
+	staticClass.Destructor(player);
+	aligned_free(player);
 }
 
 int main(void)

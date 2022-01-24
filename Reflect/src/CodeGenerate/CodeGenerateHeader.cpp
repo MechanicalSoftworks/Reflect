@@ -97,7 +97,7 @@ namespace Reflect
 	{
 		file << "#define " + currentFileId + "_PROPERTIES_GET \\\n";
 		WRITE_PUBLIC();
-		file << "virtual Reflect::ReflectMember GetMember(const char* memberName) override;\\\n";
+		file << "virtual Reflect::ReflectMember GetMember(const std::string_view& memberName) override;\\\n";
 		file << "virtual std::vector<Reflect::ReflectMember> GetMembers(std::vector<std::string> const& flags) override;\\\n";
 		WRITE_CLOSE();
 	}
@@ -167,7 +167,7 @@ namespace Reflect
 	{
 		file << "#define " + currentFileId + "_FUNCTION_GET \\\n";
 		WRITE_PUBLIC();
-		file << "\tvirtual Reflect::ReflectFunction GetFunction(const char* functionName) override;\\\n";
+		file << "\tvirtual Reflect::ReflectFunction GetFunction(const std::string_view &functionName) override;\\\n";
 		WRITE_CLOSE();
 	}
 }

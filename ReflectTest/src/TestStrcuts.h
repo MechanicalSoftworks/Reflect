@@ -29,6 +29,12 @@ REFLECT_CLASS()
 class EXPORT Actor : REFLECT_BASE()
 {
 	REFLECT_GENERATED_BODY()
+
+public:
+	virtual void Tick()
+	{
+		printf("Actor::Tick");
+	}
 };
 
 REFLECT_CLASS(AllPrivate, ShowInEditorOnly, EditorOnly)
@@ -49,6 +55,11 @@ public:
 
 	REFLECT_PROPERTY()
 		void PrintHelloWorld();
+
+	void Tick() override
+	{
+		printf("Player::Tick");
+	}
 
 private:
 	REFLECT_PROPERTY()

@@ -255,20 +255,38 @@ namespace Reflect
 		int m_offset;
 	};
 
+	typedef void (*ConstructorType)(void* obj);
+	typedef void (*DestructorType)(void* obj);
+	template<typename T> void PlacementNew(void* obj) { T::__PlacementNew((T*)obj); }
+	template<typename T> void PlacementDelete(void* obj) { T::__PlacementDelete((T*)obj); }
+
 	class Class
 	{
 	public:
-		Class(const char *name, size_t size, size_t alignment, const Class *super, size_t prop_count, const ReflectMemberProp *props)
+		Class(const char *name, size_t size, size_t alignment, const Class *super, size_t prop_count, const ReflectMemberProp *props, ConstructorType constructor, DestructorType destructor)
 			: m_name(name)
 			, m_size(size)
 			, m_alignment(alignment)
 			, m_super_class(super)
 			, m_member_prop_count(prop_count)
 			, m_member_props(props)
-		{}
+			, Constructor(constructor)
+			, Destructor(destructor)
+		{
+			Register(this);
+		}
 
-		REFLECT_DLL void Register(Class* c);
-		REFLECT_DLL Class* Lookup(const char* name);
+		~Class()
+		{
+			Unregister(this);
+		}
+
+		const ConstructorType Constructor;
+		const DestructorType Destructor;
+
+		REFLECT_DLL static void Register(Class* c);
+		REFLECT_DLL static Class* Lookup(const char* name);
+		REFLECT_DLL static void Unregister(Class* c);
 
 		REFLECT_DLL std::vector<ReflectMember> GetMembers(std::vector<std::string> const& flags) const
 		{
@@ -310,8 +328,8 @@ namespace Reflect
 
 	struct IReflect
 	{
-		REFLECT_DLL virtual ReflectFunction GetFunction(const char* functionName) { (void)functionName; return ReflectFunction(nullptr, nullptr);};
-		REFLECT_DLL virtual ReflectMember GetMember(const char* memberName) { (void)memberName; return ReflectMember("", "void", nullptr); };
+		REFLECT_DLL virtual ReflectFunction GetFunction(const std::string_view& functionName) { (void)functionName; return ReflectFunction(nullptr, nullptr);};
+		REFLECT_DLL virtual ReflectMember GetMember(const std::string_view& memberName) { (void)memberName; return ReflectMember("", "void", nullptr); };
 		REFLECT_DLL virtual std::vector<ReflectMember> GetMembers(std::vector<std::string> const& flags) { (void)flags; return {}; };
 	};
 }

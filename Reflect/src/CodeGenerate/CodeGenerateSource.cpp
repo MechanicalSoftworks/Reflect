@@ -61,13 +61,14 @@ namespace Reflect
 		file << "const Reflect::Class " << data.Name << "::StaticClass = Reflect::Class(\"" << data.Name << "\", "
 			<< "sizeof(" << data.Name << "), alignof(" << data.Name << "), "
 			<< (data.SuperName != "Reflect::IReflect" ? (std::string("&") + data.SuperName + "::StaticClass") : std::string("nullptr")) << ", "
-			<< data.Members.size() << ", " << (data.Members.size() > 0 ? "__REFLECT_MEMBER_PROPS__" : "nullptr") 
+			<< data.Members.size() << ", " << (data.Members.size() > 0 ? "__REFLECT_MEMBER_PROPS__" : "nullptr") << ", "
+			<< "Reflect::PlacementNew<" << data.Name << ">, Reflect::PlacementDelete<" << data.Name << ">"
 			<< ");\n\n";
 	}
 
 	void CodeGenerateSource::WriteMemberGet(const ReflectContainerData& data, std::ofstream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
-		file << "Reflect::ReflectMember " + data.Name + "::GetMember(const char* memberName)\n{\n";
+		file << "Reflect::ReflectMember " + data.Name + "::GetMember(const std::string_view& memberName)\n{\n";
 		if (data.Members.size() > 0)
 		{
 			file << "\tfor(const auto& member : __REFLECT_MEMBER_PROPS__)\n\t{\n";
@@ -98,7 +99,7 @@ namespace Reflect
 
 	void CodeGenerateSource::WriteFunctionGet(const ReflectContainerData& data, std::ofstream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
-		file << "Reflect::ReflectFunction " + data.Name + "::GetFunction(const char* functionName)\n{\n";
+		file << "Reflect::ReflectFunction " + data.Name + "::GetFunction(const std::string_view &functionName)\n{\n";
 		for (const auto& func : data.Functions)
 		{
 			file << "\tif(functionName == \"" + func.Name + "\")\n";

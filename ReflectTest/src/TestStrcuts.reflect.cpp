@@ -5,14 +5,14 @@ Reflect::ReflectMemberProp S::__REFLECT_MEMBER_PROPS__[2] = {
 	Reflect::ReflectMemberProp("TimeOnline", Reflect::Util::GetTypeName<int>(), __REFLECT__TimeOnline(), {"Public"}),
 };
 
-const Reflect::Class S::StaticClass = Reflect::Class("S", sizeof(S), alignof(S), nullptr, 2, __REFLECT_MEMBER_PROPS__);
+const Reflect::Class S::StaticClass = Reflect::Class("S", sizeof(S), alignof(S), nullptr, 2, __REFLECT_MEMBER_PROPS__, Reflect::PlacementNew<S>, Reflect::PlacementDelete<S>);
 
-Reflect::ReflectFunction S::GetFunction(const char* functionName)
+Reflect::ReflectFunction S::GetFunction(const std::string_view &functionName)
 {
 	return SuperClass::GetFunction(functionName);
 }
 
-Reflect::ReflectMember S::GetMember(const char* memberName)
+Reflect::ReflectMember S::GetMember(const std::string_view& memberName)
 {
 	for(const auto& member : __REFLECT_MEMBER_PROPS__)
 	{
@@ -38,14 +38,14 @@ std::vector<Reflect::ReflectMember> S::GetMembers(std::vector<std::string> const
 	return members;
 }
 
-const Reflect::Class Actor::StaticClass = Reflect::Class("Actor", sizeof(Actor), alignof(Actor), nullptr, 0, nullptr);
+const Reflect::Class Actor::StaticClass = Reflect::Class("Actor", sizeof(Actor), alignof(Actor), nullptr, 0, nullptr, Reflect::PlacementNew<Actor>, Reflect::PlacementDelete<Actor>);
 
-Reflect::ReflectFunction Actor::GetFunction(const char* functionName)
+Reflect::ReflectFunction Actor::GetFunction(const std::string_view &functionName)
 {
 	return SuperClass::GetFunction(functionName);
 }
 
-Reflect::ReflectMember Actor::GetMember(const char* memberName)
+Reflect::ReflectMember Actor::GetMember(const std::string_view& memberName)
 {
 	return SuperClass::GetMember(memberName);
 }
@@ -61,9 +61,9 @@ Reflect::ReflectMemberProp Player::__REFLECT_MEMBER_PROPS__[2] = {
 	Reflect::ReflectMemberProp("TimeOnline", Reflect::Util::GetTypeName<int>(), __REFLECT__TimeOnline(), {"Public"}),
 };
 
-const Reflect::Class Player::StaticClass = Reflect::Class("Player", sizeof(Player), alignof(Player), &Actor::StaticClass, 2, __REFLECT_MEMBER_PROPS__);
+const Reflect::Class Player::StaticClass = Reflect::Class("Player", sizeof(Player), alignof(Player), &Actor::StaticClass, 2, __REFLECT_MEMBER_PROPS__, Reflect::PlacementNew<Player>, Reflect::PlacementDelete<Player>);
 
-Reflect::ReflectFunction Player::GetFunction(const char* functionName)
+Reflect::ReflectFunction Player::GetFunction(const std::string_view &functionName)
 {
 	if(functionName == "GetOnlineFriendsCount")
 	{
@@ -80,7 +80,7 @@ Reflect::ReflectFunction Player::GetFunction(const char* functionName)
 	return SuperClass::GetFunction(functionName);
 }
 
-Reflect::ReflectMember Player::GetMember(const char* memberName)
+Reflect::ReflectMember Player::GetMember(const std::string_view& memberName)
 {
 	for(const auto& member : __REFLECT_MEMBER_PROPS__)
 	{
