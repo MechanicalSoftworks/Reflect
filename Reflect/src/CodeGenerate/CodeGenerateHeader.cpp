@@ -88,7 +88,7 @@ namespace Reflect
 		WRITE_PRIVATE();
 		for (const auto& member : data.Members)
 		{
-			file << "\tstatic int __REFLECT__" + member.Name + "() { return offsetof(" + data.Name + ", " + member.Name + "); }; \\\n";
+			file << "\tstatic constexpr int __REFLECT__" + member.Name + "() { return offsetof(" + data.Name + ", " + member.Name + "); }; \\\n";
 		}
 		WRITE_CLOSE();
 	}

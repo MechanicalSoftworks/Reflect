@@ -293,9 +293,6 @@ namespace Reflect
 		{
 			std::vector<Reflect::ReflectMember> members;
 
-			if (m_super_class)
-				m_super_class->GetMembersInternal(members, flags);
-
 			GetMembersInternal(members, flags);
 			
 			return members;
@@ -310,6 +307,9 @@ namespace Reflect
 	private:
 		REFLECT_DLL void GetMembersInternal(std::vector<Reflect::ReflectMember>& members, std::vector<std::string> const& flags) const
 		{
+			if (m_super_class)
+				m_super_class->GetMembersInternal(members, flags);
+
 			for (size_t i = 0; i < m_member_prop_count; i++)
 			{
 				const auto& member = m_member_props[i];

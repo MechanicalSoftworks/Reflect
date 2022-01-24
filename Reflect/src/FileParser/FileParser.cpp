@@ -184,7 +184,7 @@ namespace Reflect
 		std::string token, containerName;
 		while (fileData.Data.at(fileData.Cursor) != ':' && fileData.Data.at(fileData.Cursor) != '{' && fileData.Data.at(fileData.Cursor) != '\n')
 		{
-			if (fileData.Data.at(fileData.Cursor) != ' ')
+			if (!std::isspace(fileData.Data.at(fileData.Cursor)))
 			{
 				token += fileData.Data.at(fileData.Cursor);
 			}
@@ -268,11 +268,11 @@ namespace Reflect
 			// Get the type and name of the property to reflect.
 			auto [type, name, isConst] = ReflectTypeAndName(fileData, {});
 
-			char c = FindNextChar(fileData, { ' ', '=' });
+			char c = FindNextChar(fileData, { ' ', '\t', '=' });
 			while (c != ';' && c != '(' && c != '\n')
 			{
 				++fileData.Cursor;
-				c = FindNextChar(fileData, { ' ', '=' });
+				c = FindNextChar(fileData, { ' ', '\t', '=' });
 			}
 
 			// Find out if the property is a function or member variable.
@@ -384,7 +384,7 @@ namespace Reflect
 	bool FileParser::RefectCheckForEndOfLine(const FileParsedData& fileData)
 	{
 		char c = fileData.Data[fileData.Cursor];
-		if (c == ' ' || c == '(' || c == ';')
+		if (std::isspace(c) || c == '(' || c == ';')
 		{
 			return true;
 		}

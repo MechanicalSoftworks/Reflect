@@ -31,8 +31,8 @@ public:\
 
 #define TestStrcuts_Source_h_15_PROPERTIES_OFFSET \
 private:\
-	static int __REFLECT__Friends() { return offsetof(S, Friends); }; \
-	static int __REFLECT__TimeOnline() { return offsetof(S, TimeOnline); }; \
+	static constexpr int __REFLECT__Friends() { return offsetof(S, Friends); }; \
+	static constexpr int __REFLECT__TimeOnline() { return offsetof(S, TimeOnline); }; \
 
 
 #define TestStrcuts_Source_h_15_PROPERTIES_GET \
@@ -134,8 +134,8 @@ public:\
 
 #define TestStrcuts_Source_h_43_PROPERTIES_OFFSET \
 private:\
-	static int __REFLECT__Friends() { return offsetof(Player, Friends); }; \
-	static int __REFLECT__TimeOnline() { return offsetof(Player, TimeOnline); }; \
+	static constexpr int __REFLECT__Friends() { return offsetof(Player, Friends); }; \
+	static constexpr int __REFLECT__TimeOnline() { return offsetof(Player, TimeOnline); }; \
 
 
 #define TestStrcuts_Source_h_43_PROPERTIES_GET \
