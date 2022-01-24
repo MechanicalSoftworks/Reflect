@@ -233,10 +233,11 @@ namespace Reflect
 		}
 
 		void* GetRawPointer() { return m_ptr; }
+		const void* GetRawPointer() const { return m_ptr; }
 
-		std::string GetName() { return m_name; }
+		std::string GetName() const { return m_name; }
 
-		std::string GetTypeName() { return m_type; }
+		std::string GetTypeName() const { return m_type; }
 
 		template<typename T>
 		REFLECT_DLL T* ConvertToType()
@@ -286,10 +287,10 @@ namespace Reflect
 		const DestructorType Destructor;
 
 		REFLECT_DLL static void Register(Class* c);
-		REFLECT_DLL static Class* Lookup(const char* name);
+		REFLECT_DLL static Class* Lookup(const std::string_view &name);
 		REFLECT_DLL static void Unregister(Class* c);
 
-		REFLECT_DLL std::vector<ReflectMember> GetMembers(std::vector<std::string> const& flags) const
+		REFLECT_DLL std::vector<ReflectMember> GetMembers(std::vector<std::string> const& flags, bool recursive=true) const
 		{
 			std::vector<Reflect::ReflectMember> members;
 

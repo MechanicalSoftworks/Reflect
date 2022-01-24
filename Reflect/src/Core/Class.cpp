@@ -24,9 +24,9 @@ namespace Reflect
 		s_classes[c->m_name] = c;
 	}
 
-	REFLECT_DLL Class* Class::Lookup(const char* name)
+	REFLECT_DLL Class* Class::Lookup(const std::string_view& name)
 	{
-		auto it = s_classes.find(name);
+		auto it = s_classes.find(std::string(name));
 		return it != s_classes.end() ? it->second : nullptr;
 	}
 
