@@ -45,7 +45,9 @@ namespace Reflect
 				std::cout << "Parsing: " << filePath << std::endl;
 				std::ifstream file = OpenFile(filePath);
 				FileParsedData data = LoadFile(file);
-				data.FileName = f.path().filename().u8string().substr(0, f.path().filename().u8string().find_last_of('.'));
+				const auto ext = f.path().filename().u8string().find_last_of('.');
+				data.FileName = f.path().filename().u8string().substr(0, ext);
+				data.FileExtension = f.path().filename().u8string().substr(ext + 1);
 				data.FilePath = f.path().parent_path().u8string();
 				m_filesParsed.push_back(data);
 				CloseFile(file);

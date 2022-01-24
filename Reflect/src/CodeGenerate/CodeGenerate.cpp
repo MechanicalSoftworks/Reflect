@@ -26,7 +26,7 @@ namespace Reflect
 		header.GenerateHeader(data, file, addtionalOptions);
 		CloseFile(file);
 
-		file = OpenFile(data.FilePath + "/" + data.FileName + ReflectFileGeneratePrefix + ".cpp");
+		file = OpenFile(addtionalOptions.OutputCPPDir + "/" + data.FileName + ReflectFileGeneratePrefix + ".cpp");
 		source.GenerateSource(data, file, addtionalOptions);
 		CloseFile(file);
 	}

@@ -85,6 +85,7 @@ namespace Reflect
 		int Cursor;
 		std::string FilePath;
 		std::string FileName;
+		std::string FileExtension;
 		int GeneratedBodyLineOffset;
 
 		std::vector<ReflectContainerData> ReflectData;

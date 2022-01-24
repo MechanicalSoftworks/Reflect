@@ -14,6 +14,7 @@ int main(int argc, char* argv[])
 		Reflect::CodeGenerateAddtionalOptions options = { };
 
 		std::vector<std::string> directories;
+		bool specifiedCPPDir = false;
 
 		for (size_t i = 0; i < argc; ++i)
 		{
@@ -28,6 +29,11 @@ int main(int argc, char* argv[])
 				{
 					options.IncludePCHString = arg.substr(strlen("pchInclude="));
 				}
+				else if (arg.find("outputCppDir=") != std::string::npos)
+				{
+					options.OutputCPPDir = arg.substr(strlen("outputCppDir="));
+					specifiedCPPDir = true;
+				}
 			}
 		}
 
@@ -36,6 +42,11 @@ int main(int argc, char* argv[])
 			parser.ParseDirectory(dir);
 			for (auto& file : parser.GetAllFileParsedData())
 			{
+				if (!specifiedCPPDir)
+				{
+					options.OutputCPPDir = file.FilePath;
+				}
+
 				codeGenerate.Reflect(file, options);
 			}
 		}
