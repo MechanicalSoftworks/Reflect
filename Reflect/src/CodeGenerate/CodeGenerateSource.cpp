@@ -13,6 +13,11 @@ namespace Reflect
 		}
 		CodeGenerate::IncludeHeader(data.FileName + "." + data.FileExtension, file);
 		file << "\n";
+		if (addtionalOptions.Namespace.length())
+		{
+			file << "namespace " << addtionalOptions.Namespace << std::endl;
+			file << "{" << std::endl;
+		}
 
 		for (auto& reflectData : data.ReflectData)
 		{
@@ -20,6 +25,11 @@ namespace Reflect
 			WriteStaticClass(reflectData, file, addtionalOptions);
 			WriteFunctionGet(reflectData, file, addtionalOptions);
 			WriteMemberGet(reflectData, file, addtionalOptions);
+		}
+
+		if (addtionalOptions.Namespace.length())
+		{
+			file << "}" << std::endl;
 		}
 	}
 

@@ -8,8 +8,9 @@ namespace Reflect
 {
 	struct CodeGenerateAddtionalOptions
 	{
-		std::string IncludePCHString = "";
-		std::string OutputCPPDir = "";
+		std::string IncludePCHString;
+		std::string OutputCPPDir;
+		std::string Namespace;
 	};
 
 	/// <summary>

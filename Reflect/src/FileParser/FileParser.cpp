@@ -202,6 +202,7 @@ namespace Reflect
 		containerData.TypeSize = DEFAULT_TYPE_SIZE;
 
 		// Assume the first type name found is the super class.
+		// Stop searching after "REFLECT_BASE()".
 		containerData.SuperName = "Reflect::IReflect";
 		if (fileData.Data.at(fileData.Cursor) == ':')
 		{
@@ -213,9 +214,13 @@ namespace Reflect
 				{
 					token += fileData.Data.at(fileData.Cursor);
 				}
-				else if (token == "public" || token == "protected" || token == "private" || token == "REFLECT_BASE()")
+				else if (token == "public" || token == "protected" || token == "private")
 				{
 					token.clear();
+				}
+				else if (token.find("REFLECT_BASE()") == 0) // Use find to catch "REFLECT_BASE()," as well.
+				{
+					break;
 				}
 				else if (token.length())
 				{

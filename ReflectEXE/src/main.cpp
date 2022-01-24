@@ -34,6 +34,10 @@ int main(int argc, char* argv[])
 					options.OutputCPPDir = arg.substr(strlen("outputCppDir="));
 					specifiedCPPDir = true;
 				}
+				else if (arg.find("namespace=") != std::string::npos)
+				{
+					options.Namespace = arg.substr(strlen("namespace="));
+				}
 			}
 		}
 
