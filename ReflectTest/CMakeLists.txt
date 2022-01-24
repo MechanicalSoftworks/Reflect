@@ -7,7 +7,7 @@ add_executable(ReflectTest
 target_include_directories(ReflectTest
     PUBLIC
 		$<INSTALL_INTERFACE:include>
-		$<BUILD_INTERFACE:${LIB_INCLUDE_DIR}}>
+		$<BUILD_INTERFACE:${LIB_INCLUDE_DIR}>
 	PRIVATE
         ${LIB_INCLUDE_DIR}
 )

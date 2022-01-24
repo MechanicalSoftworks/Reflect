@@ -6,7 +6,7 @@ add_library(Reflect STATIC
 target_include_directories(Reflect
     PUBLIC
 		$<INSTALL_INTERFACE:include>
-		$<BUILD_INTERFACE:${LIB_INCLUDE_DIR}}>
+		$<BUILD_INTERFACE:${LIB_INCLUDE_DIR}>
 	PRIVATE
         ${LIB_INCLUDE_DIR}
 )

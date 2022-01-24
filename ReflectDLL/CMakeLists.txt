@@ -6,7 +6,7 @@ add_library(ReflectDLL SHARED
 target_include_directories(ReflectDLL
     PUBLIC
 		$<INSTALL_INTERFACE:include>
-		$<BUILD_INTERFACE:${LIB_INCLUDE_DIR}}>
+		$<BUILD_INTERFACE:${LIB_INCLUDE_DIR}>
 	PRIVATE
         ${LIB_INCLUDE_DIR}
 )

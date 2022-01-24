@@ -5,7 +5,7 @@ add_executable(ReflectEXE
 target_include_directories(ReflectEXE
     PUBLIC
 		$<INSTALL_INTERFACE:include>
-		$<BUILD_INTERFACE:${LIB_INCLUDE_DIR}}>
+		$<BUILD_INTERFACE:${LIB_INCLUDE_DIR}>
 	PRIVATE
         ${LIB_INCLUDE_DIR}
 )
