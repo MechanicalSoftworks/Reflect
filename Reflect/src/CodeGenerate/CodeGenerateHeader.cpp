@@ -40,6 +40,7 @@ namespace Reflect
 		{
 			const std::string CurrentFileId = GetCurrentFileID(data.FileName) + "_" + std::to_string(reflectData.ReflectGenerateBodyLine);
 
+			WriteStaticClass(reflectData, file, CurrentFileId, addtionalOptions);
 			WriteMemberProperties(reflectData, file, CurrentFileId, addtionalOptions);
 			WriteFunctions(reflectData, file, CurrentFileId, addtionalOptions);
 			WriteFunctionGet(reflectData, file, CurrentFileId, addtionalOptions);
@@ -47,6 +48,7 @@ namespace Reflect
 			WriteMemberGet(reflectData, file, CurrentFileId, addtionalOptions);
 
 			WRITE_CURRENT_FILE_ID(data.FileName) + "_" + std::to_string(reflectData.ReflectGenerateBodyLine) + "_GENERATED_BODY \\\n";
+			file << CurrentFileId + "_STATIC_CLASS \\\n";
 			file << CurrentFileId + "_PROPERTIES \\\n";
 			file << CurrentFileId + "_FUNCTION_DECLARE \\\n";
 			file << CurrentFileId + "_FUNCTION_GET \\\n";
@@ -58,6 +60,18 @@ namespace Reflect
 
 		file << "#undef CURRENT_FILE_ID\n";
 		file << "#define CURRENT_FILE_ID " + GetCurrentFileID(data.FileName) + "\n";
+	}
+
+	void CodeGenerateHeader::WriteStaticClass(const ReflectContainerData& data, std::ofstream& file, const std::string& currentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)
+	{
+		file << "#define " + currentFileId + "_STATIC_CLASS \\\n";
+		WRITE_PUBLIC();
+		if (data.SuperName.length())
+			file << "\ttypedef " + data.SuperName + " SuperClass;\\\n";
+		file << "\tstatic const Reflect::Class StaticClass;\\\n";
+		file << "\tstatic void __PlacementNew(" << data.Name << "* obj) { new(obj) " << data.Name << "; }\\\n";
+		file << "\tstatic void __PlacementDelete(" << data.Name << "* obj) { obj->~" << data.Name << "(); }\\\n";
+		WRITE_CLOSE();
 	}
 
 	void CodeGenerateHeader::WriteMemberProperties(const ReflectContainerData& data, std::ofstream& file, const std::string& currentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)

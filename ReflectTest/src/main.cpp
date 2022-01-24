@@ -47,12 +47,19 @@ void GetMemberWithFlags()
 	friendInt = 12;
 }
 
+void StaticClass()
+{
+	const auto& staticClass = Player::StaticClass;
+	staticClass.GetMembers({ "Public" });
+}
+
 int main(void)
 {
 	FuncNoReturn();
 	FuncReturnValue();
 	FuncWithParameters();
 	GetMemberWithFlags();
+	StaticClass();
 
 	return 0;
 }

@@ -3,6 +3,8 @@
 #include "Reflect.h"
 #include "TestStrcuts.reflect.h"
 
+#define EXPORT
+
 /// <summary>
 /// Example class.
 /// </summary>
@@ -23,8 +25,14 @@ class C
 
 };
 
+REFLECT_CLASS()
+class EXPORT Actor : REFLECT_BASE()
+{
+	REFLECT_GENERATED_BODY()
+};
+
 REFLECT_CLASS(AllPrivate, ShowInEditorOnly, EditorOnly)
-class Player : REFLECT_BASE()
+class EXPORT Player : public Actor
 {
 	REFLECT_GENERATED_BODY()
 

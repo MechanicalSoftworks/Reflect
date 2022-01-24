@@ -179,18 +179,53 @@ namespace Reflect
 		}
 
 		// Get the flags passed though the REFLECT macro.
-		std::string containerName;
+		std::string token, containerName;
 		while (fileData.Data.at(fileData.Cursor) != ':' && fileData.Data.at(fileData.Cursor) != '{' && fileData.Data.at(fileData.Cursor) != '\n')
 		{
 			if (fileData.Data.at(fileData.Cursor) != ' ')
 			{
-				containerName += fileData.Data.at(fileData.Cursor);
+				token += fileData.Data.at(fileData.Cursor);
+			}
+			else if (token.size())
+			{
+				// We only want to keep the last token before the ':' or '{'. Consider:
+				// class EXPORT Player { ...
+				containerName = std::move(token);
+				token.clear();
 			}
 			++fileData.Cursor;
 		}
 		containerData.Name = containerName;
 		containerData.Type = containerName;
 		containerData.TypeSize = DEFAULT_TYPE_SIZE;
+
+		// Assume the first type name found is the super class.
+		containerData.SuperName = "Reflect::IReflect";
+		if (fileData.Data.at(fileData.Cursor) == ':')
+		{
+			token.clear();
+			++fileData.Cursor;
+			while (fileData.Data.at(fileData.Cursor) != '{')
+			{
+				if (!std::isspace(fileData.Data.at(fileData.Cursor)))
+				{
+					token += fileData.Data.at(fileData.Cursor);
+				}
+				else if (token == "public" || token == "protected" || token == "private" || token == "REFLECT_BASE()")
+				{
+					token.clear();
+				}
+				else if (token.length())
+				{
+					if (token.back() == ',')
+						token.erase(token.end() - 1);
+					containerData.SuperName = std::move(token);
+					break;
+				}
+				++fileData.Cursor;
+			}
+		}
+
 		fileData.ReflectData.push_back(containerData);
 
 		return true;

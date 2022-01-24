@@ -71,7 +71,7 @@ namespace Reflect
 
 	struct ReflectContainerData : public ReflectTypeNameData
 	{
-		std::string Name;
+		std::string Name, SuperName;
 		ReflectType ReflectType;
 		int ReflectGenerateBodyLine;
 
@@ -99,7 +99,7 @@ namespace Reflect
 			, StrProperties(strProperties)
 		{ }
 
-		bool ContainsProperty(std::vector<std::string> const& flags)
+		bool ContainsProperty(std::vector<std::string> const& flags) const
 		{
 			for (auto const& flag : flags)
 			{
@@ -253,6 +253,59 @@ namespace Reflect
 		std::string m_type;
 		void* m_ptr;
 		int m_offset;
+	};
+
+	class Class
+	{
+	public:
+		Class(const char *name, size_t size, size_t alignment, const Class *super, size_t prop_count, const ReflectMemberProp *props)
+			: m_name(name)
+			, m_size(size)
+			, m_alignment(alignment)
+			, m_super_class(super)
+			, m_member_prop_count(prop_count)
+			, m_member_props(props)
+		{}
+
+		REFLECT_DLL void Register(Class* c);
+		REFLECT_DLL Class* Lookup(const char* name);
+
+		REFLECT_DLL std::vector<ReflectMember> GetMembers(std::vector<std::string> const& flags) const
+		{
+			std::vector<Reflect::ReflectMember> members;
+
+			if (m_super_class)
+				m_super_class->GetMembersInternal(members, flags);
+
+			GetMembersInternal(members, flags);
+			
+			return members;
+		}
+
+		const char* GetName() const { return m_name; }
+		size_t GetRawSize() const { return m_size; }
+		size_t GetAlignment() const { return m_alignment; }
+		size_t GetSize() const { return (m_size + m_alignment - 1) - m_size % m_alignment; }
+		const Class* GetSuperClass() const { return m_super_class; }
+
+	private:
+		REFLECT_DLL void GetMembersInternal(std::vector<Reflect::ReflectMember>& members, std::vector<std::string> const& flags) const
+		{
+			for (size_t i = 0; i < m_member_prop_count; i++)
+			{
+				const auto& member = m_member_props[i];
+				if (member.ContainsProperty(flags))
+				{
+					members.push_back(Reflect::ReflectMember(member.Name, member.Type, (void *)(size_t)member.Offset));
+				}
+			}
+		}
+
+		const char* m_name;
+		const size_t m_size, m_alignment;
+		const Class* m_super_class;
+		const size_t m_member_prop_count;
+		const ReflectMemberProp* m_member_props;
 	};
 
 	struct IReflect

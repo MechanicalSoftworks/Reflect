@@ -17,6 +17,7 @@ namespace Reflect
 		for (auto& reflectData : data.ReflectData)
 		{
 			WriteMemberProperties(reflectData, file, addtionalOptions);
+			WriteStaticClass(reflectData, file, addtionalOptions);
 			WriteFunctionGet(reflectData, file, addtionalOptions);
 			WriteMemberGet(reflectData, file, addtionalOptions);
 		}
@@ -55,6 +56,15 @@ namespace Reflect
 		}
 	}
 
+	void CodeGenerateSource::WriteStaticClass(const ReflectContainerData& data, std::ofstream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
+	{
+		file << "const Reflect::Class " << data.Name << "::StaticClass = Reflect::Class(\"" << data.Name << "\", "
+			<< "sizeof(" << data.Name << "), alignof(" << data.Name << "), "
+			<< (data.SuperName != "Reflect::IReflect" ? (std::string("&") + data.SuperName + "::StaticClass") : std::string("nullptr")) << ", "
+			<< data.Members.size() << ", " << (data.Members.size() > 0 ? "__REFLECT_MEMBER_PROPS__" : "nullptr") 
+			<< ");\n\n";
+	}
+
 	void CodeGenerateSource::WriteMemberGet(const ReflectContainerData& data, std::ofstream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
 		file << "Reflect::ReflectMember " + data.Name + "::GetMember(const char* memberName)\n{\n";
@@ -68,11 +78,11 @@ namespace Reflect
 			file << "\t\t}\n";
 			file << "\t}\n";
 		}
-		file << "\treturn __super::GetMember(memberName);\n";
+		file << "\treturn SuperClass::GetMember(memberName);\n";
 		file << "}\n\n";
 
 		file << "std::vector<Reflect::ReflectMember> " + data.Name + "::GetMembers(std::vector<std::string> const& flags)\n{\n";
-		file << "\tstd::vector<Reflect::ReflectMember> members = __super::GetMembers(flags);\n";
+		file << "\tstd::vector<Reflect::ReflectMember> members = SuperClass::GetMembers(flags);\n";
 		if (data.Members.size() > 0)
 		{
 			file << "\tfor(auto& member : __REFLECT_MEMBER_PROPS__)\n\t{\n";
@@ -96,7 +106,7 @@ namespace Reflect
 			file << "\t\treturn Reflect::ReflectFunction(this, " + data.Name + "::__REFLECT_FUNC__" + func.Name + ");\n";
 			file << "\t}\n";
 		}
-		file << "\treturn __super::GetFunction(functionName);\n";
+		file << "\treturn SuperClass::GetFunction(functionName);\n";
 		file << "}\n\n";
 	}
 
@@ -109,7 +119,7 @@ namespace Reflect
 	//		// Write to the auto generated file binding a function then setting up a "FuncWrapper" for which we can then call the function from.
 	//		file << "\tauto " + func.Name + "Func = std::bind(&" + data.Name + "::" + func.Name + ", ptr);\n";
 	//		file << "\tReflect::FuncWrapper " + func.Name + "Wrapper(" + func.Name + "Func);\n";
-	//		file << "\t__super::AddFunction(" + func.Name + ", " + func.Name + "Wrapper);\n";
+	//		file << "\tSuperClass::AddFunction(" + func.Name + ", " + func.Name + "Wrapper);\n";
 	//	}
 	//	file << "\n";
 	//}

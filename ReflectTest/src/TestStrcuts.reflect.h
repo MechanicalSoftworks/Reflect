@@ -7,46 +7,104 @@
 #endif TestStrcuts_reflect_h
 #define TestStrcuts_reflect_h
 
-#define TestStrcuts_Source_h_13_PROPERTIES \
+#define TestStrcuts_Source_h_15_STATIC_CLASS \
+public:\
+	typedef Reflect::IReflect SuperClass;\
+	static const Reflect::Class StaticClass;\
+	static void __PlacementNew(S* obj) { new(obj) S; }\
+	static void __PlacementDelete(S* obj) { obj->~S(); }\
+
+
+#define TestStrcuts_Source_h_15_PROPERTIES \
 private:\
 	static Reflect::ReflectMemberProp __REFLECT_MEMBER_PROPS__[2];\
 
 
-#define TestStrcuts_Source_h_13_FUNCTION_DECLARE \
+#define TestStrcuts_Source_h_15_FUNCTION_DECLARE \
 private:\
 
 
-#define TestStrcuts_Source_h_13_FUNCTION_GET \
+#define TestStrcuts_Source_h_15_FUNCTION_GET \
 public:\
 	virtual Reflect::ReflectFunction GetFunction(const char* functionName) override;\
 
 
-#define TestStrcuts_Source_h_13_PROPERTIES_OFFSET \
+#define TestStrcuts_Source_h_15_PROPERTIES_OFFSET \
 private:\
 	static int __REFLECT__Friends() { return offsetof(S, Friends); }; \
 	static int __REFLECT__TimeOnline() { return offsetof(S, TimeOnline); }; \
 
 
-#define TestStrcuts_Source_h_13_PROPERTIES_GET \
+#define TestStrcuts_Source_h_15_PROPERTIES_GET \
 public:\
 virtual Reflect::ReflectMember GetMember(const char* memberName) override;\
 virtual std::vector<Reflect::ReflectMember> GetMembers(std::vector<std::string> const& flags) override;\
 
 
-#define TestStrcuts_Source_h_13_GENERATED_BODY \
-TestStrcuts_Source_h_13_PROPERTIES \
-TestStrcuts_Source_h_13_FUNCTION_DECLARE \
-TestStrcuts_Source_h_13_FUNCTION_GET \
-TestStrcuts_Source_h_13_PROPERTIES_OFFSET \
-TestStrcuts_Source_h_13_PROPERTIES_GET \
+#define TestStrcuts_Source_h_15_GENERATED_BODY \
+TestStrcuts_Source_h_15_STATIC_CLASS \
+TestStrcuts_Source_h_15_PROPERTIES \
+TestStrcuts_Source_h_15_FUNCTION_DECLARE \
+TestStrcuts_Source_h_15_FUNCTION_GET \
+TestStrcuts_Source_h_15_PROPERTIES_OFFSET \
+TestStrcuts_Source_h_15_PROPERTIES_GET \
 
 
-#define TestStrcuts_Source_h_29_PROPERTIES \
+#define TestStrcuts_Source_h_31_STATIC_CLASS \
+public:\
+	typedef Reflect::IReflect SuperClass;\
+	static const Reflect::Class StaticClass;\
+	static void __PlacementNew(Actor* obj) { new(obj) Actor; }\
+	static void __PlacementDelete(Actor* obj) { obj->~Actor(); }\
+
+
+#define TestStrcuts_Source_h_31_PROPERTIES \
+private:\
+	static Reflect::ReflectMemberProp __REFLECT_MEMBER_PROPS__[0];\
+
+
+#define TestStrcuts_Source_h_31_FUNCTION_DECLARE \
+private:\
+
+
+#define TestStrcuts_Source_h_31_FUNCTION_GET \
+public:\
+	virtual Reflect::ReflectFunction GetFunction(const char* functionName) override;\
+
+
+#define TestStrcuts_Source_h_31_PROPERTIES_OFFSET \
+private:\
+
+
+#define TestStrcuts_Source_h_31_PROPERTIES_GET \
+public:\
+virtual Reflect::ReflectMember GetMember(const char* memberName) override;\
+virtual std::vector<Reflect::ReflectMember> GetMembers(std::vector<std::string> const& flags) override;\
+
+
+#define TestStrcuts_Source_h_31_GENERATED_BODY \
+TestStrcuts_Source_h_31_STATIC_CLASS \
+TestStrcuts_Source_h_31_PROPERTIES \
+TestStrcuts_Source_h_31_FUNCTION_DECLARE \
+TestStrcuts_Source_h_31_FUNCTION_GET \
+TestStrcuts_Source_h_31_PROPERTIES_OFFSET \
+TestStrcuts_Source_h_31_PROPERTIES_GET \
+
+
+#define TestStrcuts_Source_h_37_STATIC_CLASS \
+public:\
+	typedef Actor SuperClass;\
+	static const Reflect::Class StaticClass;\
+	static void __PlacementNew(Player* obj) { new(obj) Player; }\
+	static void __PlacementDelete(Player* obj) { obj->~Player(); }\
+
+
+#define TestStrcuts_Source_h_37_PROPERTIES \
 private:\
 	static Reflect::ReflectMemberProp __REFLECT_MEMBER_PROPS__[2];\
 
 
-#define TestStrcuts_Source_h_29_FUNCTION_DECLARE \
+#define TestStrcuts_Source_h_37_FUNCTION_DECLARE \
 private:\
 	static Reflect::ReflectReturnCode __REFLECT_FUNC__GetOnlineFriendsCount(void* objectPtr, void* returnValuePtr, Reflect::FunctionPtrArgs& functionArgs)\
 	{\
@@ -69,29 +127,30 @@ private:\
 	}\
 
 
-#define TestStrcuts_Source_h_29_FUNCTION_GET \
+#define TestStrcuts_Source_h_37_FUNCTION_GET \
 public:\
 	virtual Reflect::ReflectFunction GetFunction(const char* functionName) override;\
 
 
-#define TestStrcuts_Source_h_29_PROPERTIES_OFFSET \
+#define TestStrcuts_Source_h_37_PROPERTIES_OFFSET \
 private:\
 	static int __REFLECT__Friends() { return offsetof(Player, Friends); }; \
 	static int __REFLECT__TimeOnline() { return offsetof(Player, TimeOnline); }; \
 
 
-#define TestStrcuts_Source_h_29_PROPERTIES_GET \
+#define TestStrcuts_Source_h_37_PROPERTIES_GET \
 public:\
 virtual Reflect::ReflectMember GetMember(const char* memberName) override;\
 virtual std::vector<Reflect::ReflectMember> GetMembers(std::vector<std::string> const& flags) override;\
 
 
-#define TestStrcuts_Source_h_29_GENERATED_BODY \
-TestStrcuts_Source_h_29_PROPERTIES \
-TestStrcuts_Source_h_29_FUNCTION_DECLARE \
-TestStrcuts_Source_h_29_FUNCTION_GET \
-TestStrcuts_Source_h_29_PROPERTIES_OFFSET \
-TestStrcuts_Source_h_29_PROPERTIES_GET \
+#define TestStrcuts_Source_h_37_GENERATED_BODY \
+TestStrcuts_Source_h_37_STATIC_CLASS \
+TestStrcuts_Source_h_37_PROPERTIES \
+TestStrcuts_Source_h_37_FUNCTION_DECLARE \
+TestStrcuts_Source_h_37_FUNCTION_GET \
+TestStrcuts_Source_h_37_PROPERTIES_OFFSET \
+TestStrcuts_Source_h_37_PROPERTIES_GET \
 
 
 #undef CURRENT_FILE_ID
