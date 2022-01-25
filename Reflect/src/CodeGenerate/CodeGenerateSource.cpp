@@ -25,6 +25,19 @@ namespace Reflect
 			WriteStaticClass(reflectData, file, addtionalOptions);
 			WriteFunctionGet(reflectData, file, addtionalOptions);
 			WriteMemberGet(reflectData, file, addtionalOptions);
+
+			std::vector<Reflect::ReflectMemberData> serialiseFields;
+			for (const auto& member : reflectData.Members)
+			{
+				const auto it = std::find_if(member.ContainerProps.begin(), member.ContainerProps.end(), [](const auto& p) { return p == "serialise"; });
+				if (it != member.ContainerProps.end())
+				{
+					serialiseFields.push_back(member);
+				}
+			}
+			WriteDataDictionary(serialiseFields, reflectData, file, addtionalOptions);
+			WriteSerialise(serialiseFields, reflectData, file, addtionalOptions);
+			WriteUnserialise(serialiseFields, reflectData, file, addtionalOptions);
 		}
 
 		if (addtionalOptions.Namespace.length())
@@ -134,4 +147,33 @@ namespace Reflect
 	//	}
 	//	file << "\n";
 	//}
+
+	void CodeGenerateSource::WriteDataDictionary(const std::vector<Reflect::ReflectMemberData>& serialiseFields, const Reflect::ReflectContainerData& data, std::ofstream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
+	{
+		if (!serialiseFields.size())
+		{
+			return;
+		}
+
+		file << "const Reflect::UnserialiseField " << data.Name << "::__SERIALISE_FIELDS__[" << serialiseFields.size() << "] = { \n";
+		for (const auto& member : serialiseFields)
+		{
+			file << "\tReflect::UnserialiseField(\"" << member.Name << "\", Reflect::ReadField<" << member.Type << ", __REFLECT__" << member.Name << "()>),\n";
+		}
+		file << "};\n\n";
+	}
+
+	void CodeGenerateSource::WriteSerialise(const std::vector<Reflect::ReflectMemberData>& serialiseFields, const Reflect::ReflectContainerData& data, std::ofstream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
+	{
+		file << "void " << data.Name << "::Serialise(std::ostream &out) {\n";
+		file << "	\n";
+		file << "}\n\n";
+	}
+
+	void CodeGenerateSource::WriteUnserialise(const std::vector<Reflect::ReflectMemberData>& serialiseFields, const Reflect::ReflectContainerData& data, std::ofstream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
+	{
+		file << "void " << data.Name << "::Unserialise(std::istream &in) {\n";
+		file << "	\n";
+		file << "}\n\n";
+	}
 }

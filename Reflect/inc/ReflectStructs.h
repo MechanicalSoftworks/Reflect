@@ -6,6 +6,8 @@
 #include <functional>
 #include <type_traits>
 #include <unordered_map>
+#include <istream>
+#include <vector>
 
 struct ReflectFunction;
 struct ReflectMember;
@@ -333,6 +335,9 @@ namespace Reflect
 		REFLECT_DLL virtual ReflectFunction GetFunction(const std::string_view& functionName) { (void)functionName; return ReflectFunction(nullptr, nullptr);};
 		REFLECT_DLL virtual ReflectMember GetMember(const std::string_view& memberName) { (void)memberName; return ReflectMember("", "void", nullptr); };
 		REFLECT_DLL virtual std::vector<ReflectMember> GetMembers(std::vector<std::string> const& flags) { (void)flags; return {}; };
+		
+		REFLECT_DLL virtual void Serialise(std::ostream& out) {}
+		REFLECT_DLL virtual void Unserialise(std::istream& in) {}
 	};
 }
 

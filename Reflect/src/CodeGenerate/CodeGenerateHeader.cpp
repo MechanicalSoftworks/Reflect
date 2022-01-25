@@ -23,6 +23,8 @@ namespace Reflect
 		file << " // This file is auto generated please don't modify.\n";
 
 		CodeGenerate::IncludeHeader("ReflectStructs.h", file);
+		CodeGenerate::IncludeHeader("Core/Core.h", file);
+		CodeGenerate::IncludeHeader("Core/Serial.h", file);
 		CodeGenerate::IncludeHeader("Core/Util.h", file);
 
 		file << "\n";
@@ -47,6 +49,18 @@ namespace Reflect
 			WriteMemberPropertiesOffsets(reflectData, file, CurrentFileId, addtionalOptions);
 			WriteMemberGet(reflectData, file, CurrentFileId, addtionalOptions);
 
+			std::vector<Reflect::ReflectMemberData> serialiseFields;
+			for (const auto& member : reflectData.Members)
+			{
+				const auto it = std::find_if(member.ContainerProps.begin(), member.ContainerProps.end(), [](const auto& p) { return p == "serialise"; });
+				if (it != member.ContainerProps.end())
+				{
+					serialiseFields.push_back(member);
+				}
+			}
+			WriteDataDictionary(serialiseFields, reflectData, file, CurrentFileId, addtionalOptions);
+			WriteSerialiseMethods(serialiseFields, reflectData, file, CurrentFileId, addtionalOptions);
+
 			WRITE_CURRENT_FILE_ID(data.FileName) + "_" + std::to_string(reflectData.ReflectGenerateBodyLine) + "_GENERATED_BODY \\\n";
 			file << CurrentFileId + "_STATIC_CLASS \\\n";
 			file << CurrentFileId + "_PROPERTIES \\\n";
@@ -54,6 +68,8 @@ namespace Reflect
 			file << CurrentFileId + "_FUNCTION_GET \\\n";
 			file << CurrentFileId + "_PROPERTIES_OFFSET \\\n";
 			file << CurrentFileId + "_PROPERTIES_GET \\\n";
+			file << CurrentFileId + "_DATA_DICTIONARY \\\n";
+			file << CurrentFileId + "_SERIALISE_METHODS \\\n";
 
 			WRITE_CLOSE();
 		}
@@ -168,6 +184,29 @@ namespace Reflect
 		file << "#define " + currentFileId + "_FUNCTION_GET \\\n";
 		WRITE_PUBLIC();
 		file << "\tvirtual Reflect::ReflectFunction GetFunction(const std::string_view &functionName) override;\\\n";
+		WRITE_CLOSE();
+	}
+
+	void CodeGenerateHeader::WriteDataDictionary(const std::vector<Reflect::ReflectMemberData>& serialiseFields, const Reflect::ReflectContainerData& data, std::ofstream& file, const std::string& currentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)
+	{
+		file << "#define " + currentFileId + "_DATA_DICTIONARY \\\n";
+		WRITE_PUBLIC();
+		if (serialiseFields.size())
+		{
+			file << "static const Reflect::UnserialiseField __SERIALISE_FIELDS__[" << serialiseFields.size() << "];\\\n";
+		}
+		WRITE_CLOSE();
+	}
+
+	void CodeGenerateHeader::WriteSerialiseMethods(const std::vector<Reflect::ReflectMemberData>& serialiseFields, const Reflect::ReflectContainerData& data, std::ofstream& file, const std::string& currentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)
+	{
+		file << "#define " + currentFileId + "_SERIALISE_METHODS \\\n";
+		WRITE_PUBLIC();
+
+		// Always write - sometimes we might need to passthrough a class.
+		file << "virtual void Serialise(std::ostream &out) override;\\\n";
+		file << "virtual void Unserialise(std::istream &in) override;\\\n";
+
 		WRITE_CLOSE();
 	}
 }

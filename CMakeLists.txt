@@ -14,6 +14,3 @@ add_subdirectory(Reflect)
 add_subdirectory(ReflectDLL)
 add_subdirectory(ReflectEXE)
 add_subdirectory(ReflectTest)
-
-add_subdirectory(Serial)
-add_subdirectory(SerialEXE)
