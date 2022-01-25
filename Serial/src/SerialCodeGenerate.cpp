@@ -17,7 +17,7 @@ namespace Serial
 	SerialCodeGenerate::~SerialCodeGenerate()
 	{ }
 
-	void SerialCodeGenerate::Reflect(const Reflect::FileParsedData& data, const SerialCodeGenerateAddtionalOptions& addtionalOptions)
+	void SerialCodeGenerate::Generate(const Reflect::FileParsedData& data, const SerialCodeGenerateAddtionalOptions& addtionalOptions)
 	{
 		REFLECT_PROFILE_FUNCTION();
 

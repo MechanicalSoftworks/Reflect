@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ostream>
+
 #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
 #define CPP_17 1
 #else
@@ -10,20 +12,10 @@
 #pragma error C++17 must be used.
 #endif
 
-#ifdef REFLECT_DLL_EXPORT
-#define REFLECT_DLL __declspec(dllexport)
-#elif defined (REFLECT_DLL_IMPORT)
-#define REFLECT_DLL __declspec(dllimport)
-#else 
-#define REFLECT_DLL
-#endif
-
-#define REFLECT_PROPERTY(...)
-
 #define __SERIAL_BODY_MACRO_COMBINE_INNER(A, B, C, D) A##B##C##D
 #define __SERIAL_BODY_MACRO_COMBINE(A, B, C, D) __SERIAL_BODY_MACRO_COMBINE_INNER(A, B, C, D)
 
-#define SERIAL_GENERATED_BODY(...) __SERIAL_BODY_MACRO_COMBINE(CURRENT_FILE_ID, _, __LINE__, _GENERATED_BODY);
+#define SERIAL_GENERATED_BODY(...) __SERIAL_BODY_MACRO_COMBINE(CURRENT_FILE_ID, _, __LINE__, _SERIAL_GENERATED_BODY);
 
 namespace Serial
 {
@@ -34,6 +26,20 @@ namespace Serial
 	constexpr const char* SerialGeneratedBodykey = "SERIAL_GENERATED_BODY";
 	constexpr const char* SerialFileGeneratePrefix = ".serial";
 	constexpr const char* SerialFileHeaderGuard = "_serial";
+
+	// Reads a field from the stream into the given member.
+	template<typename T, size_t offset>
+	void ReadField(std::ostream& o, void* self)
+	{
+		o >> *(T*)((char*)self + offset);
+	}
+	typedef void (*ReadFieldType)(std::ostream& s, void* self);
+
+	struct UnserialiseField
+	{
+		const char* name;
+		ReadFieldType read;
+	};
 }
 
 #define SERIAL_GET_VERSION() \

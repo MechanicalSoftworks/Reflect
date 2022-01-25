@@ -15,10 +15,7 @@ namespace Serial
 		void GenerateSource(const Reflect::FileParsedData& data, std::ofstream& file, const SerialCodeGenerateAddtionalOptions& addtionalOptions);
 
 	private:
-		void WriteMemberProperties(const Reflect::ReflectContainerData& data, std::ofstream& file, const SerialCodeGenerateAddtionalOptions& addtionalOptions);
-		void WriteStaticClass(const Reflect::ReflectContainerData& data, std::ofstream& file, const SerialCodeGenerateAddtionalOptions& addtionalOptions);
-
-		void WriteMemberGet(const Reflect::ReflectContainerData& data, std::ofstream& file, const SerialCodeGenerateAddtionalOptions& addtionalOptions);
-		void WriteFunctionGet(const Reflect::ReflectContainerData& data, std::ofstream& file, const SerialCodeGenerateAddtionalOptions& addtionalOptions);
+		void WriteSerialise(const Reflect::ReflectContainerData& data, std::ofstream& file, const SerialCodeGenerateAddtionalOptions& addtionalOptions);
+		void WriteUnserialise(const Reflect::ReflectContainerData& data, std::ofstream& file, const SerialCodeGenerateAddtionalOptions& addtionalOptions);
 	};
 }

@@ -52,7 +52,7 @@ int main(int argc, char* argv[])
 					options.OutputCPPDir = file.FilePath;
 				}
 
-				codeGenerate.Reflect(file, options);
+				codeGenerate.Generate(file, options);
 			}
 		}
 	}
@@ -61,6 +61,6 @@ int main(int argc, char* argv[])
 	//std::cout << "Reflect mill: " << timer.GetElapsedTimeMill() << std::endl;
 	//std::cout << "Reflect sec: " << timer.GetElapsedTimeSec() << std::endl;
 	REFLECT_PROFILE_END_SESSION();
-	REFLECT_PROFILE_SAVE_SESSION("ReflectEXE_Profile.json");
+	REFLECT_PROFILE_SAVE_SESSION("SerialEXE_Profile.json");
 	return 0;
 }

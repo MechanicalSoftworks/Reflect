@@ -22,7 +22,7 @@ namespace Serial
 		SerialCodeGenerate();
 		~SerialCodeGenerate();
 
-		void Reflect(const Reflect::FileParsedData& data, const SerialCodeGenerateAddtionalOptions& addtionalOptions);
+		void Generate(const Reflect::FileParsedData& data, const SerialCodeGenerateAddtionalOptions& addtionalOptions);
 		static void IncludeHeader(const std::string& headerToInclude, std::ofstream& file, bool windowsInclude = false);
 
 	private:
