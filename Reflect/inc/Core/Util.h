@@ -4,9 +4,14 @@
 #include <string>
 #include <algorithm>
 #include <typeinfo>
+#include <vector>
+#include <map>
 
 namespace Reflect
 {
+	class Class;
+	class ReflectMember;
+
 	namespace Util
 	{
 		static std::string ToLower(std::string str)
@@ -19,11 +24,12 @@ namespace Reflect
 		}
 
 		std::string ValidateTypeName(const std::string& str);
+		std::string Demangled(const std::type_info& info);
 
 		template<typename T>
 		constexpr const char* GetTypeName()
 		{
-			return typeid(T).name();
+			return Demangled(typeid(T));
 		}
 
 		template<typename T>

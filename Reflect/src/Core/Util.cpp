@@ -17,4 +17,17 @@ namespace Reflect
 		}
 		return str.substr(0, index);
 	}
+
+	std::string Util::Demangled(const std::type_info& info)
+	{
+#ifdef _MSC_VER
+		return info.name();
+#elif defined __GNUC__
+		std::unique_ptr<char, void(*)(void*)>
+			name{ abi::__cxa_demangle(info.name(), 0, 0, nullptr), std::free };
+		return { name.get() };
+#else
+#	error "Implement this platform"
+#endif
+	}
 }

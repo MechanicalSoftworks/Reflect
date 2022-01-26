@@ -330,14 +330,28 @@ namespace Reflect
 		const ReflectMemberProp* m_member_props;
 	};
 
+	class Serialiser;
+	class Unserialiser;
+
 	struct IReflect
 	{
+		// Initialisation.
+		REFLECT_DLL void Initialise(Class* static_class) { m_class = static_class; }
+
+		// Misc.
+		REFLECT_DLL Class* GetClass() const { return m_class; }
+
+		// Reflection.
 		REFLECT_DLL virtual ReflectFunction GetFunction(const std::string_view& functionName) { (void)functionName; return ReflectFunction(nullptr, nullptr);};
 		REFLECT_DLL virtual ReflectMember GetMember(const std::string_view& memberName) { (void)memberName; return ReflectMember("", "void", nullptr); };
 		REFLECT_DLL virtual std::vector<ReflectMember> GetMembers(std::vector<std::string> const& flags) { (void)flags; return {}; };
 		
-		REFLECT_DLL virtual void Serialise(std::ostream& out) {}
-		REFLECT_DLL virtual void Unserialise(std::istream& in) {}
+		// Serialisation.
+		REFLECT_DLL virtual void Serialise(Serialiser &s, std::ostream& out) const {}
+		REFLECT_DLL virtual void Unserialise(Unserialiser &u, std::istream& in) {}
+
+	private:
+		Class* m_class = nullptr;
 	};
 }
 

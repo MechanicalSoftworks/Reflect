@@ -204,8 +204,8 @@ namespace Reflect
 		WRITE_PUBLIC();
 
 		// Always write - sometimes we might need to passthrough a class.
-		file << "virtual void Serialise(std::ostream &out) override;\\\n";
-		file << "virtual void Unserialise(std::istream &in) override;\\\n";
+		file << "virtual void Serialise(Serialiser &s, std::ostream &out) override;\\\n";
+		file << "virtual void Unserialise(Unserialiser &u, std::istream &in) override;\\\n";
 
 		WRITE_CLOSE();
 	}

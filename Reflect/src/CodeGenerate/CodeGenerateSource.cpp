@@ -165,14 +165,14 @@ namespace Reflect
 
 	void CodeGenerateSource::WriteSerialise(const std::vector<Reflect::ReflectMemberData>& serialiseFields, const Reflect::ReflectContainerData& data, std::ofstream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
-		file << "void " << data.Name << "::Serialise(std::ostream &out) {\n";
+		file << "void " << data.Name << "::Serialise(Serialiser &s, std::ostream &out) const {\n";
 		file << "	\n";
 		file << "}\n\n";
 	}
 
 	void CodeGenerateSource::WriteUnserialise(const std::vector<Reflect::ReflectMemberData>& serialiseFields, const Reflect::ReflectContainerData& data, std::ofstream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
-		file << "void " << data.Name << "::Unserialise(std::istream &in) {\n";
+		file << "void " << data.Name << "::Unserialise(Unserialiser &u, std::istream &in) {\n";
 		file << "	\n";
 		file << "}\n\n";
 	}
