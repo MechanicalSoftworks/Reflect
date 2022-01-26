@@ -47,6 +47,9 @@ namespace Reflect
 
 		index_t Add(const std::string_view& view);
 		const std::string_view At(index_t i) const;
+		index_t Count() const { return (index_t)m_entries.size(); }
+
+		void Clear() { m_entries.clear(); m_pool.clear(); m_cache.clear(); }
 
 		void Serialise(Serialiser& s, std::ostream& fout) const;
 		void Unserialise(Unserialiser& u, std::istream& fin);
@@ -90,10 +93,11 @@ namespace Reflect
 	class REFLECT_DLL Serialiser
 	{
 	public:
+		Serialiser() {}
 		Serialiser(const Serialiser&) = delete;
 		Serialiser(const Serialiser&&) = delete;
 
-		Serialiser(std::ostream &fout, const IReflect &root);
+		void Write(std::ostream& fout, const IReflect& root);
 
 		// Include schemas for each object.
 		// Allows us to load older messages (such as saved project files).
@@ -116,9 +120,10 @@ namespace Reflect
 	public:
 		Unserialiser(const Unserialiser&) = delete;
 		Unserialiser(const Unserialiser&&) = delete;
-
-		Unserialiser(std::istream& in, AlignedAlloc alloc, AlignedFree free);
+		Unserialiser(AlignedAlloc alloc, AlignedFree free);
 		~Unserialiser();
+
+		void Read(std::istream& in);
 
 		IReflect* Detach();
 		const StringPool& GetStringPool() const { return m_string_pool; }
@@ -168,19 +173,21 @@ namespace Reflect
 
 		//
 		// Default types (non IReflect).
+		// Since these use binary IO they're only enabled for integer & float types.
+		// These serve as the blocks upon which all other read + write functions are built upon.
 		//
-		template<typename T>
+		template<typename T, typename = std::enable_if_t<std::is_integral_v<T> || std::is_floating_point_v<T>>>
 		inline typename std::enable_if<!std::is_base_of<IReflect, T>::value>::type
 			write(Serialiser& s, std::ostream& out, const T& v)
 		{
-			out << v;
+			out.write((const char *)&v, sizeof(v));
 		}
 
-		template<typename T>
+		template<typename T, typename = std::enable_if_t<std::is_integral_v<T> || std::is_floating_point_v<T>>>
 		inline typename std::enable_if<!std::is_base_of<IReflect, T>::value>::type
 			read(Unserialiser& u, std::istream& in, T& v)
 		{
-			in >> v;
+			in.read((char *)&v, sizeof(v));
 		}
 
 		//
@@ -190,7 +197,7 @@ namespace Reflect
 		inline typename std::enable_if<!std::is_base_of<IReflect, T>::value>::type
 			write(Serialiser& s, std::ostream& out, const std::vector<T>& v)
 		{
-			out << (uint32_t)v.size();
+			write(s, out, (uint32_t)v.size());
 			for (const auto &it : v)
 			{
 				write(s, out, it);
@@ -202,7 +209,7 @@ namespace Reflect
 			read(Unserialiser& u, std::istream& in, std::vector<T>& v)
 		{
 			uint32_t count;
-			in >> count;
+			read(u, in, count);
 
 			v.reserve(count);
 
@@ -234,7 +241,7 @@ namespace Reflect
 			read(Unserialiser& u, std::istream& in, std::map<K, V>& m)
 		{
 			uint32_t count;
-			in >> count;
+			read(u, in, count);
 
 			for (uint32_t i = 0; i < count; i++)
 			{
@@ -286,7 +293,7 @@ namespace Reflect
 			read(Unserialiser& u, std::istream& in, std::vector<T>& v)
 		{
 			uint32_t count;
-			in >> count;
+			read(u, in, count);
 
 			for (uint32_t i = 0; i < count; i++)
 			{
@@ -317,7 +324,7 @@ namespace Reflect
 			read(Unserialiser& u, std::istream& in, std::map<K, V>& m)
 		{
 			uint32_t count;
-			in >> count;
+			read(u, in, count);
 
 			for (uint32_t i = 0; i < count; i++)
 			{
@@ -344,7 +351,7 @@ namespace Reflect
 		inline void read(Unserialiser& u, std::istream& in, std::string& v)
 		{
 			StringPool::index_t index;
-			in >> index;
+			read(u, in, index);
 			v = u.GetStringPool().At(index);
 		}
 
@@ -416,9 +423,9 @@ namespace Reflect
 			return it->second;
 		}
 
-		m_pool.append(view);
 		m_cache[s] = (index_t)m_entries.size();
 		m_entries.push_back(entry_t((uint32_t)m_pool.length(), (uint32_t)view.length()));
+		m_pool.append(view);
 
 		return (index_t)m_entries.size() - 1;
 	}
@@ -454,20 +461,20 @@ namespace Reflect
 		// Reserve memory for the string pool.
 		// Means malloc cost is minimized - just need to optimise for input.
 		// Don't use resize()! That will initialise each character!
-		fin >> length;
+		FieldImpl::read(u, fin, length);
 		m_pool.reserve(length);
 
 		// Read the string in 256 char chunks.
 		while (length)
 		{
 			index_t read_sz = std::min(length, (index_t)sizeof(buf));
-			fin.getline(buf, read_sz);
+			fin.read(buf, read_sz);
 			m_pool.append(buf);
 			length -= read_sz;
 		}
 
 		// Read the pool metadata.
-		fin >> count;
+		FieldImpl::read(u, fin, count);
 		m_entries.reserve(count);
 		for (index_t i = 0; i < count; i++)
 		{

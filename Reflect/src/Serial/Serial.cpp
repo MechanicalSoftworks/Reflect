@@ -54,7 +54,7 @@ private:
 
 namespace Reflect
 {
-	Serialiser::Serialiser(std::ostream& fout, const IReflect& root)
+	void Serialiser::Write(std::ostream& fout, const IReflect& root)
 	{
 		// Get a temp file to store the binary data.
 		char temp_path[512];
@@ -100,9 +100,22 @@ namespace Reflect
 	//==========================================================================
 	//==========================================================================
 
-	Unserialiser::Unserialiser(std::istream& fin, AlignedAlloc alloc, AlignedFree free)
+	Unserialiser::Unserialiser(AlignedAlloc alloc, AlignedFree free)
 		: m_alloc(alloc)
 		, m_free(free)
+	{
+	}
+
+	Unserialiser::~Unserialiser()
+	{
+		if (m_root)
+		{
+			m_root_class->Destructor(m_root);
+			m_free(m_root);
+		}
+	}
+
+	void Unserialiser::Read(std::istream& fin)
 	{
 		// Read the header.
 		header_t header(fin);
@@ -124,7 +137,7 @@ namespace Reflect
 		}
 
 		// Create the root entity.
-		m_root = (IReflect*)alloc(m_root_class->GetRawSize(), m_root_class->GetAlignment());
+		m_root = (IReflect*)m_alloc(m_root_class->GetRawSize(), m_root_class->GetAlignment());
 		if (!m_root)
 		{
 			throw std::bad_alloc();
@@ -133,15 +146,6 @@ namespace Reflect
 
 		// Recreate the scene.
 		m_root->Unserialise(*this, fin);
-	}
-
-	Unserialiser::~Unserialiser()
-	{
-		if (m_root)
-		{
-			m_root_class->Destructor(m_root);
-			m_free(m_root);
-		}
 	}
 
 	IReflect* Unserialiser::Detach()
