@@ -336,10 +336,10 @@ namespace Reflect
 	struct REFLECT_DLL IReflect
 	{
 		// Initialisation.
-		void Initialise(Class* static_class) { m_class = static_class; }
+		void Initialise(const Class* static_class) { m_class = static_class; }
 
 		// Misc.
-		Class* GetClass() const { return m_class; }
+		const Class* GetClass() const { return m_class; }
 
 		// Reflection.
 		virtual ReflectFunction GetFunction(const std::string_view& functionName) { (void)functionName; return ReflectFunction(nullptr, nullptr);};
@@ -351,7 +351,7 @@ namespace Reflect
 		virtual void Unserialise(Unserialiser &u, std::istream& in) {}
 
 	private:
-		Class* m_class = nullptr;
+		const Class* m_class = nullptr;
 	};
 }
 

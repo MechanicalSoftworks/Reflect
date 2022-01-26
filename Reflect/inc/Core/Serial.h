@@ -97,7 +97,7 @@ namespace Reflect
 		Serialiser(const Serialiser&) = delete;
 		Serialiser(const Serialiser&&) = delete;
 
-		void Write(std::ostream& fout, const IReflect& root);
+		virtual void Write(std::ostream& fout, const IReflect& root);
 
 		// Include schemas for each object.
 		// Allows us to load older messages (such as saved project files).
@@ -123,7 +123,7 @@ namespace Reflect
 		Unserialiser(AlignedAlloc alloc, AlignedFree free);
 		~Unserialiser();
 
-		void Read(std::istream& in);
+		virtual void Read(std::istream& in);
 
 		IReflect* Detach();
 		const StringPool& GetStringPool() const { return m_string_pool; }
@@ -262,7 +262,7 @@ namespace Reflect
 		//
 		// IReflect
 		//
-		inline void read(Serialiser& s, std::ostream& out, const IReflect& v)
+		inline void write(Serialiser& s, std::ostream& out, const IReflect& v)
 		{
 			s.AddSchema(*v.GetClass());
 			v.Serialise(s, out);
@@ -489,6 +489,9 @@ namespace Reflect
 	inline FieldSchema::FieldSchema(const Reflect::Class* static_class, StringPool& pool)
 		: type(static_class->GetName())
 	{
+		// Yes, technically 'name' is empty here. But we need to ensure the string
+		// pool has an empty string for deserialisation!
+		pool.Add(name);
 		pool.Add(type);
 
 		for (const auto& f : static_class->GetMembers({ "serialise" }, false))

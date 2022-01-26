@@ -7,17 +7,21 @@ struct header_t
 	static constexpr uint8_t PAD = 0;
 	static constexpr uint16_t ENDIAN = 1;
 
-	header_t(std::ostream& fout)
+	header_t(Reflect::Serialiser& s, std::ostream& fout)
 	{
-		fout << VERSION << PAD << ENDIAN;
+		Reflect::FieldImpl::write(s, fout, VERSION);
+		Reflect::FieldImpl::write(s, fout, PAD);
+		Reflect::FieldImpl::write(s, fout, ENDIAN);
 	}
 
-	header_t(std::istream& fin)
+	header_t(Reflect::Unserialiser &u, std::istream& fin)
 	{
 		uint8_t version, pad;
 		uint16_t endian;
 
-		fin >> version >> pad >> endian;
+		Reflect::FieldImpl::read(u, fin, version);
+		Reflect::FieldImpl::read(u, fin, pad);
+		Reflect::FieldImpl::read(u, fin, endian);
 
 		if (version != VERSION)
 		{
@@ -61,8 +65,8 @@ namespace Reflect
 		tmpnam(temp_path);
 
 		// Open the temp file the entity data is written to.
-		std::fstream ftemp(temp_path, std::ios::binary);
-		if (!ftemp.good())
+		std::ofstream oftemp(temp_path, std::ios::out | std::ios::binary);
+		if (!oftemp.good())
 		{
 			throw std::runtime_error("Couldn't create temp Serialiser file");
 		}
@@ -73,16 +77,18 @@ namespace Reflect
 
 		// Write the entity data to the temp file.
 		// Schema and string pool information will be written at the same time.
-		ftemp << m_string_pool.Add(root.GetClass()->GetName());
-		root.Serialise(*this, ftemp);
+		FieldImpl::write(*this, oftemp, m_string_pool.Add(root.GetClass()->GetName()));
+		FieldImpl::write(*this, oftemp, root);
+		oftemp.close();
 
 		// Write the header, now that's been populated by object serialisation.
-		header_t hdr(fout);
+		header_t hdr(*this, fout);
 		FieldImpl::write(*this, fout, m_string_pool);
 		FieldImpl::write(*this, fout, m_schemas);
 		
 		// Copy the binary data into the output stream.
-		fout << ftemp.rdbuf();
+		std::ifstream iftemp(temp_path, std::ios::in | std::ios::binary);
+		fout << iftemp.rdbuf();
 	}
 
 	void Serialiser::AddSchema(const Reflect::Class& static_class)
@@ -118,7 +124,7 @@ namespace Reflect
 	void Unserialiser::Read(std::istream& fin)
 	{
 		// Read the header.
-		header_t header(fin);
+		header_t header(*this, fin);
 
 		// Read the objects.
 		FieldImpl::read(*this, fin, m_string_pool);
@@ -126,7 +132,7 @@ namespace Reflect
 
 		// Read the root object type.
 		StringPool::index_t root_type_index;
-		fin >> root_type_index;
+		FieldImpl::read(*this, fin, root_type_index);
 
 		// Get the root object class.
 		const auto root_type_string = m_string_pool.At(root_type_index);
@@ -142,10 +148,11 @@ namespace Reflect
 		{
 			throw std::bad_alloc();
 		}
+		m_root->Initialise(m_root_class);
 		m_root_class->Constructor(m_root);
 
 		// Recreate the scene.
-		m_root->Unserialise(*this, fin);
+		FieldImpl::read(*this, fin, *m_root);
 	}
 
 	IReflect* Unserialiser::Detach()
