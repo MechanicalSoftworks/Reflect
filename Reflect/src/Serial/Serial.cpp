@@ -73,28 +73,28 @@ namespace Reflect
 
 		// Write the entity data to the temp file.
 		// Schema and string pool information will be written at the same time.
-		ftemp << m_string_pool.add(root.GetClass()->GetName());
+		ftemp << m_string_pool.Add(root.GetClass()->GetName());
 		root.Serialise(*this, ftemp);
 
 		// Write the header, now that's been populated by object serialisation.
 		header_t hdr(fout);
-		// TODO
-		//fout << m_string_pool << m_schemas;
+		FieldImpl::write(*this, fout, m_string_pool);
+		FieldImpl::write(*this, fout, m_schemas);
 		
 		// Copy the binary data into the output stream.
 		fout << ftemp.rdbuf();
 	}
 
-	void Serialiser::AddSchema(Reflect::Class* static_class)
+	void Serialiser::AddSchema(const Reflect::Class& static_class)
 	{
-		const std::string class_name = static_class->GetName();
+		const std::string class_name = static_class.GetName();
 
 		if (m_schemas.find(class_name) != m_schemas.end())
 		{
 			return;
 		}
 
-		m_schemas.insert(std::pair(class_name, FieldSchema(static_class, m_string_pool)));
+		m_schemas.insert(std::pair(class_name, FieldSchema(&static_class, m_string_pool)));
 	}
 
 	//==========================================================================
@@ -108,15 +108,15 @@ namespace Reflect
 		header_t header(fin);
 
 		// Read the objects.
-		ReadFieldImpl::impl(*this, fin, m_schemas);
-		ReadFieldImpl::impl(*this, fin, m_string_pool);
+		FieldImpl::read(*this, fin, m_string_pool);
+		FieldImpl::read(*this, fin, m_schemas);
 
 		// Read the root object type.
 		StringPool::index_t root_type_index;
 		fin >> root_type_index;
 
 		// Get the root object class.
-		const auto root_type_string = m_string_pool.at(root_type_index);
+		const auto root_type_string = m_string_pool.At(root_type_index);
 		m_root_class = Class::Lookup(root_type_string);
 		if (!m_root_class)
 		{

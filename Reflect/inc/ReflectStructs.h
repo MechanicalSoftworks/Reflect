@@ -95,7 +95,7 @@ namespace Reflect
 
 	struct ReflectMemberProp
 	{
-		ReflectMemberProp(const char* name, const char* type, int offset, std::vector<std::string> const& strProperties)
+		ReflectMemberProp(const char* name, const std::string &type, int offset, std::vector<std::string> const& strProperties)
 			: Name(name)
 			, Type(type)
 			, Offset(offset)
@@ -118,7 +118,7 @@ namespace Reflect
 		}
 
 		const char* Name;
-		const char* Type;
+		std::string Type;
 		int Offset;
 		std::vector<std::string> StrProperties;
 	};
@@ -244,7 +244,7 @@ namespace Reflect
 		template<typename T>
 		REFLECT_DLL T* ConvertToType()
 		{
-			const char* convertType = Reflect::Util::GetTypeName<T>();
+			const auto convertType = Reflect::Util::GetTypeName<T>();
 			if (convertType != m_type)
 			{
 				return nullptr;
@@ -333,22 +333,22 @@ namespace Reflect
 	class Serialiser;
 	class Unserialiser;
 
-	struct IReflect
+	struct REFLECT_DLL IReflect
 	{
 		// Initialisation.
-		REFLECT_DLL void Initialise(Class* static_class) { m_class = static_class; }
+		void Initialise(Class* static_class) { m_class = static_class; }
 
 		// Misc.
-		REFLECT_DLL Class* GetClass() const { return m_class; }
+		Class* GetClass() const { return m_class; }
 
 		// Reflection.
-		REFLECT_DLL virtual ReflectFunction GetFunction(const std::string_view& functionName) { (void)functionName; return ReflectFunction(nullptr, nullptr);};
-		REFLECT_DLL virtual ReflectMember GetMember(const std::string_view& memberName) { (void)memberName; return ReflectMember("", "void", nullptr); };
-		REFLECT_DLL virtual std::vector<ReflectMember> GetMembers(std::vector<std::string> const& flags) { (void)flags; return {}; };
+		virtual ReflectFunction GetFunction(const std::string_view& functionName) { (void)functionName; return ReflectFunction(nullptr, nullptr);};
+		virtual ReflectMember GetMember(const std::string_view& memberName) { (void)memberName; return ReflectMember("", "void", nullptr); };
+		virtual std::vector<ReflectMember> GetMembers(std::vector<std::string> const& flags) { (void)flags; return {}; };
 		
 		// Serialisation.
-		REFLECT_DLL virtual void Serialise(Serialiser &s, std::ostream& out) const {}
-		REFLECT_DLL virtual void Unserialise(Unserialiser &u, std::istream& in) {}
+		virtual void Serialise(Serialiser &s, std::ostream& out) const {}
+		virtual void Unserialise(Unserialiser &u, std::istream& in) {}
 
 	private:
 		Class* m_class = nullptr;

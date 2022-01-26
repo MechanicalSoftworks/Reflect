@@ -9,9 +9,6 @@
 
 namespace Reflect
 {
-	class Class;
-	class ReflectMember;
-
 	namespace Util
 	{
 		static std::string ToLower(std::string str)
@@ -27,7 +24,7 @@ namespace Reflect
 		std::string Demangled(const std::type_info& info);
 
 		template<typename T>
-		constexpr const char* GetTypeName()
+		std::string GetTypeName()
 		{
 			return Demangled(typeid(T));
 		}
