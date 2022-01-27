@@ -24,7 +24,7 @@ namespace Reflect
 		s_classes[c->m_name] = c;
 	}
 
-	REFLECT_DLL void RegisterOverride(const char* name, const Class* c)
+	REFLECT_DLL void Class::RegisterOverride(const char* name, const Class* c)
 	{
 		s_classes[name] = (Class *)c;
 	}

@@ -297,7 +297,7 @@ namespace Reflect
 		{
 			std::vector<Reflect::ReflectMember> members;
 
-			GetMembersInternal(members, flags);
+			GetMembersInternal(members, flags, recursive);
 			
 			return members;
 		}
@@ -309,10 +309,10 @@ namespace Reflect
 		const Class* GetSuperClass() const { return m_super_class; }
 
 	private:
-		REFLECT_DLL void GetMembersInternal(std::vector<Reflect::ReflectMember>& members, std::vector<std::string> const& flags) const
+		REFLECT_DLL void GetMembersInternal(std::vector<Reflect::ReflectMember>& members, std::vector<std::string> const& flags, bool recursive) const
 		{
-			if (m_super_class)
-				m_super_class->GetMembersInternal(members, flags);
+			if (recursive && m_super_class)
+				m_super_class->GetMembersInternal(members, flags, recursive);
 
 			for (size_t i = 0; i < m_member_prop_count; i++)
 			{

@@ -189,6 +189,7 @@ namespace Reflect
 			file << "\t\tconst auto& field = old_schema.fields[i];\n";
 			file << "\t\tnew_it = Reflect::Util::circular_find_if(new_it, __SERIALISE_FIELDS__.begin(), __SERIALISE_FIELDS__.end(), [&field](const auto &f){ return field.name == f.name; });\n";
 			file << "\t\tif (new_it == __SERIALISE_FIELDS__.end() || new_it->type != field.type) {\n";
+			file << "\t\t\tReflect::SkipField(u, in, field.type);\n";
 			file << "\t\t\tcontinue;\n";
 			file << "\t\t}\n";
 			file << "\t\tnew_it->read(u, in, this);\n";

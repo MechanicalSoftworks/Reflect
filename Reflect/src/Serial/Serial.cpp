@@ -78,13 +78,13 @@ namespace Reflect
 		// Write the entity data to the temp file.
 		// Schema and string pool information will be written at the same time.
 		FieldImpl::write(*this, oftemp, m_string_pool.Add(root.GetClass()->GetName()));
-		FieldImpl::write(*this, oftemp, root);
+		WriteField(*this, oftemp, root);
 		oftemp.close();
 
 		// Write the header, now that's been populated by object serialisation.
 		header_t hdr(*this, fout);
-		FieldImpl::write(*this, fout, m_string_pool);
-		FieldImpl::write(*this, fout, m_schemas);
+		WriteField(*this, fout, m_string_pool);
+		WriteField(*this, fout, m_schemas);
 		
 		// Copy the binary data into the output stream.
 		std::ifstream iftemp(temp_path, std::ios::in | std::ios::binary);
@@ -130,8 +130,8 @@ namespace Reflect
 		header_t header(*this, fin);
 
 		// Read the objects.
-		FieldImpl::read(*this, fin, m_string_pool);
-		FieldImpl::read(*this, fin, m_schemas);
+		ReadField<decltype(m_string_pool), 0>(*this, fin, &m_string_pool);
+		ReadField<decltype(m_schemas), 0>(*this, fin, &m_schemas);
 
 		bool error = false;
 
@@ -147,7 +147,7 @@ namespace Reflect
 				continue;
 			}
 
-			const auto current_fields = current_schema->GetMembers({ "serialise"});
+			const auto current_fields = current_schema->GetMembers({ "serialise"}, false);
 			const auto& message_fields = message_schema.second.fields;
 
 			for (const auto& message_field : message_fields)
@@ -161,14 +161,14 @@ namespace Reflect
 				// Look for fields that are in the message, but removed from the object.
 				if (current_field == current_fields.end())
 				{
-					m_schema_differences.push_back(SchemaDifference(false, std::string("Class ") + message_schema.first + " no longer has field " + message_field.name + ". It will be ignored"));
+					m_schema_differences.push_back(SchemaDifference(false, std::string("Field ") + message_schema.first + "::" + message_field.name + " no longer exists. It will be ignored"));
 					continue;
 				}
 
 				// Look for a change in data type.
 				if (current_field->GetTypeName() != message_field.type)
 				{
-					m_schema_differences.push_back(SchemaDifference(false, std::string("Class ") + message_schema.first + " was a '" + message_field.type + "', but now is a '" + current_field->GetTypeName() + "'.It will be ignored"));
+					m_schema_differences.push_back(SchemaDifference(false, std::string("Field ") + message_schema.first + "::" + message_field.name + " was a '" + message_field.type + "', but now is a '" + current_field->GetTypeName() + "'. It will be left at its default value"));
 					continue;
 				}
 			}
@@ -184,7 +184,7 @@ namespace Reflect
 				// Look for fields that exist in the object, but aren't included in the message.
 				if (message_field == message_fields.end())
 				{
-					m_schema_differences.push_back(SchemaDifference(false, std::string("Class ") + message_schema.first + " has a new field " + current_field.GetName() + ". It will be left at its default value"));
+					m_schema_differences.push_back(SchemaDifference(false, std::string("Field ") + message_schema.first + "::" + current_field.GetName() + " was added. It will be left at its default value"));
 					continue;
 				}
 			}
@@ -217,7 +217,7 @@ namespace Reflect
 		m_root->Initialise(m_root_class);
 
 		// Recreate the scene.
-		FieldImpl::read(*this, fin, *m_root);
+		ReadField<IReflect, 0>(*this, fin, m_root);
 	}
 
 	IReflect* Unserialiser::Detach()
@@ -237,5 +237,10 @@ namespace Reflect
 		}
 
 		throw std::runtime_error("Unknown schema");
+	}
+
+	void Unserialiser::RegisterSchemaAlias(const char* alias, const char* old_type)
+	{
+		m_schemas[alias] = m_schemas[old_type];
 	}
 }

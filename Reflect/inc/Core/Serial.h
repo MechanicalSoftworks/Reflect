@@ -140,6 +140,9 @@ namespace Reflect
 		const StringPool& GetStringPool() const { return m_string_pool; }
 		const FieldSchema& GetSchema(const std::string& name) const;
 
+		// Must be called after ParseHeader!
+		void RegisterSchemaAlias(const char* alias, const char* old_type);
+
 	private:
 		std::map<std::string, FieldSchema> m_schemas;
 		StringPool m_string_pool;
@@ -168,6 +171,8 @@ namespace Reflect
 
 	namespace FieldImpl
 	{
+		static constexpr char TERMINATOR = (char)0xFF;
+
 		//----------------------------------------------------------------------
 		// Misc templates (declarations).
 		// These are used by the generic templates. Need to be known to the compiler.
@@ -190,18 +195,61 @@ namespace Reflect
 		// Since these use binary IO they're only enabled for integer & float types.
 		// These serve as the blocks upon which all other read + write functions are built upon.
 		//
+		inline void write(Serialiser& s, std::ostream& out, const char* buf, size_t len)
+		{
+			// Use 0xFF as a marker to skip over a field.
+			// So if 0xFF comes up naturally, escape it with another 0xFF.
+			static const char FFFF[2] = { TERMINATOR, TERMINATOR };
+			for (int i = 0; i < len; i++)
+			{
+				if (buf[i] == TERMINATOR)
+				{
+					out.write(FFFF, sizeof(FFFF));
+				}
+				else
+				{
+					out.write(buf + i, sizeof(buf[i]));
+				}
+			}
+		}
+
+		inline void read(Unserialiser& u, std::istream& in, char* buf, size_t len)
+		{
+			for (int i = 0; i < len; i++)
+			{
+				// Replace escaped 0xFFs with a single 0xFF. 
+				if ((char)in.peek() == TERMINATOR)
+				{
+					in.ignore(1);
+					if ((char)in.peek() == TERMINATOR)
+					{
+						in.ignore(1);
+						buf[i] = TERMINATOR;
+					}
+					else
+					{
+						throw std::runtime_error("Corrupt file");
+					}
+				}
+				else
+				{
+					in.read(buf + i, sizeof(buf[i]));
+				}
+			}
+		}
+
 		template<typename T, typename = std::enable_if_t<std::is_integral_v<T> || std::is_floating_point_v<T>>>
 		inline typename std::enable_if<!std::is_base_of<IReflect, T>::value>::type
 			write(Serialiser& s, std::ostream& out, const T& v)
 		{
-			out.write((const char *)&v, sizeof(v));
+			write(s, out, (const char*)&v, sizeof(v));
 		}
 
 		template<typename T, typename = std::enable_if_t<std::is_integral_v<T> || std::is_floating_point_v<T>>>
 		inline typename std::enable_if<!std::is_base_of<IReflect, T>::value>::type
 			read(Unserialiser& u, std::istream& in, T& v)
 		{
-			in.read((char *)&v, sizeof(v));
+			read(u, in, (char*)&v, sizeof(v));
 		}
 
 		//
@@ -404,12 +452,53 @@ namespace Reflect
 	void WriteField(Serialiser& s, std::ostream& out, const T& v)
 	{
 		FieldImpl::write(s, out, v);
+
+		// Write the field terminator.
+		static const char FF[1] = { FieldImpl::TERMINATOR };
+		out.write(FF, sizeof(FF));
 	}
 
 	template<typename T, size_t offset>
 	void ReadField(Unserialiser& u, std::istream& in, void* self)
 	{
 		FieldImpl::read(u, in, *(T *)((char*)self + offset));
+
+		if ((char)in.peek() != FieldImpl::TERMINATOR)
+		{
+			throw std::runtime_error("Corrupt file");
+		}
+		in.ignore(1);
+	}
+
+	inline void SkipField(Unserialiser& u, std::istream& in, const std::string_view& type)
+	{
+		// Scan for a single 0xFF.
+		while (in.good())
+		{
+			if ((char)in.peek() == FieldImpl::TERMINATOR)
+			{
+				in.ignore(1);
+				if ((char)in.peek() == FieldImpl::TERMINATOR)
+				{
+					// This was an escaped 0xFF. Ignore it and continue.
+					in.ignore(1);
+				}
+				else
+				{
+					// This was a single 0xFF. It's a field terminator!
+					break;
+				}
+			}
+			else
+			{
+				in.ignore(1);
+			}
+		}
+
+		if (!in.good())
+		{
+			throw std::runtime_error("Corrupt file");
+		}
 	}
 
 	//--------------------------------------------------------------------------
@@ -458,7 +547,7 @@ namespace Reflect
 	inline void StringPool::Serialise(Serialiser& s, std::ostream& fout) const
 	{
 		FieldImpl::write(s, fout, (uint32_t)m_pool.length());
-		fout.write(m_pool.c_str(), m_pool.length());
+		FieldImpl::write(s, fout, m_pool.c_str(), m_pool.length());
 
 		FieldImpl::write(s, fout, (uint32_t)m_entries.size());
 		for (index_t i = 0; i < m_entries.size(); i++)
@@ -482,7 +571,7 @@ namespace Reflect
 		while (length)
 		{
 			index_t read_sz = std::min(length, (index_t)sizeof(buf));
-			fin.read(buf, read_sz);
+			FieldImpl::read(u, fin, buf, read_sz);
 			m_pool.append(buf);
 			length -= read_sz;
 		}
