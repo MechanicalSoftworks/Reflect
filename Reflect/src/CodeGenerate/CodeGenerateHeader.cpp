@@ -193,7 +193,7 @@ namespace Reflect
 		WRITE_PUBLIC();
 		if (serialiseFields.size())
 		{
-			file << "static const Reflect::UnserialiseField __SERIALISE_FIELDS__[" << serialiseFields.size() << "];\\\n";
+			file << "static const std::array<Reflect::UnserialiseField," << serialiseFields.size() << "> __SERIALISE_FIELDS__;\\\n";
 		}
 		WRITE_CLOSE();
 	}

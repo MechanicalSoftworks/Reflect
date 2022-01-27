@@ -289,6 +289,7 @@ namespace Reflect
 		const DestructorType Destructor;
 
 		REFLECT_DLL static void Register(Class* c);
+		REFLECT_DLL static void RegisterOverride(const char *name, const Class* c);
 		REFLECT_DLL static Class* Lookup(const std::string_view &name);
 		REFLECT_DLL static void Unregister(Class* c);
 

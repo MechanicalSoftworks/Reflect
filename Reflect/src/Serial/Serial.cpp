@@ -93,14 +93,17 @@ namespace Reflect
 
 	void Serialiser::AddSchema(const Reflect::Class& static_class)
 	{
-		const std::string class_name = static_class.GetName();
-
-		if (m_schemas.find(class_name) != m_schemas.end())
+		for (const auto* it = &static_class; it; it = it->GetSuperClass())
 		{
-			return;
-		}
+			const std::string class_name = it->GetName();
 
-		m_schemas.insert(std::pair(class_name, FieldSchema(&static_class, m_string_pool)));
+			if (m_schemas.find(class_name) != m_schemas.end())
+			{
+				return;
+			}
+
+			m_schemas.insert(std::pair(class_name, FieldSchema(it, m_string_pool)));
+		}
 	}
 
 	//==========================================================================
@@ -121,7 +124,7 @@ namespace Reflect
 		}
 	}
 
-	void Unserialiser::Read(std::istream& fin)
+	bool Unserialiser::ParseHeader(std::istream& fin)
 	{
 		// Read the header.
 		header_t header(*this, fin);
@@ -130,6 +133,68 @@ namespace Reflect
 		FieldImpl::read(*this, fin, m_string_pool);
 		FieldImpl::read(*this, fin, m_schemas);
 
+		bool error = false;
+
+		for (const auto& message_schema : m_schemas)
+		{
+			const auto* current_schema = Class::Lookup(message_schema.first);
+
+			// Look for entities that don't exist anymore.
+			if (!current_schema)
+			{
+				m_schema_differences.push_back(SchemaDifference(true, std::string("Class ") + message_schema.first + " doesn't exist anymore"));
+				error = true;
+				continue;
+			}
+
+			const auto current_fields = current_schema->GetMembers({ "serialise"});
+			const auto& message_fields = message_schema.second.fields;
+
+			for (const auto& message_field : message_fields)
+			{
+				const auto& current_field = std::find_if(current_fields.begin(), current_fields.end(),
+					[&message_field](const auto& f)
+					{
+						return f.GetName() == message_field.name;
+					});
+
+				// Look for fields that are in the message, but removed from the object.
+				if (current_field == current_fields.end())
+				{
+					m_schema_differences.push_back(SchemaDifference(false, std::string("Class ") + message_schema.first + " no longer has field " + message_field.name + ". It will be ignored"));
+					continue;
+				}
+
+				// Look for a change in data type.
+				if (current_field->GetTypeName() != message_field.type)
+				{
+					m_schema_differences.push_back(SchemaDifference(false, std::string("Class ") + message_schema.first + " was a '" + message_field.type + "', but now is a '" + current_field->GetTypeName() + "'.It will be ignored"));
+					continue;
+				}
+			}
+
+			for (const auto& current_field : current_fields)
+			{
+				const auto& message_field = std::find_if(message_fields.begin(), message_fields.end(),
+					[&current_field](const auto& f)
+					{
+						return f.name == current_field.GetName();
+					});
+
+				// Look for fields that exist in the object, but aren't included in the message.
+				if (message_field == message_fields.end())
+				{
+					m_schema_differences.push_back(SchemaDifference(false, std::string("Class ") + message_schema.first + " has a new field " + current_field.GetName() + ". It will be left at its default value"));
+					continue;
+				}
+			}
+		}
+
+		return error;
+	}
+
+	void Unserialiser::Read(std::istream& fin)
+	{
 		// Read the root object type.
 		StringPool::index_t root_type_index;
 		FieldImpl::read(*this, fin, root_type_index);
@@ -148,8 +213,8 @@ namespace Reflect
 		{
 			throw std::bad_alloc();
 		}
-		m_root->Initialise(m_root_class);
 		m_root_class->Constructor(m_root);
+		m_root->Initialise(m_root_class);
 
 		// Recreate the scene.
 		FieldImpl::read(*this, fin, *m_root);
@@ -161,5 +226,16 @@ namespace Reflect
 		m_root = nullptr;
 		m_root_class = nullptr;
 		return t;
+	}
+
+	const FieldSchema& Unserialiser::GetSchema(const std::string& name) const
+	{
+		const auto it = m_schemas.find(name);
+		if (it != m_schemas.end())
+		{
+			return it->second;
+		}
+
+		throw std::runtime_error("Unknown schema");
 	}
 }

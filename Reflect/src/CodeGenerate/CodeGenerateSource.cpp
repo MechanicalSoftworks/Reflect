@@ -12,6 +12,7 @@ namespace Reflect
 			CodeGenerate::IncludeHeader(addtionalOptions.IncludePCHString, file);
 		}
 		CodeGenerate::IncludeHeader(data.FileName + "." + data.FileExtension, file);
+		CodeGenerate::IncludeHeader("Core/Util.h", file);
 		file << "\n";
 		if (addtionalOptions.Namespace.length())
 		{
@@ -155,10 +156,10 @@ namespace Reflect
 			return;
 		}
 
-		file << "const Reflect::UnserialiseField " << data.Name << "::__SERIALISE_FIELDS__[" << serialiseFields.size() << "] = { \n";
+		file << "const std::array<Reflect::UnserialiseField," << serialiseFields.size() << "> " << data.Name << "::__SERIALISE_FIELDS__ = { \n";
 		for (const auto& member : serialiseFields)
 		{
-			file << "\tReflect::UnserialiseField(\"" << member.Name << "\", Reflect::ReadField<" << member.Type << ", __REFLECT__" << member.Name << "()>),\n";
+			file << "\tReflect::UnserialiseField(\"" << member.Name << "\", Reflect::Util::GetTypeName<" + member.Type + ">(), Reflect::ReadField<" << member.Type << ", __REFLECT__" << member.Name << "()>),\n";
 		}
 		file << "};\n\n";
 	}
@@ -166,14 +167,37 @@ namespace Reflect
 	void CodeGenerateSource::WriteSerialise(const std::vector<Reflect::ReflectMemberData>& serialiseFields, const Reflect::ReflectContainerData& data, std::ofstream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
 		file << "void " << data.Name << "::Serialise(Reflect::Serialiser &s, std::ostream &out) const {\n";
-		file << "	\n";
+		for (const auto& it : serialiseFields)
+		{
+			file << "\tWriteField(s, out, " << it.Name << ");\n";
+		}
+		if (data.SuperName.length())
+		{
+			file << "\tSuperClass::Serialise(s, out);\n";
+		}
 		file << "}\n\n";
 	}
 
 	void CodeGenerateSource::WriteUnserialise(const std::vector<Reflect::ReflectMemberData>& serialiseFields, const Reflect::ReflectContainerData& data, std::ofstream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
 		file << "void " << data.Name << "::Unserialise(Reflect::Unserialiser &u, std::istream &in) {\n";
-		file << "	\n";
+		if (serialiseFields.size())
+		{
+			file << "\tauto new_it = __SERIALISE_FIELDS__.begin();\n";
+			file << "\tconst auto& old_schema = u.GetSchema(\"" << data.Name << "\");\n";	// No need to do a safety check. We've already instantiated the class...means the schema is available.
+			file << "\tfor(int i = 0; i < old_schema.fields.size(); i++) {\n";
+			file << "\t\tconst auto& field = old_schema.fields[i];\n";
+			file << "\t\tnew_it = Reflect::Util::circular_find_if(new_it, __SERIALISE_FIELDS__.begin(), __SERIALISE_FIELDS__.end(), [&field](const auto &f){ return field.name == f.name; });\n";
+			file << "\t\tif (new_it == __SERIALISE_FIELDS__.end() || new_it->type != field.type) {\n";
+			file << "\t\t\tcontinue;\n";
+			file << "\t\t}\n";
+			file << "\t\tnew_it->read(u, in, this);\n";
+			file << "\t}\n";
+		}
+		if (data.SuperName.length())
+		{
+			file << "\tSuperClass::Unserialise(u, in);\n";
+		}
 		file << "}\n\n";
 	}
 }

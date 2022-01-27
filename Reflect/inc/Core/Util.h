@@ -21,7 +21,7 @@ namespace Reflect
 		}
 
 		std::string ValidateTypeName(const std::string& str);
-		std::string Demangled(const std::type_info& info);
+		REFLECT_DLL std::string Demangled(const std::type_info& info);
 
 		template<typename T>
 		std::string GetTypeName()
@@ -33,6 +33,25 @@ namespace Reflect
 		std::string GetTypeName(const T& type)
 		{
 			return ValidateTypeName(GetTypeName<T>());
+		}
+
+		// Like std::find_if, but will loop around back to our initial position.
+		template<typename T, typename TPred>
+		T circular_find_if(const T& current, const T& begin, const T& end, TPred pred)
+		{
+			auto it = std::find_if(current, end, pred);
+			if (it != end)
+			{
+				return it;
+			}
+
+			it = std::find_if(begin, current, pred);
+			if (it != current)
+			{
+				return it;
+			}
+
+			return end;
 		}
 	}
 }

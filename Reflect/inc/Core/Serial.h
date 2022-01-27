@@ -97,7 +97,7 @@ namespace Reflect
 		Serialiser(const Serialiser&) = delete;
 		Serialiser(const Serialiser&&) = delete;
 
-		virtual void Write(std::ostream& fout, const IReflect& root);
+		void Write(std::ostream& fout, const IReflect& root);
 
 		// Include schemas for each object.
 		// Allows us to load older messages (such as saved project files).
@@ -118,19 +118,32 @@ namespace Reflect
 	class REFLECT_DLL Unserialiser
 	{
 	public:
+		struct SchemaDifference
+		{
+			SchemaDifference(bool fatal, const std::string& diff) : Fatal(fatal), Diff(diff) {}
+
+			const bool Fatal;
+			const std::string Diff;
+		};
+
 		Unserialiser(const Unserialiser&) = delete;
 		Unserialiser(const Unserialiser&&) = delete;
 		Unserialiser(AlignedAlloc alloc, AlignedFree free);
 		~Unserialiser();
 
-		virtual void Read(std::istream& in);
+		bool ParseHeader(std::istream& in);
+		const auto& GetSchemaDifferences() const { return m_schema_differences; }
+		void Read(std::istream& in);
 
 		IReflect* Detach();
+
 		const StringPool& GetStringPool() const { return m_string_pool; }
+		const FieldSchema& GetSchema(const std::string& name) const;
 
 	private:
 		std::map<std::string, FieldSchema> m_schemas;
 		StringPool m_string_pool;
+		std::vector<Unserialiser::SchemaDifference>	m_schema_differences;
 
 		AlignedAlloc m_alloc;
 		AlignedFree m_free;
@@ -143,8 +156,9 @@ namespace Reflect
 	typedef void (*ReadFieldType)(Unserialiser &u, std::istream& s, void* self);
 	struct UnserialiseField
 	{
-		constexpr UnserialiseField(const char* n, ReadFieldType r) : name(n), read(r) {}
+		UnserialiseField(const char* n, const std::string&t, ReadFieldType r) : name(n), type(t), read(r) {}
 		const char* name;
+		const std::string type;
 		ReadFieldType read;
 	};
 
@@ -387,9 +401,9 @@ namespace Reflect
 	}
 
 	template<typename T>
-	void WriteField(Unserialiser& u, std::ostream& out, const T& v)
+	void WriteField(Serialiser& s, std::ostream& out, const T& v)
 	{
-		FieldImpl::write(u, out, v);
+		FieldImpl::write(s, out, v);
 	}
 
 	template<typename T, size_t offset>
