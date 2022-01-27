@@ -1,7 +1,7 @@
 #include "TestStrcuts.h"
 
 Reflect::ReflectMemberProp S::__REFLECT_MEMBER_PROPS__[2] = {
-	Reflect::ReflectMemberProp("Friends", Reflect::Util::GetTypeName<int>(), __REFLECT__Friends(), {"EditorOnly", "Public"}),
+	Reflect::ReflectMemberProp("Friends", Reflect::Util::GetTypeName(typeid(S::Friends)), __REFLECT__Friends(), {"EditorOnly", "Public"}),
 	Reflect::ReflectMemberProp("TimeOnline", Reflect::Util::GetTypeName<int>(), __REFLECT__TimeOnline(), {"Public"}),
 };
 

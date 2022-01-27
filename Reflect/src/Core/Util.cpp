@@ -21,7 +21,12 @@ namespace Reflect
 	std::string Util::Demangled(const std::type_info& info)
 	{
 #ifdef _MSC_VER
-		return info.name();
+		std::string name = info.name();
+		if (name.find("class ") == 0)
+		{
+			name = name.substr(6);
+		}
+		return name;
 #elif defined __GNUC__
 		std::unique_ptr<char, void(*)(void*)>
 			name{ abi::__cxa_demangle(info.name(), 0, 0, nullptr), std::free };

@@ -23,10 +23,34 @@ namespace Reflect
 		std::string ValidateTypeName(const std::string& str);
 		REFLECT_DLL std::string Demangled(const std::type_info& info);
 
+		// Cross platform name generator.
+		namespace detail
+		{
+			template <typename T>
+			struct TypeNameImpl {
+				static std::string get() { return Demangled(typeid(T)); }
+			};
+
+			template <>
+			struct TypeNameImpl<std::string> {
+				static std::string get() { return "std::string"; }
+			};
+
+			template <typename T>
+			struct TypeNameImpl<std::vector<T>> {
+				static std::string get() { return "std::vector<" + TypeNameImpl<T>::get() + ">"; }
+			};
+
+			template <typename K, typename V>
+			struct TypeNameImpl<std::map<K, V>> {
+				static std::string get() { return "std::map<" + TypeNameImpl<K>::get() + ", " + TypeNameImpl<V>::get() + ">"; }
+			};
+		}
+
 		template<typename T>
 		std::string GetTypeName()
 		{
-			return Demangled(typeid(T));
+			return detail::TypeNameImpl<T>::get();
 		}
 
 		template<typename T>
