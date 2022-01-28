@@ -43,7 +43,7 @@ namespace Reflect
 
 			template <typename K, typename V>
 			struct TypeNameImpl<std::map<K, V>> {
-				static std::string get() { return "std::map<" + TypeNameImpl<K>::get() + ", " + TypeNameImpl<V>::get() + ">"; }
+				static std::string get() { return "std::map<" + TypeNameImpl<K>::get() + "," + TypeNameImpl<V>::get() + ">"; }
 			};
 		}
 

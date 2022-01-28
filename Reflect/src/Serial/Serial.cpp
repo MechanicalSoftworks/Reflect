@@ -236,7 +236,7 @@ namespace Reflect
 			return it->second;
 		}
 
-		throw std::runtime_error("Unknown schema");
+		throw std::runtime_error("Unknown schema '" + name + "'");
 	}
 
 	void Unserialiser::RegisterSchemaAlias(const char* alias, const char* old_type)
