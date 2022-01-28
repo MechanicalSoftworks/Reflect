@@ -113,8 +113,6 @@ namespace Reflect
 	//
 	// Parses a message and recreates the objects.
 	//
-	typedef void* (*AlignedAlloc)(size_t size, size_t alignment);
-	typedef void  (*AlignedFree)(void *ptr);
 	class REFLECT_DLL Unserialiser
 	{
 	public:
@@ -128,14 +126,13 @@ namespace Reflect
 
 		Unserialiser(const Unserialiser&) = delete;
 		Unserialiser(const Unserialiser&&) = delete;
-		Unserialiser(AlignedAlloc alloc, AlignedFree free);
-		~Unserialiser();
+		Unserialiser();
 
 		bool ParseHeader(std::istream& in);
 		const auto& GetSchemaDifferences() const { return m_schema_differences; }
 		void Read(std::istream& in);
 
-		IReflect* Detach();
+		auto Detach() { return std::move(m_root); }
 
 		const StringPool& GetStringPool() const { return m_string_pool; }
 		const FieldSchema& GetSchema(const std::string& name) const;
@@ -148,10 +145,7 @@ namespace Reflect
 		StringPool m_string_pool;
 		std::vector<Unserialiser::SchemaDifference>	m_schema_differences;
 
-		AlignedAlloc m_alloc;
-		AlignedFree m_free;
-
-		IReflect* m_root = nullptr;
+		Ref<IReflect> m_root;
 		Reflect::Class* m_root_class = nullptr;
 	};
 

@@ -1,4 +1,5 @@
 #include "Core/Serial.h"
+#include "Core/Allocator.h"
 #include <filesystem>
 
 struct header_t
@@ -109,19 +110,9 @@ namespace Reflect
 	//==========================================================================
 	//==========================================================================
 
-	Unserialiser::Unserialiser(AlignedAlloc alloc, AlignedFree free)
-		: m_alloc(alloc)
-		, m_free(free)
+	Unserialiser::Unserialiser()
+		: m_root(nullptr, &Allocator::Destroy)
 	{
-	}
-
-	Unserialiser::~Unserialiser()
-	{
-		if (m_root)
-		{
-			m_root_class->Destructor(m_root);
-			m_free(m_root);
-		}
 	}
 
 	bool Unserialiser::ParseHeader(std::istream& fin)
@@ -193,6 +184,11 @@ namespace Reflect
 		return error;
 	}
 
+	static void free_ireflect(void* obj)
+	{
+
+	}
+
 	void Unserialiser::Read(std::istream& fin)
 	{
 		// Read the root object type.
@@ -208,24 +204,16 @@ namespace Reflect
 		}
 
 		// Create the root entity.
-		m_root = (IReflect*)m_alloc(m_root_class->GetRawSize(), m_root_class->GetAlignment());
+		m_root = Ref<IReflect>(Allocator::Create(m_root_class), &Allocator::Destroy);
 		if (!m_root)
 		{
 			throw std::bad_alloc();
 		}
-		m_root_class->Constructor(m_root);
+		m_root_class->Constructor(m_root.get());
 		m_root->Initialise(m_root_class);
 
 		// Recreate the scene.
-		ReadField<IReflect, 0>(*this, fin, m_root);
-	}
-
-	IReflect* Unserialiser::Detach()
-	{
-		IReflect* t = m_root;
-		m_root = nullptr;
-		m_root_class = nullptr;
-		return t;
+		ReadField<IReflect, 0>(*this, fin, m_root.get());
 	}
 
 	const FieldSchema& Unserialiser::GetSchema(const std::string& name) const
