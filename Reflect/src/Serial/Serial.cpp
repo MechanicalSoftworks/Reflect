@@ -110,11 +110,6 @@ namespace Reflect
 	//==========================================================================
 	//==========================================================================
 
-	Unserialiser::Unserialiser()
-		: m_root(nullptr, &Allocator::Destroy)
-	{
-	}
-
 	bool Unserialiser::ParseHeader(std::istream& fin)
 	{
 		// Read the header.
@@ -204,11 +199,7 @@ namespace Reflect
 		}
 
 		// Create the root entity.
-		m_root = Ref<IReflect>(Allocator::Create(m_root_class), &Allocator::Destroy);
-		if (!m_root)
-		{
-			throw std::bad_alloc();
-		}
+		m_root = std::move(Allocator::Create<IReflect>(m_root_class));
 		m_root_class->Constructor(m_root.get());
 		m_root->Initialise(m_root_class);
 

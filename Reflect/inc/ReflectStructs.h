@@ -355,12 +355,6 @@ namespace Reflect
 	private:
 		const Class* m_class = nullptr;
 	};
-
-	template<typename T>
-	using Ref = std::unique_ptr<T, decltype(&Allocator::Destroy)>;
-
-	template<typename T>
-	using WeakRef = std::weak_ptr<T>;
 }
 
 #define REFLECT_BASE() public Reflect::IReflect

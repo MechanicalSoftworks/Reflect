@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/Core.h"
+#include "Core/Allocator.h"
 #include <string>
 #include <algorithm>
 #include <typeinfo>
@@ -39,6 +40,11 @@ namespace Reflect
 			template <typename T>
 			struct TypeNameImpl<std::vector<T>> {
 				static std::string get() { return "std::vector<" + TypeNameImpl<T>::get() + ">"; }
+			};
+
+			template <typename T>
+			struct TypeNameImpl<std::vector<Ref<T>>> {
+				static std::string get() { return "std::vector<Ref<" + TypeNameImpl<T>::get() + ">>"; }
 			};
 
 			template <typename K, typename V>

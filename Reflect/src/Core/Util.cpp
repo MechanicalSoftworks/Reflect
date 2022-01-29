@@ -26,6 +26,10 @@ namespace Reflect
 		{
 			name = name.substr(6);
 		}
+		else if (name.find("struct ") == 0)
+		{
+			name = name.substr(7);
+		}
 		return name;
 #elif defined __GNUC__
 		std::unique_ptr<char, void(*)(void*)>

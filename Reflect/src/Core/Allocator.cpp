@@ -13,23 +13,12 @@ void  aligned_free(void* p) noexcept { _aligned_free(p); }
 
 namespace Reflect
 {
-	IReflect* Allocator::Create(const std::string_view& name)
-	{
-		const auto* static_class = Class::Lookup(name);
-		if (!static_class)
-		{
-			return nullptr;
-		}
-
-		return Create(static_class);
-	}
-
-	IReflect* Allocator::Create(const Class* static_class)
+	IReflect* Allocator::CreateInternal(const Class* static_class)
 	{
 		IReflect* o = (IReflect *)aligned_alloc(static_class->GetRawSize(), static_class->GetAlignment());
 		if (!o)
 		{
-			return nullptr;
+			throw std::bad_alloc();
 		}
 
 		static_class->Constructor(o);
@@ -37,7 +26,7 @@ namespace Reflect
 		return o;
 	}
 
-	void Allocator::Destroy(IReflect* o)
+	void Allocator::DestroyInternal(IReflect* o)
 	{
 		if (o)
 		{

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Reflect.h"
+#include "Core/Allocator.h"
 
 #include <map>
 
@@ -126,7 +127,7 @@ namespace Reflect
 
 		Unserialiser(const Unserialiser&) = delete;
 		Unserialiser(const Unserialiser&&) = delete;
-		Unserialiser();
+		Unserialiser() {}
 
 		bool ParseHeader(std::istream& in);
 		const auto& GetSchemaDifferences() const { return m_schema_differences; }
@@ -172,10 +173,29 @@ namespace Reflect
 
 		inline void write(Serialiser& s, std::ostream& out, const std::string& v);
 		inline void read(Unserialiser& u, std::istream& in, std::string& v);
+		inline void write(Serialiser& s, std::ostream& out, const std::string_view& v);
 		inline void write(Serialiser& s, std::ostream& out, const StringPool& p);
 		inline void read(Unserialiser& u, std::istream& in, StringPool& p);
 		inline void write(Serialiser& s, std::ostream& out, const FieldSchema& f);
 		inline void read(Unserialiser& u, std::istream& in, FieldSchema& f);
+
+		template<typename T>
+		inline void write(Serialiser& s, std::ostream& out, const Ref<T>& r)
+		{
+			s.AddSchema(*r->GetClass());
+			write(s, out, std::string_view(r->GetClass()->GetName()));
+			r->Serialise(s, out);
+		}
+
+		template<typename T>
+		inline void read(Unserialiser& u, std::istream& in, Ref<T>& r)
+		{
+			std::string type_name;
+			read(u, in, type_name);
+
+			r = Allocator::Create<T>(type_name);
+			r->Unserialise(u, in);
+		}
 
 		//----------------------------------------------------------------------
 		// Generic templates.
@@ -294,7 +314,7 @@ namespace Reflect
 			read(u, in, count);
 
 			const std::string_view map_string("std::map<");
-			const std::string_view map_parms(map_type.data() + map_string.length(), map_type.length() - map_string.length() - 1);	// -1 for tailing '>'.);
+			const std::string_view map_parms(map_type.data() + map_string.length(), map_type.length() - map_string.length() - 1);	// -1 for tailing '>'.
 
 			const auto comma = map_parms.find(',');
 			const std::string_view key_type = map_parms.substr(0, comma);
@@ -310,6 +330,17 @@ namespace Reflect
 		//----------------------------------------------------------------------
 		// IReflect templates.
 		// These need to be specialised because they call Unserialise() instead of >>.
+
+		inline void skip_ref(Unserialiser& u, std::istream& in, const std::string_view& ref_type)
+		{
+			uint32_t count;
+			read(u, in, count);
+
+			std::string value_type;
+			read(u, in, value_type);
+
+			SkipField(u, in, value_type);
+		}
 
 		//
 		// IReflect
@@ -366,8 +397,8 @@ namespace Reflect
 			write(s, out, (uint32_t)m.size());
 			for (const auto& it : m)
 			{
-				write(s, out, it->first);
-				it->second.Serialise(s, out);
+				write(s, out, it.first);
+				it.second.Serialise(s, out);
 			}
 		}
 
@@ -397,7 +428,7 @@ namespace Reflect
 		//
 		inline void write(Serialiser& s, std::ostream& out, const std::string& v)
 		{
-			write(s, out, s.AddString(v));
+			write(s, out, std::string_view(v));
 		}
 
 		inline void read(Unserialiser& u, std::istream& in, std::string& v)
@@ -405,6 +436,11 @@ namespace Reflect
 			StringPool::index_t index;
 			read(u, in, index);
 			v = u.GetStringPool().At(index);
+		}
+
+		inline void write(Serialiser& s, std::ostream& out, const std::string_view& v)
+		{
+			write(s, out, s.AddString(v));
 		}
 
 		//
@@ -465,6 +501,7 @@ namespace Reflect
 		else if (type == "std::string")									FieldImpl::skip<StringPool::index_t>(u, in);
 		else if (type.find("std::vector<") == 0)						FieldImpl::skip_vector(u, in, type);
 		else if (type.find("std::map<") == 0)							FieldImpl::skip_map(u, in, type);
+		else if (type.find("Reflect::Ref<") == 0)						FieldImpl::skip_ref(u, in, type);
 		else
 		{
 			// This will throw if the schema can't be found. Honestly, it's for the best.
@@ -548,7 +585,7 @@ namespace Reflect
 		{
 			index_t read_sz = std::min(length, (index_t)sizeof(buf));
 			fin.read(buf, read_sz);
-			m_pool.append(buf);
+			m_pool.append(buf, length);
 			length -= read_sz;
 		}
 
