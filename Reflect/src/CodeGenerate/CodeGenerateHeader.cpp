@@ -26,6 +26,7 @@ namespace Reflect
 		CodeGenerate::IncludeHeader("Core/Core.h", file);
 		CodeGenerate::IncludeHeader("Core/Serial.h", file);
 		CodeGenerate::IncludeHeader("Core/Util.h", file);
+		CodeGenerate::IncludeHeader("array", file, true);
 
 		file << "\n";
 		file << "#ifdef " + data.FileName + ReflectFileHeaderGuard + "_h\n";
