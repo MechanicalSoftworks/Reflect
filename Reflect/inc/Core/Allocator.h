@@ -37,10 +37,17 @@ namespace Reflect
 		};
 		template<typename T> using WeakRef = std::weak_ptr<T>;
 
+		template<typename T> static Ref<T>	Create();
 		template<typename T> static Ref<T>	Create(const std::string_view& name);
 		template<typename T> static Ref<T>	Create(const Class* static_class);
 		template<typename T> static void	Dispose(Ref<T> &ref);
 	};
+
+	template<typename T>
+	inline Allocator::Ref<T> Allocator::Create()
+	{
+		return Ref<T>((T*)CreateInternal(&T::StaticClass));
+	}
 
 	template<typename T> 
 	inline Allocator::Ref<T> Allocator::Create(const std::string_view& name)
@@ -54,10 +61,10 @@ namespace Reflect
 		return Create<T>(static_class);
 	}
 
-	template<typename T> 
+	template<typename T>
 	inline Allocator::Ref<T> Allocator::Create(const Class* static_class)
 	{
-		return Ref<T>((T *)CreateInternal(static_class));
+		return Ref<T>((T*)CreateInternal(static_class));
 	}
 
 	template<typename T>
