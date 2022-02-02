@@ -24,5 +24,7 @@ namespace Reflect
 		void WriteDataDictionary(const std::vector<Reflect::ReflectMemberData>& serialiseFields, const Reflect::ReflectContainerData& data, std::ofstream& file, const CodeGenerateAddtionalOptions& addtionalOptions);
 		void WriteSerialise(const std::vector<Reflect::ReflectMemberData>& serialiseFields, const Reflect::ReflectContainerData& data, std::ofstream& file, const CodeGenerateAddtionalOptions& addtionalOptions);
 		void WriteUnserialise(const std::vector<Reflect::ReflectMemberData>& serialiseFields, const Reflect::ReflectContainerData& data, std::ofstream& file, const CodeGenerateAddtionalOptions& addtionalOptions);
+
+		std::string GetCustomSerialiser(const Reflect::ReflectMemberData&data) const;
 	};
 }

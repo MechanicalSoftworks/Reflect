@@ -86,6 +86,7 @@ namespace Reflect
 		header_t hdr(*this, fout);
 		WriteField(*this, fout, m_string_pool);
 		WriteField(*this, fout, m_schemas);
+		WriteField(*this, fout, m_user_data_types);
 		
 		// Copy the binary data into the output stream.
 		std::ifstream iftemp(temp_path, std::ios::in | std::ios::binary);
@@ -107,6 +108,11 @@ namespace Reflect
 		}
 	}
 
+	void Serialiser::AddUserDataType(const std::string& name, size_t sz)
+	{
+		m_user_data_types.insert(std::pair(name, UserDataType(name, sz)));
+	}
+
 	//==========================================================================
 	//==========================================================================
 
@@ -118,6 +124,7 @@ namespace Reflect
 		// Read the objects.
 		ReadField<decltype(m_string_pool), 0>(*this, fin, &m_string_pool);
 		ReadField<decltype(m_schemas), 0>(*this, fin, &m_schemas);
+		ReadField<decltype(m_user_data_types), 0>(*this, fin, &m_user_data_types);
 
 		bool error = false;
 
@@ -216,6 +223,17 @@ namespace Reflect
 		}
 
 		throw std::runtime_error("Unknown schema '" + name + "'");
+	}
+
+	const UserDataType* Unserialiser::GetUserDataType(const std::string& name) const
+	{
+		const auto it = m_user_data_types.find(name);
+		if (it != m_user_data_types.end())
+		{
+			return &it->second;
+		}
+
+		return nullptr;
 	}
 
 	void Unserialiser::RegisterSchemaAlias(const char* alias, const char* old_type)

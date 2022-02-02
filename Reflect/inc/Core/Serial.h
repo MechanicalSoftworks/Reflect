@@ -83,6 +83,22 @@ namespace Reflect
 	};
 
 	//
+	// Schema for user defined plain-old-data.
+	// Basically, we just need this info to skip the field if necessary.
+	//
+	class UserDataType
+	{
+	public:
+		// Exists for Unserialiser.
+		UserDataType() {}
+
+		UserDataType(const std::string& _name, size_t _sz) : name(_name), sz(_sz) {}
+
+		std::string name;
+		uint64_t sz;
+	};
+
+	//
 	// Serialises all objects tagged with 'serialise'.
 	// The root object writes itself and all its children into a 'temp' stream.
 	// At the same time, the root object and all its children register their schemas 
@@ -104,10 +120,18 @@ namespace Reflect
 		// Allows us to load older messages (such as saved project files).
 		void AddSchema(const Reflect::Class& static_class);
 
+		// Add schemas for custom data types.
+		void AddUserDataType(const std::string& name, size_t sz);
+		template<typename T> void AddUserDataType(size_t sz)
+		{
+			AddUserDataType(Util::GetTypeName<T>(), sz);
+		}
+
 		StringPool::index_t AddString(const std::string_view& view) { return m_string_pool.Add(view); }
 
 	private:
 		std::map<std::string, FieldSchema> m_schemas;
+		std::map<std::string, UserDataType> m_user_data_types;
 		StringPool m_string_pool;
 	};
 
@@ -137,13 +161,16 @@ namespace Reflect
 
 		const StringPool& GetStringPool() const { return m_string_pool; }
 		const FieldSchema& GetSchema(const std::string& name) const;
+		const UserDataType* GetUserDataType(const std::string& name) const;
 
 		// Must be called after ParseHeader!
 		void RegisterSchemaAlias(const char* alias, const char* old_type);
 
 	private:
 		std::map<std::string, FieldSchema> m_schemas;
+		std::map<std::string, UserDataType> m_user_data_types;
 		StringPool m_string_pool;
+
 		std::vector<Unserialiser::SchemaDifference>	m_schema_differences;
 
 		Ref<IReflect> m_root;
@@ -178,6 +205,8 @@ namespace Reflect
 		inline void read(Unserialiser& u, std::istream& in, StringPool& p);
 		inline void write(Serialiser& s, std::ostream& out, const FieldSchema& f);
 		inline void read(Unserialiser& u, std::istream& in, FieldSchema& f);
+		inline void write(Serialiser& s, std::ostream& out, const UserDataType& t);
+		inline void read(Unserialiser& u, std::istream& in, UserDataType& t);
 
 		template<typename T>
 		inline void write(Serialiser& s, std::ostream& out, const Ref<T>& r)
@@ -423,6 +452,11 @@ namespace Reflect
 		//----------------------------------------------------------------------
 		// Misc templates (implementation!).
 
+		inline void skip_user_data_type(Unserialiser& u, std::istream& in, const UserDataType* udt)
+		{
+			in.ignore(udt->sz);
+		}
+
 		//
 		// Strings are encoded as string pool indices.
 		//
@@ -472,6 +506,21 @@ namespace Reflect
 			read(u, in, f.type);
 			read(u, in, f.fields);
 		}
+
+		//
+		// UserDataType.
+		//
+		inline void write(Serialiser& s, std::ostream& out, const UserDataType& t)
+		{
+			write(s, out, t.name);
+			write(s, out, t.sz);
+		}
+
+		inline void read(Unserialiser& u, std::istream& in, UserDataType& t)
+		{
+			read(u, in, t.name);
+			read(u, in, t.sz);
+		}
 	}
 
 	template<typename T>
@@ -484,6 +533,19 @@ namespace Reflect
 	void ReadField(Unserialiser& u, std::istream& in, void* self)
 	{
 		FieldImpl::read(u, in, *(T *)((char*)self + offset));
+	}
+
+	template<typename TSerialiser, typename T>
+	void WriteCustomField(Serialiser& s, std::ostream& out, const T& v)
+	{
+		s.AddUserDataType<T>(TSerialiser::value_size);
+		TSerialiser::Serialise(s, out, v);
+	}
+
+	template<typename TSerialiser, typename T, size_t offset>
+	void ReadCustomField(Unserialiser& u, std::istream& in, void* self)
+	{
+		TSerialiser::Unserialise(u, in, *(T*)((char*)self + offset));
 	}
 
 	inline void SkipField(Unserialiser& u, std::istream& in, const std::string_view& type)
@@ -504,6 +566,14 @@ namespace Reflect
 		else if (type.find("Reflect::Ref<") == 0)						FieldImpl::skip_ref(u, in, type);
 		else
 		{
+			// Try the userdata schema (probably smaller list to search...).
+			const auto* userDataType = u.GetUserDataType(std::string(type));
+			if (userDataType)
+			{
+				FieldImpl::skip_user_data_type(u, in, userDataType);
+				return;
+			}
+
 			// This will throw if the schema can't be found. Honestly, it's for the best.
 			// We don't know what the type is. This message can't be dealt with...
 			const auto &schema = u.GetSchema(std::string(type));

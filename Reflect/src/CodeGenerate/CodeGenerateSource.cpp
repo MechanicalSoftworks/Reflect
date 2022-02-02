@@ -159,7 +159,18 @@ namespace Reflect
 		file << "const std::array<Reflect::UnserialiseField," << serialiseFields.size() << "> " << data.Name << "::__SERIALISE_FIELDS__ = { \n";
 		for (const auto& member : serialiseFields)
 		{
-			file << "\tReflect::UnserialiseField(\"" << member.Name << "\", Reflect::Util::GetTypeName<" + member.Type + ">(), Reflect::ReadField<" << member.Type << ", __REFLECT__" << member.Name << "()>),\n";
+			const auto customSerialiser = GetCustomSerialiser(member);
+			std::string readField;
+			if (customSerialiser.length())
+			{
+				readField = "Reflect::ReadCustomField<" + customSerialiser + ", " + member.Type + ", __REFLECT__" + member.Name + "()>";
+			}
+			else
+			{
+				readField = "Reflect::ReadField <" + member.Type + ", __REFLECT__" + member.Name + "()>";
+			}
+
+			file << "\tReflect::UnserialiseField(\"" << member.Name << "\", Reflect::Util::GetTypeName<" + member.Type + ">(), " << readField << "),\n";
 		}
 		file << "};\n\n";
 	}
@@ -169,7 +180,15 @@ namespace Reflect
 		file << "void " << data.Name << "::Serialise(Reflect::Serialiser &s, std::ostream &out) const {\n";
 		for (const auto& it : serialiseFields)
 		{
-			file << "\tWriteField(s, out, " << it.Name << ");\n";
+			const auto customSerialiser = GetCustomSerialiser(it);
+			if (customSerialiser.length())
+			{
+				file << "\tWriteCustomField<" << customSerialiser << ">(s, out, " << it.Name << ");\n";
+			}
+			else
+			{
+				file << "\tWriteField(s, out, " << it.Name << ");\n";
+			}
 		}
 		if (data.SuperName.length())
 		{
@@ -200,5 +219,16 @@ namespace Reflect
 			file << "\tSuperClass::Unserialise(u, in);\n";
 		}
 		file << "}\n\n";
+	}
+
+	std::string CodeGenerateSource::GetCustomSerialiser(const Reflect::ReflectMemberData& data) const
+	{
+		const auto it = std::find_if(data.ContainerProps.begin(), data.ContainerProps.end(), [](const auto& p) { return p.find("serialiser=") == 0; });
+		if (it != data.ContainerProps.end())
+		{
+			return it->substr(it->find('=') + 1);
+		}
+
+		return "";
 	}
 }
