@@ -35,6 +35,31 @@ namespace Reflect
 		return it != s_classes.end() ? it->second : nullptr;
 	}
 
+	REFLECT_DLL std::vector<Class*> Class::DescentantsOf(const Class* super)
+	{
+		std::vector<Class*> descendants;
+
+		for (const auto& it : s_classes)
+		{
+			// Not a descendant of yourself, silly!
+			if (it.second == super)
+			{
+				break;
+			}
+
+			for (const Class* c = it.second; c != nullptr; c = c->m_super_class)
+			{
+				if (c == super)
+				{
+					descendants.push_back(it.second);
+					break;
+				}
+			}
+		}
+
+		return descendants;
+	}
+
 	REFLECT_DLL void Class::Unregister(Class* c)
 	{
 		s_classes.erase(c->m_name);

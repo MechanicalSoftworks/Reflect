@@ -289,10 +289,19 @@ namespace Reflect
 		const ConstructorType Constructor;
 		const DestructorType Destructor;
 
+		// Makes the type usable by Allocator.
 		REFLECT_DLL static void Register(Class* c);
-		REFLECT_DLL static void RegisterOverride(const char *name, const Class* c);
-		REFLECT_DLL static Class* Lookup(const std::string_view &name);
 		REFLECT_DLL static void Unregister(Class* c);
+
+		// Map a type name to a different type.
+		REFLECT_DLL static void RegisterOverride(const char *name, const Class* c);
+
+		// Reflect!
+		REFLECT_DLL static Class* Lookup(const std::string_view &name);
+		REFLECT_DLL static std::vector<Class*> DescentantsOf(const Class* c);
+		
+		template<typename T>
+		static std::vector<Class*> DescentantsOf() { return DescentantsOf(&T::StaticClass); }
 
 		REFLECT_DLL std::vector<ReflectMember> GetMembers(std::vector<std::string> const& flags, bool recursive=true) const
 		{
