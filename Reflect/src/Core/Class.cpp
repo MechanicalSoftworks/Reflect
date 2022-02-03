@@ -44,7 +44,7 @@ namespace Reflect
 			// Not a descendant of yourself, silly!
 			if (it.second == super)
 			{
-				break;
+				continue;
 			}
 
 			for (const Class* c = it.second; c != nullptr; c = c->m_super_class)
