@@ -13,7 +13,7 @@ void  aligned_free(void* p) noexcept { _aligned_free(p); }
 
 namespace Reflect
 {
-	IReflect* Allocator::CreateInternal(const Class* static_class)
+	IReflect* Allocator::CreateInternal(const Class* static_class, IReflect* outer)
 	{
 		IReflect* o = (IReflect *)aligned_alloc(static_class->GetRawSize(), static_class->GetAlignment());
 		if (!o)
@@ -22,7 +22,7 @@ namespace Reflect
 		}
 
 		static_class->Constructor(o);
-		o->Initialise(static_class);
+		o->PostConstruct(static_class, outer);
 		return o;
 	}
 

@@ -206,9 +206,7 @@ namespace Reflect
 		}
 
 		// Create the root entity.
-		m_root = std::move(Allocator::Create<IReflect>(m_root_class));
-		m_root_class->Constructor(m_root.get());
-		m_root->Initialise(m_root_class);
+		m_root = std::move(Allocator::Create<IReflect>(m_root_class, nullptr));
 
 		// Recreate the scene.
 		ReadField<IReflect, 0>(*this, fin, m_root.get());

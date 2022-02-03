@@ -166,6 +166,10 @@ namespace Reflect
 		// Must be called after ParseHeader!
 		void RegisterSchemaAlias(const char* alias, const char* old_type);
 
+		// Keep track of the last object being processed - used for setting the outer object.
+		IReflect* GetCurrentObject() const { return m_current_object; }
+		void SetCurrentObject(IReflect* obj) { m_current_object = obj; }
+
 	private:
 		std::map<std::string, FieldSchema> m_schemas;
 		std::map<std::string, UserDataType> m_user_data_types;
@@ -175,6 +179,8 @@ namespace Reflect
 
 		Ref<IReflect> m_root;
 		Reflect::Class* m_root_class = nullptr;
+
+		IReflect* m_current_object = nullptr;
 	};
 
 	// Helpers for reading individual fields.
@@ -222,7 +228,7 @@ namespace Reflect
 			std::string type_name;
 			read(u, in, type_name);
 
-			r = Allocator::Create<T>(type_name);
+			r = Allocator::Create<T>(type_name, u.GetCurrentObject());
 			r->Unserialise(u, in);
 		}
 
@@ -563,7 +569,7 @@ namespace Reflect
 		else if (type == "std::string")									FieldImpl::skip<StringPool::index_t>(u, in);
 		else if (type.find("std::vector<") == 0)						FieldImpl::skip_vector(u, in, type);
 		else if (type.find("std::map<") == 0)							FieldImpl::skip_map(u, in, type);
-		else if (type.find("Reflect::Ref<") == 0)						FieldImpl::skip_ref(u, in, type);
+		else if (type.find("Ref<") == 0)								FieldImpl::skip_ref(u, in, type);
 		else
 		{
 			// Try the userdata schema (probably smaller list to search...).

@@ -202,6 +202,7 @@ namespace Reflect
 		file << "void " << data.Name << "::Unserialise(Reflect::Unserialiser &u, std::istream &in) {\n";
 		if (serialiseFields.size())
 		{
+			file << "\tu.SetCurrentObject(this);\n";
 			file << "\tauto new_it = __SERIALISE_FIELDS__.begin();\n";
 			file << "\tconst auto& old_schema = u.GetSchema(\"" << data.Name << "\");\n";	// No need to do a safety check. We've already instantiated the class...means the schema is available.
 			file << "\tfor(int i = 0; i < old_schema.fields.size(); i++) {\n";

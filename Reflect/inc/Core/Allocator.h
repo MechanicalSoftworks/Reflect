@@ -13,7 +13,7 @@ namespace Reflect
 	class REFLECT_DLL Allocator
 	{
 		// Raw pointer manipulation.
-		static IReflect*	CreateInternal(const Class* static_class);
+		static IReflect*	CreateInternal(const Class* static_class, IReflect* outer);
 		static void			DestroyInternal(IReflect* o);
 
 	public:
@@ -37,20 +37,20 @@ namespace Reflect
 		};
 		template<typename T> using WeakRef = std::weak_ptr<T>;
 
-		template<typename T> static Ref<T>	Create();
-		template<typename T> static Ref<T>	Create(const std::string_view& name);
-		template<typename T> static Ref<T>	Create(const Class* static_class);
+		template<typename T> static Ref<T>	Create(IReflect* outer);
+		template<typename T> static Ref<T>	Create(const std::string_view& name, IReflect* outer);
+		template<typename T> static Ref<T>	Create(const Class* static_class, IReflect* outer);
 		template<typename T> static void	Dispose(Ref<T> &ref);
 	};
 
 	template<typename T>
-	inline Allocator::Ref<T> Allocator::Create()
+	inline Allocator::Ref<T> Allocator::Create(IReflect* outer)
 	{
-		return Ref<T>((T*)CreateInternal(&T::StaticClass));
+		return Ref<T>((T*)CreateInternal(&T::StaticClass, outer));
 	}
 
 	template<typename T> 
-	inline Allocator::Ref<T> Allocator::Create(const std::string_view& name)
+	inline Allocator::Ref<T> Allocator::Create(const std::string_view& name, IReflect* outer)
 	{
 		const auto* static_class = Class::Lookup(name);
 		if (!static_class)
@@ -58,13 +58,13 @@ namespace Reflect
 			throw std::runtime_error(std::string("Unknown class '") + std::string(name) + "'");
 		}
 
-		return Create<T>(static_class);
+		return Create<T>(static_class, outer);
 	}
 
 	template<typename T>
-	inline Allocator::Ref<T> Allocator::Create(const Class* static_class)
+	inline Allocator::Ref<T> Allocator::Create(const Class* static_class, IReflect* outer)
 	{
-		return Ref<T>((T*)CreateInternal(static_class));
+		return Ref<T>((T*)CreateInternal(static_class, outer));
 	}
 
 	template<typename T>

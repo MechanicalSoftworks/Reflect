@@ -39,7 +39,7 @@ namespace Reflect
 
 			template <typename T>
 			struct TypeNameImpl<Ref<T>> {
-				static std::string get() { return "Reflect::Ref<" + Demangled(typeid(T)) + ">"; }
+				static std::string get() { return "Ref<" + Demangled(typeid(T)) + ">"; }
 			};
 
 			template <typename T>
