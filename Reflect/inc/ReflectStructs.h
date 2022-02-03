@@ -240,7 +240,7 @@ namespace Reflect
 
 		std::string GetName() const { return m_name; }
 
-		std::string GetTypeName() const { return m_type; }
+		const auto& GetTypeName() const { return m_type; }
 
 		template<typename T>
 		REFLECT_DLL T* ConvertToType()
