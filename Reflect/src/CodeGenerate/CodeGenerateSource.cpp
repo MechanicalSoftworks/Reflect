@@ -3,7 +3,7 @@
 
 namespace Reflect
 {
-	void CodeGenerateSource::GenerateSource(const FileParsedData& data, std::ofstream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
+	void CodeGenerateSource::GenerateSource(const FileParsedData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
 		REFLECT_PROFILE_FUNCTION();
 		//CodeGenerate::IncludeHeader(data.FileName + ReflectFileGeneratePrefix + ".h", file);
@@ -47,7 +47,7 @@ namespace Reflect
 		}
 	}
 
-	void CodeGenerateSource::WriteMemberProperties(const ReflectContainerData& data, std::ofstream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
+	void CodeGenerateSource::WriteMemberProperties(const ReflectContainerData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
 		auto getMemberProps = [](const std::vector<std::string>& flags) -> std::string
 		{
@@ -80,7 +80,7 @@ namespace Reflect
 		}
 	}
 
-	void CodeGenerateSource::WriteStaticClass(const ReflectContainerData& data, std::ofstream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
+	void CodeGenerateSource::WriteStaticClass(const ReflectContainerData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
 		file << "const Reflect::Class " << data.Name << "::StaticClass = Reflect::Class(\"" << data.Name << "\", "
 			<< "sizeof(" << data.Name << "), alignof(" << data.Name << "), "
@@ -90,7 +90,7 @@ namespace Reflect
 			<< ");\n\n";
 	}
 
-	void CodeGenerateSource::WriteMemberGet(const ReflectContainerData& data, std::ofstream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
+	void CodeGenerateSource::WriteMemberGet(const ReflectContainerData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
 		file << "Reflect::ReflectMember " + data.Name + "::GetMember(const std::string_view& memberName)\n{\n";
 		if (data.Members.size() > 0)
@@ -121,7 +121,7 @@ namespace Reflect
 		file << "}\n\n";
 	}
 
-	void CodeGenerateSource::WriteFunctionGet(const ReflectContainerData& data, std::ofstream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
+	void CodeGenerateSource::WriteFunctionGet(const ReflectContainerData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
 		file << "Reflect::ReflectFunction " + data.Name + "::GetFunction(const std::string_view &functionName)\n{\n";
 		for (const auto& func : data.Functions)
@@ -135,7 +135,7 @@ namespace Reflect
 		file << "}\n\n";
 	}
 
-	//void CodeGenerateSource::WriteFunctionBindings(const ReflectContainerData& data, std::ofstream& file)
+	//void CodeGenerateSource::WriteFunctionBindings(const ReflectContainerData& data, std::ostream& file)
 	//{
 	//	file << "\t" + data.Name << "* ptr = dynamic_cast<" + data.Name + "*>(this);\n";
 	//	file << "\tassert(ptr != nullptr && \"[" + data.Name + ContainerPrefix + "::" + "SetupReflectBindings()] 'ptr' should not be null.\");\n\n";
@@ -149,7 +149,7 @@ namespace Reflect
 	//	file << "\n";
 	//}
 
-	void CodeGenerateSource::WriteDataDictionary(const std::vector<Reflect::ReflectMemberData>& serialiseFields, const Reflect::ReflectContainerData& data, std::ofstream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
+	void CodeGenerateSource::WriteDataDictionary(const std::vector<Reflect::ReflectMemberData>& serialiseFields, const Reflect::ReflectContainerData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
 		if (!serialiseFields.size())
 		{
@@ -175,7 +175,7 @@ namespace Reflect
 		file << "};\n\n";
 	}
 
-	void CodeGenerateSource::WriteSerialise(const std::vector<Reflect::ReflectMemberData>& serialiseFields, const Reflect::ReflectContainerData& data, std::ofstream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
+	void CodeGenerateSource::WriteSerialise(const std::vector<Reflect::ReflectMemberData>& serialiseFields, const Reflect::ReflectContainerData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
 		file << "void " << data.Name << "::Serialise(Reflect::Serialiser &s, std::ostream &out) const {\n";
 		for (const auto& it : serialiseFields)
@@ -197,7 +197,7 @@ namespace Reflect
 		file << "}\n\n";
 	}
 
-	void CodeGenerateSource::WriteUnserialise(const std::vector<Reflect::ReflectMemberData>& serialiseFields, const Reflect::ReflectContainerData& data, std::ofstream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
+	void CodeGenerateSource::WriteUnserialise(const std::vector<Reflect::ReflectMemberData>& serialiseFields, const Reflect::ReflectContainerData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
 		file << "void " << data.Name << "::Unserialise(Reflect::Unserialiser &u, std::istream &in) {\n";
 		if (serialiseFields.size())

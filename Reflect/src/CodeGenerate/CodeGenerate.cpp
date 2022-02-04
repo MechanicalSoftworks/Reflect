@@ -22,32 +22,38 @@ namespace Reflect
 		CodeGenerateHeader header;
 		CodeGenerateSource source;
 
-		std::ofstream file = OpenFile(data.FilePath + "/" + data.FileName + ReflectFileGeneratePrefix + ".h");
-		header.GenerateHeader(data, file, addtionalOptions);
-		CloseFile(file);
+		const auto headerPath = data.FilePath + "/" + data.FileName + ReflectFileGeneratePrefix + ".h";
+		const auto sourcePath = addtionalOptions.OutputCPPDir + data.SubPath + "/" + data.FileName + ReflectFileGeneratePrefix + ".cpp";
 
-		file = OpenFile(addtionalOptions.OutputCPPDir + "/" + data.FileName + ReflectFileGeneratePrefix + ".cpp");
-		source.GenerateSource(data, file, addtionalOptions);
-		CloseFile(file);
+		std::ostringstream sout;
+
+		header.GenerateHeader(data, sout, addtionalOptions);
+		WriteIfDifferent(headerPath, sout.str());
+		sout.str("");
+
+		source.GenerateSource(data, sout, addtionalOptions);
+		WriteIfDifferent(sourcePath, sout.str());
+		sout.str("");
 	}
 
-	std::ofstream CodeGenerate::OpenFile(const std::string& filePath)
+	void CodeGenerate::WriteIfDifferent(const std::string& filePath, const std::string& str)
 	{
-		std::ofstream file;
-		file.open(filePath, std::ios::trunc);
-		assert(file.is_open() && "[CodeGenerate::OpenFile] File could not be created.");
-		return file;
-	}
+		std::ifstream fin(filePath);
+		const std::string existing((std::istreambuf_iterator<char>(fin)), std::istreambuf_iterator<char>());
 
-	void CodeGenerate::CloseFile(std::ofstream& file)
-	{
-		if (file.is_open())
+		if (existing == str)
 		{
-			file.close();
+			// They're the same.
+			// Don't write the updated file - changes the timestamp and makes compilers want to recompile them!
+			return;
 		}
+
+		fin.close();
+		std::ofstream fout(filePath);
+		fout.write(str.data(), str.length());
 	}
 
-	void CodeGenerate::IncludeHeader(const std::string& headerToInclude, std::ofstream& file, bool windowsInclude)
+	void CodeGenerate::IncludeHeader(const std::string& headerToInclude, std::ostream& file, bool windowsInclude)
 	{
 		if (windowsInclude)
 		{

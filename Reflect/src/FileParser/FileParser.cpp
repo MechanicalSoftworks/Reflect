@@ -49,6 +49,7 @@ namespace Reflect
 				data.FileName = f.path().filename().u8string().substr(0, ext);
 				data.FileExtension = f.path().filename().u8string().substr(ext + 1);
 				data.FilePath = f.path().parent_path().u8string();
+				data.SubPath = data.FilePath.substr(directory.length());
 				m_filesParsed.push_back(data);
 				CloseFile(file);
 			}

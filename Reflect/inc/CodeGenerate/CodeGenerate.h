@@ -23,10 +23,9 @@ namespace Reflect
 		REFLECT_DLL ~CodeGenerate();
 
 		REFLECT_DLL void Reflect(const FileParsedData& data, const CodeGenerateAddtionalOptions& addtionalOptions);
-		static void IncludeHeader(const std::string& headerToInclude, std::ofstream& file, bool windowsInclude = false);
+		static void IncludeHeader(const std::string& headerToInclude, std::ostream& file, bool windowsInclude = false);
 
 	private:
-		std::ofstream OpenFile(const std::string& filePath);
-		void CloseFile(std::ofstream& file);
+		static void WriteIfDifferent(const std::string& filePath, const std::string& str);
 	};
 }

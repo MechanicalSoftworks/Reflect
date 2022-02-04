@@ -3,6 +3,7 @@
 #include "Core/Core.h"
 #include "Core/Enums.h"
 #include "Core/Allocator.h"
+#include "Core/Util.h"
 #include <vector>
 #include <functional>
 #include <type_traits>
@@ -87,6 +88,7 @@ namespace Reflect
 		std::string Data;
 		int Cursor;
 		std::string FilePath;
+		std::string SubPath;
 		std::string FileName;
 		std::string FileExtension;
 		int GeneratedBodyLineOffset;
