@@ -16,6 +16,8 @@ struct ReflectMember;
 
 namespace Reflect
 {
+	class Class;
+
 	struct ReflectTypeNameData
 	{
 		std::string Type;
@@ -98,9 +100,10 @@ namespace Reflect
 
 	struct ReflectMemberProp
 	{
-		ReflectMemberProp(const char* name, const std::string &type, int offset, std::vector<std::string> const& strProperties)
+		ReflectMemberProp(const char* name, const std::string &type, const Class* staticClass, int offset, std::vector<std::string> const& strProperties)
 			: Name(name)
 			, Type(type)
+			, StaticClass(staticClass)
 			, Offset(offset)
 			, StrProperties(strProperties)
 		{ }
@@ -122,6 +125,7 @@ namespace Reflect
 
 		const char* Name;
 		std::string Type;
+		const Class* StaticClass;
 		int Offset;
 		std::vector<std::string> StrProperties;
 	};
@@ -226,9 +230,10 @@ namespace Reflect
 
 	struct ReflectMember
 	{
-		ReflectMember(const char* memberName, std::string memberType, void* memberPtr)
+		ReflectMember(const char* memberName, std::string memberType, const Class *staticClass, void* memberPtr)
 			: m_name(memberName)
 			, m_type(memberType)
+			, m_class(staticClass)
 			, m_ptr(memberPtr)
 		{}
 
@@ -237,12 +242,14 @@ namespace Reflect
 			return m_ptr != nullptr;
 		}
 
+
+
 		void* GetRawPointer() { return m_ptr; }
 		const void* GetRawPointer() const { return m_ptr; }
 
 		std::string GetName() const { return m_name; }
-
 		const auto& GetTypeName() const { return m_type; }
+		const Class* GetClass() const { return m_class; }
 
 		template<typename T>
 		REFLECT_DLL T* ConvertToType()
@@ -258,6 +265,7 @@ namespace Reflect
 	private:
 		const char* m_name;
 		std::string m_type;
+		const Class* m_class;
 		void* m_ptr;
 		int m_offset;
 	};
@@ -331,7 +339,7 @@ namespace Reflect
 				const auto& member = m_member_props[i];
 				if (member.ContainsProperty(flags))
 				{
-					members.push_back(Reflect::ReflectMember(member.Name, member.Type, (void *)(size_t)member.Offset));
+					members.push_back(Reflect::ReflectMember(member.Name, member.Type, member.StaticClass, (void *)(size_t)member.Offset));
 				}
 			}
 		}
@@ -357,7 +365,7 @@ namespace Reflect
 
 		// Reflection.
 		virtual ReflectFunction GetFunction(const std::string_view& functionName) { (void)functionName; return ReflectFunction(nullptr, nullptr);};
-		virtual ReflectMember GetMember(const std::string_view& memberName) { (void)memberName; return ReflectMember("", "void", nullptr); };
+		virtual ReflectMember GetMember(const std::string_view& memberName) { (void)memberName; return ReflectMember("", "void", nullptr, nullptr); };
 		virtual std::vector<ReflectMember> GetMembers(std::vector<std::string> const& flags) { (void)flags; return {}; };
 		
 		// Serialisation.

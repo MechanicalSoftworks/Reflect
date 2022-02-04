@@ -1,6 +1,9 @@
  // This file is auto generated please don't modify.
 #include "ReflectStructs.h"
+#include "Core/Core.h"
+#include "Core/Serial.h"
 #include "Core/Util.h"
+#include <array>
 
 #ifdef TestStrcuts_reflect_h
 #error "TestStrcuts_reflect.h already included, missing 'pragma once' in TestStrcuts.h"
@@ -41,6 +44,16 @@ virtual Reflect::ReflectMember GetMember(const std::string_view& memberName) ove
 virtual std::vector<Reflect::ReflectMember> GetMembers(std::vector<std::string> const& flags) override;\
 
 
+#define TestStrcuts_Source_h_15_DATA_DICTIONARY \
+public:\
+
+
+#define TestStrcuts_Source_h_15_SERIALISE_METHODS \
+public:\
+virtual void Serialise(Reflect::Serialiser &s, std::ostream &out) const override;\
+virtual void Unserialise(Reflect::Unserialiser &u, std::istream &in) override;\
+
+
 #define TestStrcuts_Source_h_15_GENERATED_BODY \
 TestStrcuts_Source_h_15_STATIC_CLASS \
 TestStrcuts_Source_h_15_PROPERTIES \
@@ -48,6 +61,8 @@ TestStrcuts_Source_h_15_FUNCTION_DECLARE \
 TestStrcuts_Source_h_15_FUNCTION_GET \
 TestStrcuts_Source_h_15_PROPERTIES_OFFSET \
 TestStrcuts_Source_h_15_PROPERTIES_GET \
+TestStrcuts_Source_h_15_DATA_DICTIONARY \
+TestStrcuts_Source_h_15_SERIALISE_METHODS \
 
 
 #define TestStrcuts_Source_h_31_STATIC_CLASS \
@@ -82,6 +97,16 @@ virtual Reflect::ReflectMember GetMember(const std::string_view& memberName) ove
 virtual std::vector<Reflect::ReflectMember> GetMembers(std::vector<std::string> const& flags) override;\
 
 
+#define TestStrcuts_Source_h_31_DATA_DICTIONARY \
+public:\
+
+
+#define TestStrcuts_Source_h_31_SERIALISE_METHODS \
+public:\
+virtual void Serialise(Reflect::Serialiser &s, std::ostream &out) const override;\
+virtual void Unserialise(Reflect::Unserialiser &u, std::istream &in) override;\
+
+
 #define TestStrcuts_Source_h_31_GENERATED_BODY \
 TestStrcuts_Source_h_31_STATIC_CLASS \
 TestStrcuts_Source_h_31_PROPERTIES \
@@ -89,6 +114,8 @@ TestStrcuts_Source_h_31_FUNCTION_DECLARE \
 TestStrcuts_Source_h_31_FUNCTION_GET \
 TestStrcuts_Source_h_31_PROPERTIES_OFFSET \
 TestStrcuts_Source_h_31_PROPERTIES_GET \
+TestStrcuts_Source_h_31_DATA_DICTIONARY \
+TestStrcuts_Source_h_31_SERIALISE_METHODS \
 
 
 #define TestStrcuts_Source_h_43_STATIC_CLASS \
@@ -144,6 +171,16 @@ virtual Reflect::ReflectMember GetMember(const std::string_view& memberName) ove
 virtual std::vector<Reflect::ReflectMember> GetMembers(std::vector<std::string> const& flags) override;\
 
 
+#define TestStrcuts_Source_h_43_DATA_DICTIONARY \
+public:\
+
+
+#define TestStrcuts_Source_h_43_SERIALISE_METHODS \
+public:\
+virtual void Serialise(Reflect::Serialiser &s, std::ostream &out) const override;\
+virtual void Unserialise(Reflect::Unserialiser &u, std::istream &in) override;\
+
+
 #define TestStrcuts_Source_h_43_GENERATED_BODY \
 TestStrcuts_Source_h_43_STATIC_CLASS \
 TestStrcuts_Source_h_43_PROPERTIES \
@@ -151,6 +188,8 @@ TestStrcuts_Source_h_43_FUNCTION_DECLARE \
 TestStrcuts_Source_h_43_FUNCTION_GET \
 TestStrcuts_Source_h_43_PROPERTIES_OFFSET \
 TestStrcuts_Source_h_43_PROPERTIES_GET \
+TestStrcuts_Source_h_43_DATA_DICTIONARY \
+TestStrcuts_Source_h_43_SERIALISE_METHODS \
 
 
 #undef CURRENT_FILE_ID

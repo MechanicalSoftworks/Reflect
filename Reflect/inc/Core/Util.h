@@ -24,7 +24,9 @@ namespace Reflect
 		std::string ValidateTypeName(const std::string& str);
 		REFLECT_DLL std::string Demangled(const std::type_info& info);
 
+		//
 		// Cross platform name generator.
+		//
 		namespace detail
 		{
 			template <typename T>
@@ -97,6 +99,30 @@ namespace Reflect
 			}
 
 			return end;
+		}
+
+		//
+		// Cross platform name generator.
+		//
+		namespace detail
+		{
+			template<typename T>
+			inline typename std::enable_if<std::is_base_of<IReflect, T>::value, const Class *>::type GetStaticClass()
+			{
+				return &T::StaticClass;
+			}
+
+			template<typename T>
+			inline typename std::enable_if<!std::is_base_of<IReflect, T>::value, const Class*>::type GetStaticClass()
+			{
+				return nullptr;
+			}
+		}
+
+		template<typename T>
+		const Reflect::Class* GetStaticClass()
+		{
+			return detail::GetStaticClass<T>();
 		}
 	}
 }

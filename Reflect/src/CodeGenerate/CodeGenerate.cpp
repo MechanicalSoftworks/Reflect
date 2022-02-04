@@ -48,6 +48,8 @@ namespace Reflect
 			return;
 		}
 
+		std::cout << "Writing: " << filePath << std::endl;
+
 		fin.close();
 		std::ofstream fout(filePath);
 		fout.write(str.data(), str.length());
