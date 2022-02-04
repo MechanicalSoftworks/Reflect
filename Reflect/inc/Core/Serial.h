@@ -563,7 +563,7 @@ namespace Reflect
 		else if (type == "short" || type == "unsigned short")			FieldImpl::skip<short>(u, in);
 		else if (type == "int" || type == "unsigned int")				FieldImpl::skip<int>(u, in);
 		else if (type == "long" || type == "unsigned long")				FieldImpl::skip<long>(u, in);
-		else if (type == "long long" || type == "unsigned long long")	FieldImpl::skip<long long>(u, in);
+		else if (type == "__int64" || type == "unsigned __int64" || type == "long long" || type == "unsigned long long")	FieldImpl::skip<long long>(u, in);
 		else if (type == "float")										FieldImpl::skip<float>(u, in);
 		else if (type == "double")										FieldImpl::skip<double>(u, in);
 		else if (type == "std::string")									FieldImpl::skip<StringPool::index_t>(u, in);

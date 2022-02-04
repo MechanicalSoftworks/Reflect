@@ -37,6 +37,16 @@ namespace Reflect
 				static std::string get() { return "std::string"; }
 			};
 
+			template <>
+			struct TypeNameImpl<long long> {
+				static std::string get() { return "__int64"; }
+			};
+
+			template <>
+			struct TypeNameImpl<unsigned long long> {
+				static std::string get() { return "unsigned __int64"; }
+			};
+
 			template <typename T>
 			struct TypeNameImpl<Ref<T>> {
 				static std::string get() { return "Ref<" + Demangled(typeid(T)) + ">"; }
