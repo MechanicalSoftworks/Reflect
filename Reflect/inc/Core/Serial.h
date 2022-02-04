@@ -661,7 +661,7 @@ namespace Reflect
 		{
 			index_t read_sz = std::min(length, (index_t)sizeof(buf));
 			fin.read(buf, read_sz);
-			m_pool.append(buf, length);
+			m_pool.append(buf, read_sz);
 			length -= read_sz;
 		}
 
