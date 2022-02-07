@@ -5,6 +5,17 @@
 
 #define EXPORT
 
+REFLECT_ENUM()
+enum class E : int
+{
+	Value1,
+	// hello world
+	Value2,
+
+	Value3 = 10,
+	Value4
+};
+
 /// <summary>
 /// Example class.
 /// </summary>

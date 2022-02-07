@@ -35,12 +35,18 @@ namespace Reflect
 		file << "#define " + data.FileName + ReflectFileHeaderGuard + "_h\n\n";
 
 		WriteMacros(data, file, addtionalOptions);
+		WriteEnums(data, file, addtionalOptions);
 	}
 
 	void CodeGenerateHeader::WriteMacros(const FileParsedData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
 		for (const auto& reflectData : data.ReflectData)
 		{
+			if (reflectData.ReflectType == ReflectType::Enum)
+			{
+				continue;
+			}
+
 			const std::string CurrentFileId = GetCurrentFileID(data.FileName) + "_" + std::to_string(reflectData.ReflectGenerateBodyLine);
 
 			WriteStaticClass(reflectData, file, CurrentFileId, addtionalOptions);
@@ -209,5 +215,48 @@ namespace Reflect
 		file << "virtual void Unserialise(Reflect::Unserialiser &u, std::istream &in) override;\\\n";
 
 		WRITE_CLOSE();
+	}
+
+	void CodeGenerateHeader::WriteEnums(const FileParsedData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
+	{
+		file << "\n\n";
+
+		for (const auto& reflectData : data.ReflectData)
+		{
+			if (reflectData.ReflectType != ReflectType::Enum)
+			{
+				continue;
+			}
+
+			if (addtionalOptions.Namespace.length())
+			{
+				file << "namespace " << addtionalOptions.Namespace << "{\n";
+			}
+
+			file << "enum class " << reflectData.Type << " : " << reflectData.SuperName << ";\n";
+
+			file << "inline const char* EnumToString(" << reflectData.Type << " x) {\n";
+			file << "\tswitch((" << reflectData.SuperName << ")x) {\n";
+			for (const auto& c : reflectData.Constants)
+			{
+				file << "\t\tcase " << c.Value << ": return \"" << c.Name << "\";\n";
+			}
+			file << "\t}\n";
+			file << "\treturn nullptr;\n";
+			file << "}\n\n";
+
+			file << "inline bool StringToEnum(const std::string_view &str, " << reflectData.Type << "& x) {\n";
+			for (const auto& c : reflectData.Constants)
+			{
+				file << "\tif (str == " << "\"" << c.Name << "\") { x = " << reflectData.Type << "(" << c.Value << "); return true; }\n";
+			}
+			file << "\treturn false;\n";
+			file << "}\n";
+
+			if (addtionalOptions.Namespace.length())
+			{
+				file << "}\n";
+			}
+		}
 	}
 }

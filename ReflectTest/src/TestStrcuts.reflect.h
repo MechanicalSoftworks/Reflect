@@ -10,7 +10,7 @@
 #endif TestStrcuts_reflect_h
 #define TestStrcuts_reflect_h
 
-#define TestStrcuts_Source_h_15_STATIC_CLASS \
+#define TestStrcuts_Source_h_26_STATIC_CLASS \
 public:\
 	typedef Reflect::IReflect SuperClass;\
 	static const Reflect::Class StaticClass;\
@@ -18,54 +18,54 @@ public:\
 	static void __PlacementDelete(S* obj) { obj->~S(); }\
 
 
-#define TestStrcuts_Source_h_15_PROPERTIES \
+#define TestStrcuts_Source_h_26_PROPERTIES \
 private:\
 	static Reflect::ReflectMemberProp __REFLECT_MEMBER_PROPS__[2];\
 
 
-#define TestStrcuts_Source_h_15_FUNCTION_DECLARE \
+#define TestStrcuts_Source_h_26_FUNCTION_DECLARE \
 private:\
 
 
-#define TestStrcuts_Source_h_15_FUNCTION_GET \
+#define TestStrcuts_Source_h_26_FUNCTION_GET \
 public:\
 	virtual Reflect::ReflectFunction GetFunction(const std::string_view &functionName) override;\
 
 
-#define TestStrcuts_Source_h_15_PROPERTIES_OFFSET \
+#define TestStrcuts_Source_h_26_PROPERTIES_OFFSET \
 private:\
 	static constexpr int __REFLECT__Friends() { return offsetof(S, Friends); }; \
 	static constexpr int __REFLECT__TimeOnline() { return offsetof(S, TimeOnline); }; \
 
 
-#define TestStrcuts_Source_h_15_PROPERTIES_GET \
+#define TestStrcuts_Source_h_26_PROPERTIES_GET \
 public:\
 virtual Reflect::ReflectMember GetMember(const std::string_view& memberName) override;\
 virtual std::vector<Reflect::ReflectMember> GetMembers(std::vector<std::string> const& flags) override;\
 
 
-#define TestStrcuts_Source_h_15_DATA_DICTIONARY \
+#define TestStrcuts_Source_h_26_DATA_DICTIONARY \
 public:\
 
 
-#define TestStrcuts_Source_h_15_SERIALISE_METHODS \
+#define TestStrcuts_Source_h_26_SERIALISE_METHODS \
 public:\
 virtual void Serialise(Reflect::Serialiser &s, std::ostream &out) const override;\
 virtual void Unserialise(Reflect::Unserialiser &u, std::istream &in) override;\
 
 
-#define TestStrcuts_Source_h_15_GENERATED_BODY \
-TestStrcuts_Source_h_15_STATIC_CLASS \
-TestStrcuts_Source_h_15_PROPERTIES \
-TestStrcuts_Source_h_15_FUNCTION_DECLARE \
-TestStrcuts_Source_h_15_FUNCTION_GET \
-TestStrcuts_Source_h_15_PROPERTIES_OFFSET \
-TestStrcuts_Source_h_15_PROPERTIES_GET \
-TestStrcuts_Source_h_15_DATA_DICTIONARY \
-TestStrcuts_Source_h_15_SERIALISE_METHODS \
+#define TestStrcuts_Source_h_26_GENERATED_BODY \
+TestStrcuts_Source_h_26_STATIC_CLASS \
+TestStrcuts_Source_h_26_PROPERTIES \
+TestStrcuts_Source_h_26_FUNCTION_DECLARE \
+TestStrcuts_Source_h_26_FUNCTION_GET \
+TestStrcuts_Source_h_26_PROPERTIES_OFFSET \
+TestStrcuts_Source_h_26_PROPERTIES_GET \
+TestStrcuts_Source_h_26_DATA_DICTIONARY \
+TestStrcuts_Source_h_26_SERIALISE_METHODS \
 
 
-#define TestStrcuts_Source_h_31_STATIC_CLASS \
+#define TestStrcuts_Source_h_42_STATIC_CLASS \
 public:\
 	typedef Reflect::IReflect SuperClass;\
 	static const Reflect::Class StaticClass;\
@@ -73,52 +73,52 @@ public:\
 	static void __PlacementDelete(Actor* obj) { obj->~Actor(); }\
 
 
-#define TestStrcuts_Source_h_31_PROPERTIES \
+#define TestStrcuts_Source_h_42_PROPERTIES \
 private:\
 	static Reflect::ReflectMemberProp __REFLECT_MEMBER_PROPS__[0];\
 
 
-#define TestStrcuts_Source_h_31_FUNCTION_DECLARE \
+#define TestStrcuts_Source_h_42_FUNCTION_DECLARE \
 private:\
 
 
-#define TestStrcuts_Source_h_31_FUNCTION_GET \
+#define TestStrcuts_Source_h_42_FUNCTION_GET \
 public:\
 	virtual Reflect::ReflectFunction GetFunction(const std::string_view &functionName) override;\
 
 
-#define TestStrcuts_Source_h_31_PROPERTIES_OFFSET \
+#define TestStrcuts_Source_h_42_PROPERTIES_OFFSET \
 private:\
 
 
-#define TestStrcuts_Source_h_31_PROPERTIES_GET \
+#define TestStrcuts_Source_h_42_PROPERTIES_GET \
 public:\
 virtual Reflect::ReflectMember GetMember(const std::string_view& memberName) override;\
 virtual std::vector<Reflect::ReflectMember> GetMembers(std::vector<std::string> const& flags) override;\
 
 
-#define TestStrcuts_Source_h_31_DATA_DICTIONARY \
+#define TestStrcuts_Source_h_42_DATA_DICTIONARY \
 public:\
 
 
-#define TestStrcuts_Source_h_31_SERIALISE_METHODS \
+#define TestStrcuts_Source_h_42_SERIALISE_METHODS \
 public:\
 virtual void Serialise(Reflect::Serialiser &s, std::ostream &out) const override;\
 virtual void Unserialise(Reflect::Unserialiser &u, std::istream &in) override;\
 
 
-#define TestStrcuts_Source_h_31_GENERATED_BODY \
-TestStrcuts_Source_h_31_STATIC_CLASS \
-TestStrcuts_Source_h_31_PROPERTIES \
-TestStrcuts_Source_h_31_FUNCTION_DECLARE \
-TestStrcuts_Source_h_31_FUNCTION_GET \
-TestStrcuts_Source_h_31_PROPERTIES_OFFSET \
-TestStrcuts_Source_h_31_PROPERTIES_GET \
-TestStrcuts_Source_h_31_DATA_DICTIONARY \
-TestStrcuts_Source_h_31_SERIALISE_METHODS \
+#define TestStrcuts_Source_h_42_GENERATED_BODY \
+TestStrcuts_Source_h_42_STATIC_CLASS \
+TestStrcuts_Source_h_42_PROPERTIES \
+TestStrcuts_Source_h_42_FUNCTION_DECLARE \
+TestStrcuts_Source_h_42_FUNCTION_GET \
+TestStrcuts_Source_h_42_PROPERTIES_OFFSET \
+TestStrcuts_Source_h_42_PROPERTIES_GET \
+TestStrcuts_Source_h_42_DATA_DICTIONARY \
+TestStrcuts_Source_h_42_SERIALISE_METHODS \
 
 
-#define TestStrcuts_Source_h_43_STATIC_CLASS \
+#define TestStrcuts_Source_h_54_STATIC_CLASS \
 public:\
 	typedef Actor SuperClass;\
 	static const Reflect::Class StaticClass;\
@@ -126,12 +126,12 @@ public:\
 	static void __PlacementDelete(Player* obj) { obj->~Player(); }\
 
 
-#define TestStrcuts_Source_h_43_PROPERTIES \
+#define TestStrcuts_Source_h_54_PROPERTIES \
 private:\
 	static Reflect::ReflectMemberProp __REFLECT_MEMBER_PROPS__[2];\
 
 
-#define TestStrcuts_Source_h_43_FUNCTION_DECLARE \
+#define TestStrcuts_Source_h_54_FUNCTION_DECLARE \
 private:\
 	static Reflect::ReflectReturnCode __REFLECT_FUNC__GetOnlineFriendsCount(void* objectPtr, void* returnValuePtr, Reflect::FunctionPtrArgs& functionArgs)\
 	{\
@@ -154,43 +154,63 @@ private:\
 	}\
 
 
-#define TestStrcuts_Source_h_43_FUNCTION_GET \
+#define TestStrcuts_Source_h_54_FUNCTION_GET \
 public:\
 	virtual Reflect::ReflectFunction GetFunction(const std::string_view &functionName) override;\
 
 
-#define TestStrcuts_Source_h_43_PROPERTIES_OFFSET \
+#define TestStrcuts_Source_h_54_PROPERTIES_OFFSET \
 private:\
 	static constexpr int __REFLECT__Friends() { return offsetof(Player, Friends); }; \
 	static constexpr int __REFLECT__TimeOnline() { return offsetof(Player, TimeOnline); }; \
 
 
-#define TestStrcuts_Source_h_43_PROPERTIES_GET \
+#define TestStrcuts_Source_h_54_PROPERTIES_GET \
 public:\
 virtual Reflect::ReflectMember GetMember(const std::string_view& memberName) override;\
 virtual std::vector<Reflect::ReflectMember> GetMembers(std::vector<std::string> const& flags) override;\
 
 
-#define TestStrcuts_Source_h_43_DATA_DICTIONARY \
+#define TestStrcuts_Source_h_54_DATA_DICTIONARY \
 public:\
 
 
-#define TestStrcuts_Source_h_43_SERIALISE_METHODS \
+#define TestStrcuts_Source_h_54_SERIALISE_METHODS \
 public:\
 virtual void Serialise(Reflect::Serialiser &s, std::ostream &out) const override;\
 virtual void Unserialise(Reflect::Unserialiser &u, std::istream &in) override;\
 
 
-#define TestStrcuts_Source_h_43_GENERATED_BODY \
-TestStrcuts_Source_h_43_STATIC_CLASS \
-TestStrcuts_Source_h_43_PROPERTIES \
-TestStrcuts_Source_h_43_FUNCTION_DECLARE \
-TestStrcuts_Source_h_43_FUNCTION_GET \
-TestStrcuts_Source_h_43_PROPERTIES_OFFSET \
-TestStrcuts_Source_h_43_PROPERTIES_GET \
-TestStrcuts_Source_h_43_DATA_DICTIONARY \
-TestStrcuts_Source_h_43_SERIALISE_METHODS \
+#define TestStrcuts_Source_h_54_GENERATED_BODY \
+TestStrcuts_Source_h_54_STATIC_CLASS \
+TestStrcuts_Source_h_54_PROPERTIES \
+TestStrcuts_Source_h_54_FUNCTION_DECLARE \
+TestStrcuts_Source_h_54_FUNCTION_GET \
+TestStrcuts_Source_h_54_PROPERTIES_OFFSET \
+TestStrcuts_Source_h_54_PROPERTIES_GET \
+TestStrcuts_Source_h_54_DATA_DICTIONARY \
+TestStrcuts_Source_h_54_SERIALISE_METHODS \
 
 
 #undef CURRENT_FILE_ID
 #define CURRENT_FILE_ID TestStrcuts_Source_h
+
+
+enum class E : int;
+inline const char* EnumToString(E x) {
+	switch((int)x) {
+		case 0: return "Value1";
+		case 1: return "Value2";
+		case 10: return "Value3";
+		case 11: return "Value4";
+	}
+	return nullptr;
+}
+
+inline bool StringToEnum(const std::string_view &str, E& x) {
+	if (str == "Value1") { x = E(0); return true; }
+	if (str == "Value2") { x = E(1); return true; }
+	if (str == "Value3") { x = E(10); return true; }
+	if (str == "Value4") { x = E(11); return true; }
+	return false;
+}

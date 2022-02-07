@@ -33,6 +33,7 @@ namespace Reflect
 
 	constexpr const char* RefectStructKey = "REFLECT_STRUCT";
 	constexpr const char* RefectClassKey = "REFLECT_CLASS";
+	constexpr const char* RefectEnumKey = "REFLECT_ENUM";
 	constexpr const char* ReflectGeneratedBodykey = "REFLECT_GENERATED_BODY";
 	constexpr const char* PropertyKey = "REFLECT_PROPERTY";
 	constexpr const char* ReflectFileGeneratePrefix = ".reflect";

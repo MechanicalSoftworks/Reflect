@@ -113,16 +113,32 @@ namespace Reflect
 
 	FileParsedData FileParser::LoadFile(std::ifstream& file)
 	{
-		FileParsedData data = {};
+		FileParsedData rawData = {};
 
 		file.seekg(0, std::ios::end);
 		int fileSize = static_cast<int>(file.tellg());
 		file.seekg(0, std::ios::beg);
-		data.Data = std::string(fileSize, '\0');
-		data.Cursor = 0;
-		file.read(&data.Data[0], fileSize);
+		rawData.Data = std::string(fileSize, '\0');
+		rawData.Cursor = 0;
+		file.read(&rawData.Data[0], fileSize);
 
-		return data;
+		//return rawData;
+
+		// Strip out comments.
+		FileParsedData cleanedData = {};
+		auto idx = rawData.Data.find("//");
+		auto lastIdx = 0;
+		while (idx != std::string::npos)
+		{
+			cleanedData.Data.append(rawData.Data, lastIdx, idx - lastIdx);
+			idx = rawData.Data.find("\n", idx);
+			lastIdx = idx;
+			idx = rawData.Data.find("//", idx);
+		}
+		cleanedData.Data.append(rawData.Data, lastIdx);
+		cleanedData.Cursor = 0;
+
+		return cleanedData;
 	}
 
 	bool FileParser::ParseFile(FileParsedData& fileData)
@@ -130,7 +146,7 @@ namespace Reflect
 		REFLECT_PROFILE_FUNCTION();
 
 		bool reflectItem = false;
-		while (ReflectContainerHeader(fileData, RefectStructKey, ReflectType::Struct) || ReflectContainerHeader(fileData, RefectClassKey, ReflectType::Class))
+		while (ReflectContainerHeader(fileData, RefectEnumKey, ReflectType::Enum) || ReflectContainerHeader(fileData, RefectStructKey, ReflectType::Struct) || ReflectContainerHeader(fileData, RefectClassKey, ReflectType::Class))
 		{
 			ReflectContainer(fileData);
 			reflectItem = true;
@@ -154,31 +170,28 @@ namespace Reflect
 		fileData.Cursor = reflectStart + static_cast<int>(keyword.length()) + 1;
 		containerData.ContainerProps = ReflectFlags(fileData);
 
+		const char* kw = "";
 		if (containerData.ReflectType == ReflectType::Class)
 		{
-			int newPos = (int)fileData.Data.find("class", fileData.Cursor);
-			if (newPos != std::string::npos)
-			{
-				fileData.Cursor = newPos;
-				fileData.Cursor += 5;
-			}
-			else
-			{
-				return false;
-			}
+			kw = "class";
 		}
 		else if (containerData.ReflectType == ReflectType::Struct)
 		{
-			int newPos = (int)fileData.Data.find("struct", fileData.Cursor);
-			if (newPos != std::string::npos)
-			{
-				fileData.Cursor = newPos;
-				fileData.Cursor += 6;
-			}
-			else
-			{
-				return false;
-			}
+			kw = "struct";
+		}
+		else if (containerData.ReflectType == ReflectType::Enum)
+		{
+			kw = "enum";
+		}
+		int newPos = (int)fileData.Data.find(kw, fileData.Cursor);
+		if (newPos != std::string::npos)
+		{
+			fileData.Cursor = newPos;
+			fileData.Cursor += strlen(kw);
+		}
+		else
+		{
+			return false;
 		}
 
 		// Get the flags passed though the REFLECT macro.
@@ -245,8 +258,21 @@ namespace Reflect
 
 		// Good, we have a reflected container class/struct.
 		// First find out which it is and verify that we are inheriting from "ReflectObject".
-		std::stack<char> bracketStack;
 		ReflectContainerData& conatinerData = fileData.ReflectData.back();
+
+		if (conatinerData.ReflectType == ReflectType::Struct || conatinerData.ReflectType == ReflectType::Class)
+		{
+			ReflectClassContainer(fileData, conatinerData, endOfContainerCursor);
+		}
+		else if (conatinerData.ReflectType == ReflectType::Enum)
+		{
+			ReflectEnumContainer(fileData, conatinerData, endOfContainerCursor);
+		}
+	}
+
+	void FileParser::ReflectClassContainer(FileParsedData& fileData, ReflectContainerData& conatinerData, int endOfContainerCursor)
+	{
+		std::stack<char> bracketStack;
 
 		int generatedBodyLine = static_cast<int>(fileData.Data.find(ReflectGeneratedBodykey, fileData.GeneratedBodyLineOffset));
 		assert(generatedBodyLine != -1 && "[FileParser::ReflectContainer] 'REFLECT_GENERATED_BODY()' is missing from a container.");
@@ -304,10 +330,101 @@ namespace Reflect
 			}
 			else if (c == '\n')
 			{
-				assert(false && "[FileParser::ParseFile] Unknown reflect type. This must be a member variable or function. Make sure ')' or ';' is used before a new line.");
+				assert(false && "[FileParser::ReflectClassContainer] Unknown reflect type. This must be a member variable or function. Make sure ')' or ';' is used before a new line.");
 			}
 
 			++fileData.Cursor;
+		}
+	}
+
+	void FileParser::ReflectEnumContainer(FileParsedData& fileData, ReflectContainerData& containerData, int endOfContainerCursor)
+	{
+		assert(containerData.SuperName.length() && "[FileParser::ReflectEnumContainer] Enums need a fixed size base class.");
+		int64_t value = -1;
+
+		// Consume the opening brace.
+		while (fileData.Data[fileData.Cursor++] != '{') {}
+
+		while (true)
+		{
+			// Eat whitespace.
+			while (std::isspace(fileData.Data[fileData.Cursor]))
+			{
+				fileData.Cursor++;
+				if (fileData.Cursor >= endOfContainerCursor)
+				{
+					return;
+				}
+			}
+
+			// Get constant name.
+			std::string name;
+			while (std::isalnum(fileData.Data[fileData.Cursor]))
+			{
+				name += fileData.Data[fileData.Cursor++];
+				if (fileData.Cursor >= endOfContainerCursor)
+				{
+					return;
+				}
+			}
+
+			// Eat whitespace.
+			while (std::isspace(fileData.Data[fileData.Cursor]))
+			{
+				fileData.Cursor++;
+				if (fileData.Cursor >= endOfContainerCursor)
+				{
+					return;
+				}
+			}
+
+			// Check for value assignment.
+			if (fileData.Data[fileData.Cursor] == '=')
+			{
+				fileData.Cursor++;
+
+				// Eat whitespace.
+				while (std::isspace(fileData.Data[fileData.Cursor])) 
+				{
+					fileData.Cursor++;
+					if (fileData.Cursor >= endOfContainerCursor)
+					{
+						return;
+					}
+				}
+
+				// Get value.
+				std::string num;
+				while (std::isdigit(fileData.Data[fileData.Cursor]))
+				{
+					num += fileData.Data[fileData.Cursor++];
+					if (fileData.Cursor >= endOfContainerCursor)
+					{
+						return;
+					}
+				}
+
+				value = std::strtoll(num.c_str(), nullptr, 10);
+			}
+			else
+			{
+				value++;
+			}
+
+			ReflectConstantData constantData = {};
+			constantData.Name = name;
+			constantData.Value = value;
+			containerData.Constants.push_back(constantData);
+
+			// Move to the next token.
+			while (!std::isalnum(fileData.Data[fileData.Cursor]))
+			{
+				fileData.Cursor++;
+				if (fileData.Cursor >= endOfContainerCursor)
+				{
+					return;
+				}
+			}
 		}
 	}
 

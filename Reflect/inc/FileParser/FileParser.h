@@ -35,6 +35,8 @@ namespace Reflect
 
 		bool ReflectContainerHeader(FileParsedData& fileData, const std::string& keyword, const ReflectType type);
 		void ReflectContainer(FileParsedData& fileData);
+		void ReflectClassContainer(FileParsedData& fileData, ReflectContainerData& conatinerData, int endOfContainerCursor);
+		void ReflectEnumContainer(FileParsedData& fileData, ReflectContainerData& conatinerData, int endOfContainerCursor);
 
 		int FindEndOfConatiner(const FileParsedData& fileData);
 

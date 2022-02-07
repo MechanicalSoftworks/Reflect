@@ -22,6 +22,11 @@ namespace Reflect
 
 		for (auto& reflectData : data.ReflectData)
 		{
+			if (reflectData.ReflectType == ReflectType::Enum)
+			{
+				continue;
+			}
+
 			WriteMemberProperties(reflectData, file, addtionalOptions);
 			WriteStaticClass(reflectData, file, addtionalOptions);
 			WriteFunctionGet(reflectData, file, addtionalOptions);

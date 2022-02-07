@@ -75,12 +75,19 @@ namespace Reflect
 		std::vector<ReflectTypeNameData> Parameters;
 	};
 
+	struct ReflectConstantData
+	{
+		std::string Name;
+		int64_t Value;
+	};
+
 	struct ReflectContainerData : public ReflectTypeNameData
 	{
 		std::string Name, SuperName;
 		ReflectType ReflectType;
 		int ReflectGenerateBodyLine;
 
+		std::vector<ReflectConstantData> Constants;
 		std::vector<ReflectMemberData> Members;
 		std::vector<ReflectFunctionData> Functions;
 	};
@@ -381,3 +388,4 @@ namespace Reflect
 #define REFLECT_BASE() public Reflect::IReflect
 #define REFLECT_STRUCT(...)
 #define REFLECT_CLASS(...)
+#define REFLECT_ENUM(...)
