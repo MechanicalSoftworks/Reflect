@@ -110,6 +110,7 @@ namespace Reflect
 
 	void Serialiser::AddUserDataType(const std::string& name, size_t sz)
 	{
+		m_string_pool.Add(name);
 		m_user_data_types.insert(std::pair(name, UserDataType(name, sz)));
 	}
 
