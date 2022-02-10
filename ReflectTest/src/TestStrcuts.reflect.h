@@ -14,7 +14,7 @@
 public:\
 	typedef Reflect::IReflect SuperClass;\
 	static const Reflect::Class StaticClass;\
-	static void __PlacementNew(S* obj) { new(obj) S; }\
+	static void __PlacementNew(S* obj, const Reflect::Initialiser& init) { new(obj) S(init); }\
 	static void __PlacementDelete(S* obj) { obj->~S(); }\
 
 
@@ -65,73 +65,73 @@ TestStrcuts_Source_h_26_DATA_DICTIONARY \
 TestStrcuts_Source_h_26_SERIALISE_METHODS \
 
 
-#define TestStrcuts_Source_h_42_STATIC_CLASS \
+#define TestStrcuts_Source_h_44_STATIC_CLASS \
 public:\
 	typedef Reflect::IReflect SuperClass;\
 	static const Reflect::Class StaticClass;\
-	static void __PlacementNew(Actor* obj) { new(obj) Actor; }\
+	static void __PlacementNew(Actor* obj, const Reflect::Initialiser& init) { new(obj) Actor(init); }\
 	static void __PlacementDelete(Actor* obj) { obj->~Actor(); }\
 
 
-#define TestStrcuts_Source_h_42_PROPERTIES \
+#define TestStrcuts_Source_h_44_PROPERTIES \
 private:\
 	static Reflect::ReflectMemberProp __REFLECT_MEMBER_PROPS__[0];\
 
 
-#define TestStrcuts_Source_h_42_FUNCTION_DECLARE \
+#define TestStrcuts_Source_h_44_FUNCTION_DECLARE \
 private:\
 
 
-#define TestStrcuts_Source_h_42_FUNCTION_GET \
+#define TestStrcuts_Source_h_44_FUNCTION_GET \
 public:\
 	virtual Reflect::ReflectFunction GetFunction(const std::string_view &functionName) override;\
 
 
-#define TestStrcuts_Source_h_42_PROPERTIES_OFFSET \
+#define TestStrcuts_Source_h_44_PROPERTIES_OFFSET \
 private:\
 
 
-#define TestStrcuts_Source_h_42_PROPERTIES_GET \
+#define TestStrcuts_Source_h_44_PROPERTIES_GET \
 public:\
 virtual Reflect::ReflectMember GetMember(const std::string_view& memberName) override;\
 virtual std::vector<Reflect::ReflectMember> GetMembers(std::vector<std::string> const& flags) override;\
 
 
-#define TestStrcuts_Source_h_42_DATA_DICTIONARY \
+#define TestStrcuts_Source_h_44_DATA_DICTIONARY \
 public:\
 
 
-#define TestStrcuts_Source_h_42_SERIALISE_METHODS \
+#define TestStrcuts_Source_h_44_SERIALISE_METHODS \
 public:\
 virtual void Serialise(Reflect::Serialiser &s, std::ostream &out) const override;\
 virtual void Unserialise(Reflect::Unserialiser &u, std::istream &in) override;\
 
 
-#define TestStrcuts_Source_h_42_GENERATED_BODY \
-TestStrcuts_Source_h_42_STATIC_CLASS \
-TestStrcuts_Source_h_42_PROPERTIES \
-TestStrcuts_Source_h_42_FUNCTION_DECLARE \
-TestStrcuts_Source_h_42_FUNCTION_GET \
-TestStrcuts_Source_h_42_PROPERTIES_OFFSET \
-TestStrcuts_Source_h_42_PROPERTIES_GET \
-TestStrcuts_Source_h_42_DATA_DICTIONARY \
-TestStrcuts_Source_h_42_SERIALISE_METHODS \
+#define TestStrcuts_Source_h_44_GENERATED_BODY \
+TestStrcuts_Source_h_44_STATIC_CLASS \
+TestStrcuts_Source_h_44_PROPERTIES \
+TestStrcuts_Source_h_44_FUNCTION_DECLARE \
+TestStrcuts_Source_h_44_FUNCTION_GET \
+TestStrcuts_Source_h_44_PROPERTIES_OFFSET \
+TestStrcuts_Source_h_44_PROPERTIES_GET \
+TestStrcuts_Source_h_44_DATA_DICTIONARY \
+TestStrcuts_Source_h_44_SERIALISE_METHODS \
 
 
-#define TestStrcuts_Source_h_54_STATIC_CLASS \
+#define TestStrcuts_Source_h_58_STATIC_CLASS \
 public:\
 	typedef Actor SuperClass;\
 	static const Reflect::Class StaticClass;\
-	static void __PlacementNew(Player* obj) { new(obj) Player; }\
+	static void __PlacementNew(Player* obj, const Reflect::Initialiser& init) { new(obj) Player(init); }\
 	static void __PlacementDelete(Player* obj) { obj->~Player(); }\
 
 
-#define TestStrcuts_Source_h_54_PROPERTIES \
+#define TestStrcuts_Source_h_58_PROPERTIES \
 private:\
 	static Reflect::ReflectMemberProp __REFLECT_MEMBER_PROPS__[2];\
 
 
-#define TestStrcuts_Source_h_54_FUNCTION_DECLARE \
+#define TestStrcuts_Source_h_58_FUNCTION_DECLARE \
 private:\
 	static Reflect::ReflectReturnCode __REFLECT_FUNC__GetOnlineFriendsCount(void* objectPtr, void* returnValuePtr, Reflect::FunctionPtrArgs& functionArgs)\
 	{\
@@ -154,42 +154,42 @@ private:\
 	}\
 
 
-#define TestStrcuts_Source_h_54_FUNCTION_GET \
+#define TestStrcuts_Source_h_58_FUNCTION_GET \
 public:\
 	virtual Reflect::ReflectFunction GetFunction(const std::string_view &functionName) override;\
 
 
-#define TestStrcuts_Source_h_54_PROPERTIES_OFFSET \
+#define TestStrcuts_Source_h_58_PROPERTIES_OFFSET \
 private:\
 	static constexpr int __REFLECT__Friends() { return offsetof(Player, Friends); }; \
 	static constexpr int __REFLECT__TimeOnline() { return offsetof(Player, TimeOnline); }; \
 
 
-#define TestStrcuts_Source_h_54_PROPERTIES_GET \
+#define TestStrcuts_Source_h_58_PROPERTIES_GET \
 public:\
 virtual Reflect::ReflectMember GetMember(const std::string_view& memberName) override;\
 virtual std::vector<Reflect::ReflectMember> GetMembers(std::vector<std::string> const& flags) override;\
 
 
-#define TestStrcuts_Source_h_54_DATA_DICTIONARY \
+#define TestStrcuts_Source_h_58_DATA_DICTIONARY \
 public:\
 
 
-#define TestStrcuts_Source_h_54_SERIALISE_METHODS \
+#define TestStrcuts_Source_h_58_SERIALISE_METHODS \
 public:\
 virtual void Serialise(Reflect::Serialiser &s, std::ostream &out) const override;\
 virtual void Unserialise(Reflect::Unserialiser &u, std::istream &in) override;\
 
 
-#define TestStrcuts_Source_h_54_GENERATED_BODY \
-TestStrcuts_Source_h_54_STATIC_CLASS \
-TestStrcuts_Source_h_54_PROPERTIES \
-TestStrcuts_Source_h_54_FUNCTION_DECLARE \
-TestStrcuts_Source_h_54_FUNCTION_GET \
-TestStrcuts_Source_h_54_PROPERTIES_OFFSET \
-TestStrcuts_Source_h_54_PROPERTIES_GET \
-TestStrcuts_Source_h_54_DATA_DICTIONARY \
-TestStrcuts_Source_h_54_SERIALISE_METHODS \
+#define TestStrcuts_Source_h_58_GENERATED_BODY \
+TestStrcuts_Source_h_58_STATIC_CLASS \
+TestStrcuts_Source_h_58_PROPERTIES \
+TestStrcuts_Source_h_58_FUNCTION_DECLARE \
+TestStrcuts_Source_h_58_FUNCTION_GET \
+TestStrcuts_Source_h_58_PROPERTIES_OFFSET \
+TestStrcuts_Source_h_58_PROPERTIES_GET \
+TestStrcuts_Source_h_58_DATA_DICTIONARY \
+TestStrcuts_Source_h_58_SERIALISE_METHODS \
 
 
 #undef CURRENT_FILE_ID

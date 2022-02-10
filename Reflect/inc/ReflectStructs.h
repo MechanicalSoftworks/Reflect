@@ -16,7 +16,11 @@ struct ReflectMember;
 
 namespace Reflect
 {
+	class Serialiser;
+	class Unserialiser;
+	struct IReflect;
 	class Class;
+	struct Initialiser;
 
 	struct ReflectTypeNameData
 	{
@@ -107,10 +111,11 @@ namespace Reflect
 
 	struct ReflectMemberProp
 	{
-		ReflectMemberProp(const char* name, const std::string &type, const Class* staticClass, int offset, std::vector<std::string> const& strProperties)
+		ReflectMemberProp(const char* name, const std::string &type, const Class* staticClass, bool isPointer, int offset, std::vector<std::string> const& strProperties)
 			: Name(name)
 			, Type(type)
 			, StaticClass(staticClass)
+			, IsPointer(isPointer)
 			, Offset(offset)
 			, StrProperties(strProperties)
 		{ }
@@ -133,6 +138,7 @@ namespace Reflect
 		const char* Name;
 		std::string Type;
 		const Class* StaticClass;
+		bool IsPointer;
 		int Offset;
 		std::vector<std::string> StrProperties;
 	};
@@ -237,10 +243,11 @@ namespace Reflect
 
 	struct ReflectMember
 	{
-		ReflectMember(const char* memberName, std::string memberType, const Class *staticClass, void* memberPtr)
+		ReflectMember(const char* memberName, std::string memberType, const Class *staticClass, bool isPointer, void* memberPtr)
 			: m_name(memberName)
 			, m_type(memberType)
 			, m_class(staticClass)
+			, m_is_pointer(isPointer)
 			, m_ptr(memberPtr)
 		{}
 
@@ -257,6 +264,7 @@ namespace Reflect
 		std::string GetName() const { return m_name; }
 		const auto& GetTypeName() const { return m_type; }
 		const Class* GetClass() const { return m_class; }
+		bool IsPointer() const { return m_is_pointer; }
 
 		template<typename T>
 		REFLECT_DLL T* ConvertToType()
@@ -273,13 +281,14 @@ namespace Reflect
 		const char* m_name;
 		std::string m_type;
 		const Class* m_class;
+		bool m_is_pointer;
 		void* m_ptr;
 		int m_offset;
 	};
 
-	typedef void (*ConstructorType)(void* obj);
+	typedef void (*ConstructorType)(void* obj, const Initialiser& init);
 	typedef void (*DestructorType)(void* obj);
-	template<typename T> void PlacementNew(void* obj) { T::__PlacementNew((T*)obj); }
+	template<typename T> void PlacementNew(void* obj, const Initialiser& init) { T::__PlacementNew((T*)obj, init); }
 	template<typename T> void PlacementDelete(void* obj) { T::__PlacementDelete((T*)obj); }
 
 	class Class
@@ -346,7 +355,7 @@ namespace Reflect
 				const auto& member = m_member_props[i];
 				if (member.ContainsProperty(flags))
 				{
-					members.push_back(Reflect::ReflectMember(member.Name, member.Type, member.StaticClass, (void *)(size_t)member.Offset));
+					members.push_back(Reflect::ReflectMember(member.Name, member.Type, member.StaticClass, member.IsPointer, (void *)(size_t)member.Offset));
 				}
 			}
 		}
@@ -358,13 +367,21 @@ namespace Reflect
 		const ReflectMemberProp* m_member_props;
 	};
 
-	class Serialiser;
-	class Unserialiser;
+	struct Initialiser
+	{
+		Initialiser(const Class* static_class, IReflect* outer)
+			: Type(static_class)
+			, Outer(outer)
+		{}
+
+		const Class* const Type;
+		IReflect* const Outer;
+	};
 
 	struct REFLECT_DLL IReflect
 	{
 		// Initialisation.
-		void PostConstruct(const Class* static_class, IReflect* outer) { m_class = static_class; m_outer = outer; }
+		IReflect(const Initialiser& init) { m_class = init.Type; m_outer = init.Outer; }
 
 		// Misc.
 		const Class* GetClass() const { return m_class; }
@@ -372,7 +389,7 @@ namespace Reflect
 
 		// Reflection.
 		virtual ReflectFunction GetFunction(const std::string_view& functionName) { (void)functionName; return ReflectFunction(nullptr, nullptr);};
-		virtual ReflectMember GetMember(const std::string_view& memberName) { (void)memberName; return ReflectMember("", "void", nullptr, nullptr); };
+		virtual ReflectMember GetMember(const std::string_view& memberName) { (void)memberName; return ReflectMember("", "void", nullptr, false, nullptr); };
 		virtual std::vector<ReflectMember> GetMembers(std::vector<std::string> const& flags) { (void)flags; return {}; };
 		
 		// Serialisation.

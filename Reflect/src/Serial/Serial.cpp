@@ -210,7 +210,9 @@ namespace Reflect
 		m_root = std::move(Allocator::Create<IReflect>(m_root_class, nullptr));
 
 		// Recreate the scene.
+		PushCurrentObject(m_root.get());
 		ReadField<IReflect, 0>(*this, fin, m_root.get());
+		PopCurrentObject();
 	}
 
 	const FieldSchema& Unserialiser::GetSchema(const std::string& name) const

@@ -51,7 +51,7 @@ namespace Reflect
 
 			template <typename T>
 			struct TypeNameImpl<Ref<T>> {
-				static std::string get() { return "Ref<" + Demangled(typeid(T)) + ">"; }
+				static std::string get() { return "Ref<" + TypeNameImpl<T>::get() + ">"; }
 			};
 
 			template <typename T>
@@ -67,6 +67,11 @@ namespace Reflect
 			template <typename K, typename V>
 			struct TypeNameImpl<std::map<K, V>> {
 				static std::string get() { return "std::map<" + TypeNameImpl<K>::get() + "," + TypeNameImpl<V>::get() + ">"; }
+			};
+
+			template <typename T>
+			struct TypeNameImpl<T*> {
+				static std::string get() { return TypeNameImpl<T>::get() + "*"; }
 			};
 		}
 
@@ -107,15 +112,21 @@ namespace Reflect
 		namespace detail
 		{
 			template<typename T>
-			inline typename std::enable_if<std::is_base_of<IReflect, T>::value, const Class *>::type GetStaticClass()
+			inline typename std::enable_if<std::is_base_of_v<IReflect, T>, const Class *>::type GetStaticClass()
 			{
 				return &T::StaticClass;
 			}
 
 			template<typename T>
-			inline typename std::enable_if<!std::is_base_of<IReflect, T>::value, const Class*>::type GetStaticClass()
+			inline typename std::enable_if<!std::is_pointer_v<T> && !std::is_base_of_v<IReflect, T>, const Class*>::type GetStaticClass()
 			{
 				return nullptr;
+			}
+
+			template<typename T>
+			inline typename std::enable_if<std::is_pointer_v<T>, const Class*>::type GetStaticClass()
+			{
+				return GetStaticClass<std::remove_pointer<T>::type>();
 			}
 		}
 

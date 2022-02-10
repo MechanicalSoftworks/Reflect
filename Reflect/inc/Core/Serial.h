@@ -4,6 +4,7 @@
 #include "Core/Allocator.h"
 
 #include <map>
+#include <stack>
 
 //
 // Message format is:
@@ -167,8 +168,9 @@ namespace Reflect
 		void RegisterSchemaAlias(const char* alias, const char* old_type);
 
 		// Keep track of the last object being processed - used for setting the outer object.
-		IReflect* GetCurrentObject() const { return m_current_object; }
-		void SetCurrentObject(IReflect* obj) { m_current_object = obj; }
+		void PushCurrentObject(IReflect* obj) { m_current_object.push(obj); }
+		IReflect* GetCurrentObject() const { return m_current_object.top(); }
+		void PopCurrentObject() { m_current_object.pop(); }
 
 	private:
 		std::map<std::string, FieldSchema> m_schemas;
@@ -180,7 +182,7 @@ namespace Reflect
 		Ref<IReflect> m_root;
 		Reflect::Class* m_root_class = nullptr;
 
-		IReflect* m_current_object = nullptr;
+		std::stack<IReflect*> m_current_object;
 	};
 
 	// Helpers for reading individual fields.
@@ -244,14 +246,14 @@ namespace Reflect
 		// These serve as the blocks upon which all other read + write functions are built upon.
 		//
 		template<typename T, typename = std::enable_if_t<std::is_integral_v<T> || std::is_floating_point_v<T>>>
-		inline typename std::enable_if<!std::is_base_of<IReflect, T>::value>::type
+		inline typename std::enable_if_t<!std::is_base_of_v<IReflect, T>>
 			write(Serialiser& s, std::ostream& out, const T& v)
 		{
 			out.write((const char*)&v, sizeof(v));
 		}
 
 		template<typename T, typename = std::enable_if_t<std::is_integral_v<T> || std::is_floating_point_v<T>>>
-		inline typename std::enable_if<!std::is_base_of<IReflect, T>::value>::type
+		inline typename std::enable_if_t<!std::is_base_of_v<IReflect, T>>
 			read(Unserialiser& u, std::istream& in, T& v)
 		{
 			in.read((char*)&v, sizeof(v));
@@ -268,7 +270,7 @@ namespace Reflect
 		// Vector types (non IReflect).
 		//
 		template<typename T>
-		inline typename std::enable_if<!std::is_base_of<IReflect, T>::value>::type
+		inline typename std::enable_if_t<!std::is_base_of_v<IReflect, T>>
 			write(Serialiser& s, std::ostream& out, const std::vector<T>& v)
 		{
 			write(s, out, (uint32_t)v.size());
@@ -279,7 +281,7 @@ namespace Reflect
 		}
 
 		template<typename T>
-		inline typename std::enable_if<!std::is_base_of<IReflect, T>::value>::type
+		inline typename std::enable_if_t<!std::is_base_of_v<IReflect, T>>
 			read(Unserialiser& u, std::istream& in, std::vector<T>& v)
 		{
 			uint32_t count;
@@ -313,7 +315,7 @@ namespace Reflect
 		// Map types (non IReflect).
 		//
 		template<typename K, typename V>
-		inline typename std::enable_if<!std::is_base_of<IReflect, V>::value>::type
+		inline typename std::enable_if_t<!std::is_base_of_v<IReflect, V>>
 			write(Serialiser& s, std::ostream& out, const std::map<K, V>& m)
 		{
 			write(s, out, (uint32_t)m.size());
@@ -325,7 +327,7 @@ namespace Reflect
 		}
 
 		template<typename K, typename V>
-		inline typename std::enable_if<!std::is_base_of<IReflect, V>::value>::type
+		inline typename std::enable_if_t<!std::is_base_of_v<IReflect, V>>
 			read(Unserialiser& u, std::istream& in, std::map<K, V>& m)
 		{
 			uint32_t count;
@@ -391,11 +393,14 @@ namespace Reflect
 			v.Unserialise(u, in);
 		}
 
+		inline void write(Serialiser& s, std::ostream& out, const IReflect* v) { write(s, out, *v); }
+		inline void read(Unserialiser& u, std::istream& in, IReflect* v) { read(u, in, *v); }
+
 		//
 		// Vector (IReflect).
 		//
 		template<typename T>
-		inline typename std::enable_if<std::is_base_of<IReflect, T>::value>::type
+		inline typename std::enable_if_t<std::is_base_of_v<IReflect, T>>
 			write(Serialiser& s, std::ostream& out, const std::vector<T>& v)
 		{
 			s.AddSchema(T::StaticClass());
@@ -407,7 +412,7 @@ namespace Reflect
 		}
 
 		template<typename T>
-		inline typename std::enable_if<std::is_base_of<IReflect, T>::value>::type
+		inline typename std::enable_if_t<std::is_base_of_v<IReflect, T>>
 			read(Unserialiser& u, std::istream& in, std::vector<T>& v)
 		{
 			uint32_t count;
@@ -425,7 +430,7 @@ namespace Reflect
 		// Map (IReflect).
 		//
 		template<typename K, typename V>
-		inline typename std::enable_if<std::is_base_of<IReflect, K>::value>::type
+		inline typename std::enable_if_t<std::is_base_of_v<IReflect, K>>
 			write(Serialiser& s, std::ostream& out, const std::map<K, V>& m)
 		{
 			s.AddSchema(V::StaticClass());
@@ -438,7 +443,7 @@ namespace Reflect
 		}
 
 		template<typename K, typename V>
-		inline typename std::enable_if<std::is_base_of<IReflect, K>::value>::type
+		inline typename std::enable_if_t<std::is_base_of_v<IReflect, K>>
 			read(Unserialiser& u, std::istream& in, std::map<K, V>& m)
 		{
 			uint32_t count;

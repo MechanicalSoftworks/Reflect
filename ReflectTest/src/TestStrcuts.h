@@ -25,6 +25,8 @@ struct S : REFLECT_BASE()
 {
 	REFLECT_GENERATED_BODY()
 
+	S(const Reflect::Initialiser &init) : SuperClass(init){}
+
 	REFLECT_PROPERTY(EditorOnly, Public)
 	int Friends;
 	REFLECT_PROPERTY(Public)
@@ -42,6 +44,8 @@ class EXPORT Actor : REFLECT_BASE()
 	REFLECT_GENERATED_BODY()
 
 public:
+	Actor(const Reflect::Initialiser & init) : SuperClass(init) {}
+
 	virtual void Tick()
 	{
 		printf("Actor::Tick");
@@ -54,9 +58,10 @@ class EXPORT Player : public Actor
 	REFLECT_GENERATED_BODY()
 
 public:
-	Player()
-		: Id("PlayerExampleId")
-	{ }
+	Player(const Reflect::Initialiser& init) 
+		: SuperClass(init)
+		, Id("PlayerExampleId") 
+	{}
 
 	~Player()
 	{ }

@@ -79,7 +79,7 @@ namespace Reflect
 			file << "Reflect::ReflectMemberProp " + data.Name + "::__REFLECT_MEMBER_PROPS__[" + std::to_string(data.Members.size()) + "] = {\n";
 			for (const auto& member : data.Members)
 			{
-				file << "\tReflect::ReflectMemberProp(\"" + member.Name + "\", Reflect::Util::GetTypeName<" + member.Type + ">(), Reflect::Util::GetStaticClass<" + member.Type + ">(), __REFLECT__" + member.Name + "(), " + getMemberProps(member.ContainerProps) + "),\n";
+				file << "\tReflect::ReflectMemberProp(\"" + member.Name + "\", Reflect::Util::GetTypeName<" + member.Type + ">(), Reflect::Util::GetStaticClass<" + member.Type + ">(), std::is_pointer<" + member.Type + ">::value, __REFLECT__" + member.Name + "(), " + getMemberProps(member.ContainerProps) + "),\n";
 			}
 			file << "};\n\n";
 		}
@@ -104,7 +104,7 @@ namespace Reflect
 			file << "\t\tif(memberName == member.Name)\n";
 			file << "\t\t{\n";
 			file << "\t\t\t//CheckFlags\n";
-			file << "\t\t\treturn Reflect::ReflectMember(member.Name, member.Type, member.StaticClass, ((char*)this) + member.Offset);\n";
+			file << "\t\t\treturn Reflect::ReflectMember(member.Name, member.Type, member.StaticClass, member.IsPointer, ((char*)this) + member.Offset);\n";
 			file << "\t\t}\n";
 			file << "\t}\n";
 		}
@@ -118,7 +118,7 @@ namespace Reflect
 			file << "\tfor(auto& member : __REFLECT_MEMBER_PROPS__)\n\t{\n";
 			file << "\t\tif(member.ContainsProperty(flags))\n";
 			file << "\t\t{\n";
-			file << "\t\t\tmembers.push_back(Reflect::ReflectMember(member.Name, member.Type, member.StaticClass, ((char*)this) + member.Offset));\n";
+			file << "\t\t\tmembers.push_back(Reflect::ReflectMember(member.Name, member.Type, member.StaticClass, member.IsPointer, ((char*)this) + member.Offset));\n";
 			file << "\t\t}\n";
 			file << "\t}\n";
 		}
@@ -207,7 +207,7 @@ namespace Reflect
 		file << "void " << data.Name << "::Unserialise(Reflect::Unserialiser &u, std::istream &in) {\n";
 		if (serialiseFields.size())
 		{
-			file << "\tu.SetCurrentObject(this);\n";
+			file << "\tu.PushCurrentObject(this);\n";
 			file << "\tauto new_it = __SERIALISE_FIELDS__.begin();\n";
 			file << "\tconst auto& old_schema = u.GetSchema(\"" << data.Name << "\");\n";	// No need to do a safety check. We've already instantiated the class...means the schema is available.
 			file << "\tfor(int i = 0; i < old_schema.fields.size(); i++) {\n";
@@ -219,6 +219,7 @@ namespace Reflect
 			file << "\t\t}\n";
 			file << "\t\tnew_it->read(u, in, this);\n";
 			file << "\t}\n";
+			file << "\tu.PopCurrentObject();\n";
 		}
 		if (data.SuperName.length())
 		{

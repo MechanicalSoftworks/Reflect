@@ -21,8 +21,8 @@ namespace Reflect
 			throw std::bad_alloc();
 		}
 
-		static_class->Constructor(o);
-		o->PostConstruct(static_class, outer);
+		const Initialiser init(static_class, outer);
+		static_class->Constructor(o, init);
 		return o;
 	}
 

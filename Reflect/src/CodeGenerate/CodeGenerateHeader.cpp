@@ -92,7 +92,7 @@ namespace Reflect
 		if (data.SuperName.length())
 			file << "\ttypedef " + data.SuperName + " SuperClass;\\\n";
 		file << "\tstatic const Reflect::Class StaticClass;\\\n";
-		file << "\tstatic void __PlacementNew(" << data.Name << "* obj) { new(obj) " << data.Name << "; }\\\n";
+		file << "\tstatic void __PlacementNew(" << data.Name << "* obj, const Reflect::Initialiser& init) { new(obj) " << data.Name << "(init); }\\\n";
 		file << "\tstatic void __PlacementDelete(" << data.Name << "* obj) { obj->~" << data.Name << "(); }\\\n";
 		WRITE_CLOSE();
 	}
