@@ -159,7 +159,7 @@ namespace Reflect
 
 		bool ParseHeader(std::istream& in);
 		const auto& GetSchemaDifferences() const { return m_schema_differences; }
-		void Read(std::istream& in, IReflect *outer);
+		void Read(std::istream& in, IReflect* object = nullptr, IReflect *outer = nullptr);
 
 		auto Detach() { return std::move(m_root); }
 

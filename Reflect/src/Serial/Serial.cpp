@@ -188,7 +188,7 @@ namespace Reflect
 		return error;
 	}
 
-	void Unserialiser::Read(std::istream& fin, IReflect* outer)
+	void Unserialiser::Read(std::istream& fin, IReflect* object, IReflect* outer)
 	{
 		// Read the root object type.
 		StringPool::index_t root_type_index;
@@ -203,14 +203,18 @@ namespace Reflect
 		}
 
 		// Create the root entity.
-		m_root = std::move(Allocator::Create<IReflect>(m_root_class, outer));
+		if (!object)
+		{
+			m_root = std::move(Allocator::Create<IReflect>(m_root_class, outer));
+			object = m_root.get();
+		}
 
 		// Recreate the scene.
-		PushCurrentObject(m_root.get());
-		ReadField<IReflect, 0>(*this, fin, m_root.get());
+		PushCurrentObject(object);
+		ReadField<IReflect, 0>(*this, fin, object);
 		PopCurrentObject();
 
-		m_root->PostLoad();
+		object->PostLoad();
 	}
 
 	const FieldSchema& Unserialiser::GetSchema(const std::string& name) const

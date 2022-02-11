@@ -113,6 +113,8 @@ namespace Reflect
 		inline typename std::enable_if_t<!std::is_base_of_v<IReflect, T>>
 			read(Unserialiser& u, std::istream& in, std::vector<T>& v)
 		{
+			v.clear();
+
 			uint32_t count;
 			read(u, in, count);
 
@@ -159,6 +161,8 @@ namespace Reflect
 		inline typename std::enable_if_t<!std::is_base_of_v<IReflect, V>>
 			read(Unserialiser& u, std::istream& in, std::map<K, V>& m)
 		{
+			m.clear();
+
 			uint32_t count;
 			read(u, in, count);
 
@@ -244,6 +248,8 @@ namespace Reflect
 		inline typename std::enable_if_t<std::is_base_of_v<IReflect, T>>
 			read(Unserialiser& u, std::istream& in, std::vector<T>& v)
 		{
+			v.clear();
+
 			uint32_t count;
 			read(u, in, count);
 
@@ -275,6 +281,8 @@ namespace Reflect
 		inline typename std::enable_if_t<std::is_base_of_v<IReflect, K>>
 			read(Unserialiser& u, std::istream& in, std::map<K, V>& m)
 		{
+			m.clear();
+
 			uint32_t count;
 			read(u, in, count);
 
