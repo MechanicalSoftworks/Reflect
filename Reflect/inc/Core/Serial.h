@@ -267,6 +267,22 @@ namespace Reflect
 		}
 
 		//
+		// Enum types.
+		//
+		template<typename T, typename = std::enable_if_t<std::is_enum_v<T>>>
+		inline void write(Serialiser& s, std::ostream& out, const T& v)
+		{
+			s.AddUserDataType<T>(sizeof(T));
+			out.write((const char*)&v, sizeof(v));
+		}
+
+		template<typename T, typename = std::enable_if_t<std::is_enum_v<T>>>
+		inline void read(Unserialiser& u, std::istream& in, T& v)
+		{
+			in.read((char*)&v, sizeof(v));
+		}
+
+		//
 		// Vector types (non IReflect).
 		//
 		template<typename T>
