@@ -208,6 +208,11 @@ namespace Reflect
 			m_root = std::move(Allocator::Create<IReflect>(m_root_class, outer));
 			object = m_root.get();
 		}
+		else
+		{
+			const Initialiser init(m_root_class, outer);
+			m_root_class->Constructor(object, init);
+		}
 
 		// Recreate the scene.
 		PushCurrentObject(object);
