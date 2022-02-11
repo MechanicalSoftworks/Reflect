@@ -324,10 +324,19 @@ namespace Reflect
 
 		// Reflect!
 		REFLECT_DLL static Class* Lookup(const std::string_view &name);
-		REFLECT_DLL static std::vector<Class*> DescentantsOf(const Class* c);
+		REFLECT_DLL static std::vector<Class*> DescendantsOf(const Class* c);
 		
 		template<typename T>
-		static std::vector<Class*> DescentantsOf() { return DescentantsOf(&T::StaticClass); }
+		static std::vector<Class*> DescendantsOf() { return DescendantsOf(&T::StaticClass); }
+
+		template<typename T>
+		bool IsOrDescendantOf() const { return IsOrDescendantOf(&T::StaticClass); }
+		inline bool IsOrDescendantOf(const Class* c) const 
+		{
+			return 
+				this == c || 
+				(m_super_class ? m_super_class->IsOrDescendantOf(c) : false);
+		}
 
 		REFLECT_DLL std::vector<ReflectMember> GetMembers(std::vector<std::string> const& flags, bool recursive=true) const
 		{

@@ -35,7 +35,7 @@ namespace Reflect
 		return it != s_classes.end() ? it->second : nullptr;
 	}
 
-	REFLECT_DLL std::vector<Class*> Class::DescentantsOf(const Class* super)
+	REFLECT_DLL std::vector<Class*> Class::DescendantsOf(const Class* super)
 	{
 		std::vector<Class*> descendants;
 
