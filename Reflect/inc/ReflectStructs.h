@@ -404,7 +404,7 @@ namespace Reflect
 		// Serialisation.
 		virtual void Serialise(Serialiser &s, std::ostream& out) const {}
 		virtual void Unserialise(Unserialiser &u, std::istream& in) {}
-		virtual void PostLoad() {}
+		virtual void PostUnserialise() {}
 
 	private:
 		const Class* m_class = nullptr;

@@ -45,6 +45,7 @@ namespace Reflect
 
 			r = Allocator::Create<T>(type_name, u.GetCurrentObject());
 			r->Unserialise(u, in);
+			r->PostUnserialise();
 		}
 
 		//----------------------------------------------------------------------
@@ -224,6 +225,7 @@ namespace Reflect
 		inline void read(Unserialiser& u, std::istream& in, IReflect& v)
 		{
 			v.Unserialise(u, in);
+			v.PostUnserialise();
 		}
 
 		inline void write(Serialiser& s, std::ostream& out, const IReflect* v) { write(s, out, *v); }
@@ -256,7 +258,7 @@ namespace Reflect
 			for (uint32_t i = 0; i < count; i++)
 			{
 				T t(&T::StaticClass());
-				t.Unserialise(u, in);
+				read(u, in, t);
 				v.push_back(std::move(t));
 			}
 		}
@@ -292,7 +294,7 @@ namespace Reflect
 				read(u, in, k);
 
 				V v(&V::StaticClass());
-				v.Unserialise(u, in);
+				read(u, in, v);
 				m.insert(std::pair<K, V>(std::move(k), std::move(v)));
 			}
 		}

@@ -218,8 +218,6 @@ namespace Reflect
 		PushCurrentObject(object);
 		ReadField<IReflect, 0>(*this, fin, object);
 		PopCurrentObject();
-
-		object->PostLoad();
 	}
 
 	const FieldSchema& Unserialiser::GetSchema(const std::string& name) const
