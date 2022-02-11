@@ -13,6 +13,7 @@ namespace Reflect
 		}
 		CodeGenerate::IncludeHeader(data.FileName + "." + data.FileExtension, file);
 		CodeGenerate::IncludeHeader("Core/Util.h", file);
+		CodeGenerate::IncludeHeader("Core/FieldIO.h", file);
 		file << "\n";
 		if (addtionalOptions.Namespace.length())
 		{

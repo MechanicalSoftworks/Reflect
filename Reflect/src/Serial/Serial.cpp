@@ -1,5 +1,6 @@
 #include "Core/Serial.h"
 #include "Core/Allocator.h"
+#include "Core/FieldIO.h"
 #include <filesystem>
 
 struct header_t
@@ -187,12 +188,7 @@ namespace Reflect
 		return error;
 	}
 
-	static void free_ireflect(void* obj)
-	{
-
-	}
-
-	void Unserialiser::Read(std::istream& fin)
+	void Unserialiser::Read(std::istream& fin, IReflect* outer)
 	{
 		// Read the root object type.
 		StringPool::index_t root_type_index;
@@ -207,12 +203,14 @@ namespace Reflect
 		}
 
 		// Create the root entity.
-		m_root = std::move(Allocator::Create<IReflect>(m_root_class, nullptr));
+		m_root = std::move(Allocator::Create<IReflect>(m_root_class, outer));
 
 		// Recreate the scene.
 		PushCurrentObject(m_root.get());
 		ReadField<IReflect, 0>(*this, fin, m_root.get());
 		PopCurrentObject();
+
+		m_root->PostLoad();
 	}
 
 	const FieldSchema& Unserialiser::GetSchema(const std::string& name) const
@@ -240,5 +238,89 @@ namespace Reflect
 	void Unserialiser::RegisterSchemaAlias(const char* alias, const char* old_type)
 	{
 		m_schemas[alias] = m_schemas[old_type];
+	}
+
+	//--------------------------------------------------------------------------
+	// StringPool implementation.
+	//--------------------------------------------------------------------------
+
+	StringPool::entry_t::entry_t(Unserialiser& u, std::istream& fin)
+	{
+		FieldImpl::read(u, fin, offset);
+		FieldImpl::read(u, fin, length);
+	}
+
+	void StringPool::entry_t::operator()(Serialiser& s, std::ostream& fout) const
+	{
+		FieldImpl::write(s, fout, offset);
+		FieldImpl::write(s, fout, length);
+	}
+
+	StringPool::index_t StringPool::Add(const std::string_view& view)
+	{
+		const std::string s(view);
+		const auto it = m_cache.find(std::string(s));
+		if (it != m_cache.end())
+		{
+			return it->second;
+		}
+
+		m_cache[s] = (index_t)m_entries.size();
+		m_entries.push_back(entry_t((uint32_t)m_pool.length(), (uint32_t)view.length()));
+		m_pool.append(view);
+
+		return (index_t)m_entries.size() - 1;
+	}
+
+	const std::string_view StringPool::At(index_t i) const
+	{
+		if (i < 0 || i >= m_entries.size())
+		{
+			throw std::out_of_range("String pool index out of range");
+		}
+
+		const auto& e = m_entries.at(i);
+		return std::string_view(m_pool.c_str() + e.offset, e.length);
+	}
+
+	void StringPool::Serialise(Serialiser& s, std::ostream& fout) const
+	{
+		FieldImpl::write(s, fout, (uint32_t)m_pool.length());
+		fout.write(m_pool.c_str(), m_pool.length());
+
+		FieldImpl::write(s, fout, (uint32_t)m_entries.size());
+		for (index_t i = 0; i < m_entries.size(); i++)
+		{
+			m_entries[i](s, fout);
+		}
+	}
+
+	void StringPool::Unserialise(Unserialiser& u, std::istream& fin)
+	{
+		index_t count, length;
+		char buf[256];
+
+		// Reserve memory for the string pool.
+		// Means malloc cost is minimized - just need to optimise for input.
+		// Don't use resize()! That will initialise each character!
+		FieldImpl::read(u, fin, length);
+		m_pool.reserve(length);
+
+		// Read the string in 256 char chunks.
+		while (length)
+		{
+			index_t read_sz = std::min(length, (index_t)sizeof(buf));
+			fin.read(buf, read_sz);
+			m_pool.append(buf, read_sz);
+			length -= read_sz;
+		}
+
+		// Read the pool metadata.
+		FieldImpl::read(u, fin, count);
+		m_entries.reserve(count);
+		for (index_t i = 0; i < count; i++)
+		{
+			m_entries.push_back(entry_t(u, fin));
+		}
 	}
 }
