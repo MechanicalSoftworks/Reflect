@@ -142,7 +142,7 @@ namespace Reflect
 				continue;
 			}
 
-			const auto current_fields = current_schema->GetMembers({ "serialise"}, false);
+			const auto current_fields = current_schema->GetMembers({ "Serialise" }, false);
 			const auto& message_fields = message_schema.second.fields;
 
 			for (const auto& message_field : message_fields)

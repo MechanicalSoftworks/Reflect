@@ -210,7 +210,7 @@ namespace Reflect
 		pool.Add(name);
 		pool.Add(type);
 
-		for (const auto& f : static_class->GetMembers({ "serialise" }, false))
+		for (const auto& f : static_class->GetMembers({ "Serialise" }, false))
 		{
 			fields.push_back(FieldSchema(f, pool));
 		}

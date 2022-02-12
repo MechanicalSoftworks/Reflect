@@ -59,7 +59,7 @@ namespace Reflect
 			std::vector<Reflect::ReflectMemberData> serialiseFields;
 			for (const auto& member : reflectData.Members)
 			{
-				const auto it = std::find_if(member.ContainerProps.begin(), member.ContainerProps.end(), [](const auto& p) { return p == "serialise"; });
+				const auto it = std::find_if(member.ContainerProps.begin(), member.ContainerProps.end(), [](const auto& p) { return p == "Serialise"; });
 				if (it != member.ContainerProps.end())
 				{
 					serialiseFields.push_back(member);

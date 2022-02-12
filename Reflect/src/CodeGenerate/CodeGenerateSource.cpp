@@ -36,7 +36,7 @@ namespace Reflect
 			std::vector<Reflect::ReflectMemberData> serialiseFields;
 			for (const auto& member : reflectData.Members)
 			{
-				const auto it = std::find_if(member.ContainerProps.begin(), member.ContainerProps.end(), [](const auto& p) { return p == "serialise"; });
+				const auto it = std::find_if(member.ContainerProps.begin(), member.ContainerProps.end(), [](const auto& p) { return p == "Serialise"; });
 				if (it != member.ContainerProps.end())
 				{
 					serialiseFields.push_back(member);
@@ -231,7 +231,7 @@ namespace Reflect
 
 	std::string CodeGenerateSource::GetCustomSerialiser(const Reflect::ReflectMemberData& data) const
 	{
-		const auto it = std::find_if(data.ContainerProps.begin(), data.ContainerProps.end(), [](const auto& p) { return p.find("serialiser=") == 0; });
+		const auto it = std::find_if(data.ContainerProps.begin(), data.ContainerProps.end(), [](const auto& p) { return p.find("CustomSerialiser=") == 0; });
 		if (it != data.ContainerProps.end())
 		{
 			return it->substr(it->find('=') + 1);
