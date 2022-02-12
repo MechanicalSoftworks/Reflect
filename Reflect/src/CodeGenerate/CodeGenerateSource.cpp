@@ -105,7 +105,7 @@ namespace Reflect
 			file << "\t\tif(memberName == member.Name)\n";
 			file << "\t\t{\n";
 			file << "\t\t\t//CheckFlags\n";
-			file << "\t\t\treturn Reflect::ReflectMember(member.Name, member.Type, member.StaticClass, member.IsPointer, ((char*)this) + member.Offset);\n";
+			file << "\t\t\treturn Reflect::ReflectMember(&member, ((char*)this) + member.Offset);\n";
 			file << "\t\t}\n";
 			file << "\t}\n";
 		}
@@ -119,7 +119,7 @@ namespace Reflect
 			file << "\tfor(auto& member : __REFLECT_MEMBER_PROPS__)\n\t{\n";
 			file << "\t\tif(member.ContainsProperty(flags))\n";
 			file << "\t\t{\n";
-			file << "\t\t\tmembers.push_back(Reflect::ReflectMember(member.Name, member.Type, member.StaticClass, member.IsPointer, ((char*)this) + member.Offset));\n";
+			file << "\t\t\tmembers.push_back(Reflect::ReflectMember(&member, ((char*)this) + member.Offset));\n";
 			file << "\t\t}\n";
 			file << "\t}\n";
 		}

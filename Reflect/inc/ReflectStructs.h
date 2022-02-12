@@ -135,12 +135,34 @@ namespace Reflect
 			return false;
 		}
 
-		const char* Name;
-		std::string Type;
-		const Class* StaticClass;
-		bool IsPointer;
-		int Offset;
-		std::vector<std::string> StrProperties;
+		bool GetPropertyValue(const std::string_view &flag, std::string& value) const
+		{
+			for (auto const& p : StrProperties)
+			{
+				if (p.find(flag) != 0)
+				{
+					continue;
+				}
+
+				const auto assign = p.find('=');
+				if (assign != flag.length())
+				{
+					continue;
+				}
+
+				value = p.substr(assign + 1);
+				return true;
+			}
+
+			return false;
+		}
+
+		const char* const	Name;
+		const std::string	Type;
+		const Class* const	StaticClass;
+		const bool			IsPointer;
+		const int			Offset;
+		const std::vector<std::string> StrProperties;
 	};
 
 	/// <summary>
@@ -243,47 +265,28 @@ namespace Reflect
 
 	struct ReflectMember
 	{
-		ReflectMember(const char* memberName, std::string memberType, const Class *staticClass, bool isPointer, void* memberPtr)
-			: m_name(memberName)
-			, m_type(memberType)
-			, m_class(staticClass)
-			, m_is_pointer(isPointer)
-			, m_ptr(memberPtr)
+		ReflectMember(const ReflectMemberProp *prop, void* memberPtr)
+			: Properties(prop)
+			, RawPointer(memberPtr)
 		{}
 
-		REFLECT_DLL bool IsValid() const
-		{
-			return m_ptr != nullptr;
-		}
+		const ReflectMemberProp* const	Properties;
+		void* const						RawPointer;
 
-
-
-		void* GetRawPointer() { return m_ptr; }
-		const void* GetRawPointer() const { return m_ptr; }
-
-		std::string GetName() const { return m_name; }
-		const auto& GetTypeName() const { return m_type; }
-		const Class* GetClass() const { return m_class; }
-		bool IsPointer() const { return m_is_pointer; }
+		bool IsValid() const { return RawPointer != nullptr; }
+		auto GetName() const { return Properties->Name; }
+		auto GetTypeName() const { return Properties->Type; }
 
 		template<typename T>
 		REFLECT_DLL T* ConvertToType()
 		{
 			const auto convertType = Reflect::Util::GetTypeName<T>();
-			if (convertType != m_type)
+			if (convertType != GetTypeName())
 			{
 				return nullptr;
 			}
-			return static_cast<T*>(m_ptr);
+			return static_cast<T*>(RawPointer);
 		}
-
-	private:
-		const char* m_name;
-		std::string m_type;
-		const Class* m_class;
-		bool m_is_pointer;
-		void* m_ptr;
-		int m_offset;
 	};
 
 	typedef void (*ConstructorType)(void* obj, const Initialiser& init);
@@ -364,7 +367,7 @@ namespace Reflect
 				const auto& member = m_member_props[i];
 				if (member.ContainsProperty(flags))
 				{
-					members.push_back(Reflect::ReflectMember(member.Name, member.Type, member.StaticClass, member.IsPointer, (void *)(size_t)member.Offset));
+					members.push_back(Reflect::ReflectMember(&member, (void *)(size_t)member.Offset));
 				}
 			}
 		}
@@ -398,7 +401,7 @@ namespace Reflect
 
 		// Reflection.
 		virtual ReflectFunction GetFunction(const std::string_view& functionName) { (void)functionName; return ReflectFunction(nullptr, nullptr);};
-		virtual ReflectMember GetMember(const std::string_view& memberName) { (void)memberName; return ReflectMember("", "void", nullptr, false, nullptr); };
+		virtual ReflectMember GetMember(const std::string_view& memberName) { (void)memberName; return ReflectMember(nullptr, nullptr); };
 		virtual std::vector<ReflectMember> GetMembers(std::vector<std::string> const& flags) { (void)flags; return {}; };
 		
 		// Serialisation.

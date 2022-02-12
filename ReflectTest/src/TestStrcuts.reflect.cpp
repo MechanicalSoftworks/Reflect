@@ -1,5 +1,6 @@
 #include "TestStrcuts.h"
 #include "Core/Util.h"
+#include "Core/FieldIO.h"
 
 Reflect::ReflectMemberProp S::__REFLECT_MEMBER_PROPS__[2] = {
 	Reflect::ReflectMemberProp("Friends", Reflect::Util::GetTypeName<int>(), Reflect::Util::GetStaticClass<int>(), std::is_pointer<int>::value, __REFLECT__Friends(), {"EditorOnly", "Public"}),
@@ -20,7 +21,7 @@ Reflect::ReflectMember S::GetMember(const std::string_view& memberName)
 		if(memberName == member.Name)
 		{
 			//CheckFlags
-			return Reflect::ReflectMember(member.Name, member.Type, member.StaticClass, member.IsPointer, ((char*)this) + member.Offset);
+			return Reflect::ReflectMember(&member, ((char*)this) + member.Offset);
 		}
 	}
 	return SuperClass::GetMember(memberName);
@@ -33,7 +34,7 @@ std::vector<Reflect::ReflectMember> S::GetMembers(std::vector<std::string> const
 	{
 		if(member.ContainsProperty(flags))
 		{
-			members.push_back(Reflect::ReflectMember(member.Name, member.Type, member.StaticClass, member.IsPointer, ((char*)this) + member.Offset));
+			members.push_back(Reflect::ReflectMember(&member, ((char*)this) + member.Offset));
 		}
 	}
 	return members;
@@ -104,7 +105,7 @@ Reflect::ReflectMember Player::GetMember(const std::string_view& memberName)
 		if(memberName == member.Name)
 		{
 			//CheckFlags
-			return Reflect::ReflectMember(member.Name, member.Type, member.StaticClass, member.IsPointer, ((char*)this) + member.Offset);
+			return Reflect::ReflectMember(&member, ((char*)this) + member.Offset);
 		}
 	}
 	return SuperClass::GetMember(memberName);
@@ -117,7 +118,7 @@ std::vector<Reflect::ReflectMember> Player::GetMembers(std::vector<std::string> 
 	{
 		if(member.ContainsProperty(flags))
 		{
-			members.push_back(Reflect::ReflectMember(member.Name, member.Type, member.StaticClass, member.IsPointer, ((char*)this) + member.Offset));
+			members.push_back(Reflect::ReflectMember(&member, ((char*)this) + member.Offset));
 		}
 	}
 	return members;
