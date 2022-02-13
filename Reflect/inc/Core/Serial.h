@@ -82,8 +82,9 @@ namespace Reflect
 		FieldSchema(const Reflect::Class* static_class, StringPool& pool);
 		FieldSchema(const Reflect::ReflectMember& member, StringPool& pool);
 
-		std::string name, type;
-		std::vector<FieldSchema> fields;
+		std::string Name;
+		std::string Type;
+		std::vector<FieldSchema> Fields;
 	};
 
 	//
@@ -96,10 +97,10 @@ namespace Reflect
 		// Exists for Unserialiser.
 		UserDataType() {}
 
-		UserDataType(const std::string& _name, size_t _sz) : name(_name), sz(_sz) {}
+		UserDataType(const std::string& name, size_t sz) : Name(name), Size(sz) {}
 
-		std::string name;
-		uint64_t sz;
+		std::string Name;
+		uint64_t	Size;
 	};
 
 	//
@@ -114,11 +115,13 @@ namespace Reflect
 	class REFLECT_DLL Serialiser
 	{
 	public:
-		Serialiser() {}
+		Serialiser();
 		Serialiser(const Serialiser&) = delete;
 		Serialiser(const Serialiser&&) = delete;
+		~Serialiser();
 
 		void Write(std::ostream& fout, const IReflect& root);
+		void Write(std::ostream& fout, const ReflectMember& member);
 
 		// Include schemas for each object.
 		// Allows us to load older messages (such as saved project files).
@@ -134,9 +137,13 @@ namespace Reflect
 		StringPool::index_t AddString(const std::string_view& view) { return m_string_pool.Add(view); }
 
 	private:
+		void WriteInternal(std::ostream& fout);
+
 		std::map<std::string, FieldSchema> m_schemas;
 		std::map<std::string, UserDataType> m_user_data_types;
 		StringPool m_string_pool;
+
+		char m_temp_path[512];
 	};
 
 	//
@@ -159,7 +166,8 @@ namespace Reflect
 
 		bool ParseHeader(std::istream& in);
 		const auto& GetSchemaDifferences() const { return m_schema_differences; }
-		void Read(std::istream& in, IReflect* object = nullptr, IReflect *outer = nullptr);
+		void Read(std::istream& in, IReflect* object = nullptr, IReflect* outer = nullptr);
+		void Read(std::istream& in, ReflectMember& member);
 
 		auto Detach() { return std::move(m_root); }
 
@@ -188,39 +196,29 @@ namespace Reflect
 		std::stack<IReflect*> m_current_object;
 	};
 
-	// Helpers for reading individual fields.
-	typedef void (*ReadFieldType)(Unserialiser &u, std::istream& s, void* self);
-	struct UnserialiseField
-	{
-		UnserialiseField(const char* n, const std::string&t, ReadFieldType r) : name(n), type(t), read(r) {}
-		const char* name;
-		const std::string type;
-		ReadFieldType read;
-	};
-
 	//--------------------------------------------------------------------------
 	// FieldSchema implementation.
 	//--------------------------------------------------------------------------
 
 	inline FieldSchema::FieldSchema(const Reflect::Class* static_class, StringPool& pool)
-		: type(static_class->GetName())
+		: Type(static_class->Name)
 	{
 		// Yes, technically 'name' is empty here. But we need to ensure the string
 		// pool has an empty string for deserialisation!
-		pool.Add(name);
-		pool.Add(type);
+		pool.Add(Name);
+		pool.Add(Type);
 
 		for (const auto& f : static_class->GetMembers({ "Serialise" }, false))
 		{
-			fields.push_back(FieldSchema(f, pool));
+			Fields.push_back(FieldSchema(f, pool));
 		}
 	}
 
 	inline FieldSchema::FieldSchema(const Reflect::ReflectMember& member, StringPool& pool)
-		: name(member.GetName())
-		, type(member.GetTypeName())
+		: Name(member.GetName())
+		, Type(member.GetTypeName())
 	{
-		pool.Add(name);
-		pool.Add(type);
+		pool.Add(Name);
+		pool.Add(Type);
 	}
 }

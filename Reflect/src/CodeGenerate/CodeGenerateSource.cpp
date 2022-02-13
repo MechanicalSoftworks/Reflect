@@ -28,12 +28,7 @@ namespace Reflect
 				continue;
 			}
 
-			WriteMemberProperties(reflectData, file, addtionalOptions);
-			WriteStaticClass(reflectData, file, addtionalOptions);
-			WriteFunctionGet(reflectData, file, addtionalOptions);
-			WriteMemberGet(reflectData, file, addtionalOptions);
-
-			std::vector<Reflect::ReflectMemberData> serialiseFields;
+			SerialiseFields serialiseFields;
 			for (const auto& member : reflectData.Members)
 			{
 				const auto it = std::find_if(member.ContainerProps.begin(), member.ContainerProps.end(), [](const auto& p) { return p == "Serialise"; });
@@ -42,6 +37,12 @@ namespace Reflect
 					serialiseFields.push_back(member);
 				}
 			}
+
+			WriteMemberProperties(reflectData, file, addtionalOptions);
+			WriteStaticClass(reflectData, serialiseFields, file, addtionalOptions);
+			WriteFunctionGet(reflectData, file, addtionalOptions);
+			WriteMemberGet(reflectData, serialiseFields, file, addtionalOptions);
+
 			WriteDataDictionary(serialiseFields, reflectData, file, addtionalOptions);
 			WriteSerialise(serialiseFields, reflectData, file, addtionalOptions);
 			WriteUnserialise(serialiseFields, reflectData, file, addtionalOptions);
@@ -86,26 +87,37 @@ namespace Reflect
 		}
 	}
 
-	void CodeGenerateSource::WriteStaticClass(const ReflectContainerData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
+	void CodeGenerateSource::WriteStaticClass(const ReflectContainerData& data, const SerialiseFields& serialiseFields, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
 		file << "const Reflect::Class " << data.Name << "::StaticClass = Reflect::Class(\"" << data.Name << "\", "
 			<< "sizeof(" << data.Name << "), alignof(" << data.Name << "), "
 			<< (data.SuperName != "Reflect::IReflect" ? (std::string("&") + data.SuperName + "::StaticClass") : std::string("nullptr")) << ", "
 			<< data.Members.size() << ", " << (data.Members.size() > 0 ? "__REFLECT_MEMBER_PROPS__" : "nullptr") << ", "
+			<< serialiseFields.size() << ", " << (serialiseFields.size() > 0 ? "__SERIALISE_FIELDS__.data()" : "nullptr") << ", "
 			<< "Reflect::PlacementNew<" << data.Name << ">, Reflect::PlacementDelete<" << data.Name << ">"
 			<< ");\n\n";
 	}
 
-	void CodeGenerateSource::WriteMemberGet(const ReflectContainerData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
+	void CodeGenerateSource::WriteMemberGet(const ReflectContainerData& data, const SerialiseFields& serialiseFields, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
 		file << "Reflect::ReflectMember " + data.Name + "::GetMember(const std::string_view& memberName)\n{\n";
+		file << "\tconst Reflect::UnserialiseField* unserialise = nullptr;\n";
+		if (serialiseFields.size() > 0)
+		{
+			file << "\tfor(const auto& field : __SERIALISE_FIELDS__)\n\t{\n";
+			file << "\t\tif(memberName == field.Name)\n";
+			file << "\t\t{\n";
+			file << "\t\t\tunserialise = &field;\n";
+			file << "\t\t\tbreak;\n";
+			file << "\t\t}\n";
+			file << "\t}\n";
+		}
 		if (data.Members.size() > 0)
 		{
 			file << "\tfor(const auto& member : __REFLECT_MEMBER_PROPS__)\n\t{\n";
 			file << "\t\tif(memberName == member.Name)\n";
 			file << "\t\t{\n";
-			file << "\t\t\t//CheckFlags\n";
-			file << "\t\t\treturn Reflect::ReflectMember(&member, ((char*)this) + member.Offset);\n";
+			file << "\t\t\treturn Reflect::ReflectMember(&member, unserialise, ((char*)this) + member.Offset);\n";
 			file << "\t\t}\n";
 			file << "\t}\n";
 		}
@@ -119,7 +131,19 @@ namespace Reflect
 			file << "\tfor(auto& member : __REFLECT_MEMBER_PROPS__)\n\t{\n";
 			file << "\t\tif(member.ContainsProperty(flags))\n";
 			file << "\t\t{\n";
-			file << "\t\t\tmembers.push_back(Reflect::ReflectMember(&member, ((char*)this) + member.Offset));\n";
+			file << "\t\t\tconst Reflect::UnserialiseField* unserialise = nullptr;\n";
+			if (serialiseFields.size() > 0)
+			{
+				file << "\t\t\tfor(const auto& field : __SERIALISE_FIELDS__)\n";
+				file << "\t\t\t{\n";
+				file << "\t\t\t\tif(member.Name == field.Name)\n";
+				file << "\t\t\t\t{\n";
+				file << "\t\t\t\t\tunserialise = &field;\n";
+				file << "\t\t\t\t\tbreak;\n";
+				file << "\t\t\t\t}\n";
+				file << "\t\t\t}\n";
+			}
+			file << "\t\t\tmembers.push_back(Reflect::ReflectMember(&member, unserialise, ((char*)this) + member.Offset));\n";
 			file << "\t\t}\n";
 			file << "\t}\n";
 		}
@@ -155,7 +179,7 @@ namespace Reflect
 	//	file << "\n";
 	//}
 
-	void CodeGenerateSource::WriteDataDictionary(const std::vector<Reflect::ReflectMemberData>& serialiseFields, const Reflect::ReflectContainerData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
+	void CodeGenerateSource::WriteDataDictionary(const SerialiseFields& serialiseFields, const Reflect::ReflectContainerData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
 		if (!serialiseFields.size())
 		{
@@ -166,22 +190,24 @@ namespace Reflect
 		for (const auto& member : serialiseFields)
 		{
 			const auto customSerialiser = GetCustomSerialiser(member);
-			std::string readField;
+			std::string readField, writeField;
 			if (customSerialiser.length())
 			{
 				readField = "Reflect::ReadCustomField<" + customSerialiser + ", " + member.Type + ", __REFLECT__" + member.Name + "()>";
+				writeField = "Reflect::WriteCustomFieldFromPtr<" + customSerialiser + ", " + member.Type + ">";
 			}
 			else
 			{
-				readField = "Reflect::ReadField <" + member.Type + ", __REFLECT__" + member.Name + "()>";
+				readField = "Reflect::ReadField<" + member.Type + ", __REFLECT__" + member.Name + "()>";
+				writeField = "Reflect::WriteFieldFromPtr<" + member.Type + ">";
 			}
 
-			file << "\tReflect::UnserialiseField(\"" << member.Name << "\", Reflect::Util::GetTypeName<" + member.Type + ">(), " << readField << "),\n";
+			file << "\tReflect::UnserialiseField(\"" << member.Name << "\", Reflect::Util::GetTypeName<" + member.Type + ">(), " << readField << ", " << writeField << "),\n";
 		}
 		file << "};\n\n";
 	}
 
-	void CodeGenerateSource::WriteSerialise(const std::vector<Reflect::ReflectMemberData>& serialiseFields, const Reflect::ReflectContainerData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
+	void CodeGenerateSource::WriteSerialise(const SerialiseFields& serialiseFields, const Reflect::ReflectContainerData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
 		file << "void " << data.Name << "::Serialise(Reflect::Serialiser &s, std::ostream &out) const {\n";
 		for (const auto& it : serialiseFields)
@@ -203,7 +229,7 @@ namespace Reflect
 		file << "}\n\n";
 	}
 
-	void CodeGenerateSource::WriteUnserialise(const std::vector<Reflect::ReflectMemberData>& serialiseFields, const Reflect::ReflectContainerData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
+	void CodeGenerateSource::WriteUnserialise(const SerialiseFields& serialiseFields, const Reflect::ReflectContainerData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
 		file << "void " << data.Name << "::Unserialise(Reflect::Unserialiser &u, std::istream &in) {\n";
 		if (serialiseFields.size())
@@ -211,14 +237,14 @@ namespace Reflect
 			file << "\tu.PushCurrentObject(this);\n";
 			file << "\tauto new_it = __SERIALISE_FIELDS__.begin();\n";
 			file << "\tconst auto& old_schema = u.GetSchema(\"" << data.Name << "\");\n";	// No need to do a safety check. We've already instantiated the class...means the schema is available.
-			file << "\tfor(int i = 0; i < old_schema.fields.size(); i++) {\n";
-			file << "\t\tconst auto& field = old_schema.fields[i];\n";
-			file << "\t\tnew_it = Reflect::Util::circular_find_if(new_it, __SERIALISE_FIELDS__.begin(), __SERIALISE_FIELDS__.end(), [&field](const auto &f){ return field.name == f.name; });\n";
-			file << "\t\tif (new_it == __SERIALISE_FIELDS__.end() || new_it->type != field.type) {\n";
-			file << "\t\t\tReflect::SkipField(u, in, field.type);\n";
+			file << "\tfor(int i = 0; i < old_schema.Fields.size(); i++) {\n";
+			file << "\t\tconst auto& field = old_schema.Fields[i];\n";
+			file << "\t\tnew_it = Reflect::Util::circular_find_if(new_it, __SERIALISE_FIELDS__.begin(), __SERIALISE_FIELDS__.end(), [&field](const auto &f){ return field.Name == f.Name; });\n";
+			file << "\t\tif (new_it == __SERIALISE_FIELDS__.end() || new_it->Type != field.Type) {\n";
+			file << "\t\t\tReflect::SkipField(u, in, field.Type);\n";
 			file << "\t\t\tcontinue;\n";
 			file << "\t\t}\n";
-			file << "\t\tnew_it->read(u, in, this);\n";
+			file << "\t\tnew_it->Read(u, in, this);\n";
 			file << "\t}\n";
 			file << "\tu.PopCurrentObject();\n";
 		}

@@ -11,9 +11,6 @@
 #include <istream>
 #include <vector>
 
-struct ReflectFunction;
-struct ReflectMember;
-
 namespace Reflect
 {
 	class Serialiser;
@@ -21,6 +18,7 @@ namespace Reflect
 	struct IReflect;
 	class Class;
 	struct Initialiser;
+	struct UnserialiseField;
 
 	struct ReflectTypeNameData
 	{
@@ -265,12 +263,14 @@ namespace Reflect
 
 	struct ReflectMember
 	{
-		ReflectMember(const ReflectMemberProp *prop, void* memberPtr)
+		ReflectMember(const ReflectMemberProp *prop, const UnserialiseField* unserialise, void* memberPtr)
 			: Properties(prop)
+			, Unserialise(unserialise)
 			, RawPointer(memberPtr)
 		{}
 
 		const ReflectMemberProp* const	Properties;
+		const UnserialiseField* const	Unserialise;
 		void* const						RawPointer;
 
 		bool IsValid() const { return RawPointer != nullptr; }
@@ -294,16 +294,30 @@ namespace Reflect
 	template<typename T> void PlacementNew(void* obj, const Initialiser& init) { T::__PlacementNew((T*)obj, init); }
 	template<typename T> void PlacementDelete(void* obj) { T::__PlacementDelete((T*)obj); }
 
+	// Helpers for reading individual fields.
+	using ReadFieldType = void (*)(Unserialiser& u, std::istream& in, void* self);
+	using WriteFieldType = void (*)(Serialiser& s, std::ostream& out, const void* self);
+	struct UnserialiseField
+	{
+		UnserialiseField(const char* n, const std::string& t, ReadFieldType r, WriteFieldType w) : Name(n), Type(t), Read(r), Write(w) {}
+		const char* const		Name;
+		const std::string		Type;
+		const ReadFieldType		Read;
+		const WriteFieldType	Write;
+	};
+
 	class Class
 	{
 	public:
-		Class(const char *name, size_t size, size_t alignment, const Class *super, size_t prop_count, const ReflectMemberProp *props, ConstructorType constructor, DestructorType destructor)
-			: m_name(name)
+		Class(const char *name, size_t size, size_t alignment, const Class *super, size_t prop_count, const ReflectMemberProp *props, size_t unserialise_count, const UnserialiseField* unserialisers, ConstructorType constructor, DestructorType destructor)
+			: Name(name)
 			, m_size(size)
 			, m_alignment(alignment)
-			, m_super_class(super)
+			, SuperClass(super)
 			, m_member_prop_count(prop_count)
 			, m_member_props(props)
+			, m_unserialise_count(unserialise_count)
+			, m_unserialise(unserialisers)
 			, Constructor(constructor)
 			, Destructor(destructor)
 		{
@@ -338,7 +352,7 @@ namespace Reflect
 		{
 			return 
 				this == c || 
-				(m_super_class ? m_super_class->IsOrDescendantOf(c) : false);
+				(SuperClass ? SuperClass->IsOrDescendantOf(c) : false);
 		}
 
 		REFLECT_DLL std::vector<ReflectMember> GetMembers(std::vector<std::string> const& flags, bool recursive=true) const
@@ -350,33 +364,48 @@ namespace Reflect
 			return members;
 		}
 
-		const char* GetName() const { return m_name; }
-		size_t GetRawSize() const { return m_size; }
-		size_t GetAlignment() const { return m_alignment; }
-		size_t GetSize() const { return (m_size + m_alignment - 1) - m_size % m_alignment; }
-		const Class* GetSuperClass() const { return m_super_class; }
+		const char* const	Name;
+		size_t				GetRawSize() const { return m_size; }
+		size_t				GetAlignment() const { return m_alignment; }
+		size_t				GetSize() const { return (m_size + m_alignment - 1) - m_size % m_alignment; }
+		const Class* const	SuperClass;
 
 	private:
 		REFLECT_DLL void GetMembersInternal(std::vector<Reflect::ReflectMember>& members, std::vector<std::string> const& flags, bool recursive) const
 		{
-			if (recursive && m_super_class)
-				m_super_class->GetMembersInternal(members, flags, recursive);
+			if (recursive && SuperClass)
+				SuperClass->GetMembersInternal(members, flags, recursive);
 
 			for (size_t i = 0; i < m_member_prop_count; i++)
 			{
 				const auto& member = m_member_props[i];
 				if (member.ContainsProperty(flags))
 				{
-					members.push_back(Reflect::ReflectMember(&member, (void *)(size_t)member.Offset));
+					// Find an unserialiser.
+					const UnserialiseField* unserialise = nullptr;
+					for (size_t i = 0; i < m_unserialise_count; i++)
+					{
+						if (m_unserialise[i].Name == member.Name)
+						{
+							unserialise = m_unserialise + i;
+							break;
+						}
+					}
+
+
+					members.push_back(Reflect::ReflectMember(&member, unserialise, (void *)(size_t)member.Offset));
 				}
 			}
 		}
 
-		const char* m_name;
-		const size_t m_size, m_alignment;
-		const Class* m_super_class;
-		const size_t m_member_prop_count;
-		const ReflectMemberProp* m_member_props;
+		const size_t					m_size;
+		const size_t					m_alignment;
+
+		const size_t					m_member_prop_count;
+		const ReflectMemberProp* const	m_member_props;
+
+		const size_t					m_unserialise_count;
+		const UnserialiseField* const	m_unserialise;
 	};
 
 	struct Initialiser
@@ -401,7 +430,7 @@ namespace Reflect
 
 		// Reflection.
 		virtual ReflectFunction GetFunction(const std::string_view& functionName) { (void)functionName; return ReflectFunction(nullptr, nullptr);};
-		virtual ReflectMember GetMember(const std::string_view& memberName) { (void)memberName; return ReflectMember(nullptr, nullptr); };
+		virtual ReflectMember GetMember(const std::string_view& memberName) { (void)memberName; return ReflectMember(nullptr, nullptr, nullptr); };
 		virtual std::vector<ReflectMember> GetMembers(std::vector<std::string> const& flags) { (void)flags; return {}; };
 		
 		// Serialisation.

@@ -42,63 +42,64 @@ struct header_t
 	}
 };
 
-class DeleteFile
+namespace Reflect
 {
-public:
-	DeleteFile(const std::string& path) : m_path(path) {}
-	~DeleteFile()
+	Serialiser::Serialiser()
 	{
-		if (std::filesystem::exists(m_path))
+		// Get a temp file to store the binary data.
+		tmpnam(m_temp_path);
+	}
+
+	Serialiser::~Serialiser()
+	{
+		if (std::filesystem::exists(m_temp_path))
 		{
-			std::filesystem::remove(m_path);
+			std::filesystem::remove(m_temp_path);
 		}
 	}
 
-private:
-	const std::string m_path;
-};
-
-namespace Reflect
-{
 	void Serialiser::Write(std::ostream& fout, const IReflect& root)
 	{
-		// Get a temp file to store the binary data.
-		char temp_path[512];
-		tmpnam(temp_path);
-
 		// Open the temp file the entity data is written to.
-		std::ofstream oftemp(temp_path, std::ios::out | std::ios::binary);
+		std::ofstream oftemp(m_temp_path, std::ios::out | std::ios::binary);
 		if (!oftemp.good())
 		{
 			throw std::runtime_error("Couldn't create temp Serialiser file");
 		}
 
-		// Automatically delete the file when the method exits.
-		// RAII will take care of this in the good, and bad (exception!) cases.
-		DeleteFile df(temp_path);
-
 		// Write the entity data to the temp file.
 		// Schema and string pool information will be written at the same time.
-		FieldImpl::write(*this, oftemp, m_string_pool.Add(root.GetClass()->GetName()));
+		FieldImpl::write(*this, oftemp, m_string_pool.Add(root.GetClass()->Name));
 		WriteField(*this, oftemp, root);
 		oftemp.close();
 
-		// Write the header, now that's been populated by object serialisation.
-		header_t hdr(*this, fout);
-		WriteField(*this, fout, m_string_pool);
-		WriteField(*this, fout, m_schemas);
-		WriteField(*this, fout, m_user_data_types);
-		
-		// Copy the binary data into the output stream.
-		std::ifstream iftemp(temp_path, std::ios::in | std::ios::binary);
-		fout << iftemp.rdbuf();
+		// Write the actual file.
+		WriteInternal(fout);
+	}
+
+	void Serialiser::Write(std::ostream& fout, const ReflectMember& member)
+	{
+		// Open the temp file the entity data is written to.
+		std::ofstream oftemp(m_temp_path, std::ios::out | std::ios::binary);
+		if (!oftemp.good())
+		{
+			throw std::runtime_error("Couldn't create temp Serialiser file");
+		}
+
+		// Write the entity data to the temp file.
+		// Schema and string pool information will be written at the same time.
+		member.Unserialise->Write(*this, oftemp, member.RawPointer);
+		oftemp.close();
+
+		// Write the actual file.
+		WriteInternal(fout);
 	}
 
 	void Serialiser::AddSchema(const Reflect::Class& static_class)
 	{
-		for (const auto* it = &static_class; it; it = it->GetSuperClass())
+		for (const auto* it = &static_class; it; it = it->SuperClass)
 		{
-			const std::string class_name = it->GetName();
+			const std::string class_name = it->Name;
 
 			if (m_schemas.find(class_name) != m_schemas.end())
 			{
@@ -113,6 +114,20 @@ namespace Reflect
 	{
 		m_string_pool.Add(name);
 		m_user_data_types.insert(std::pair(name, UserDataType(name, sz)));
+	}
+
+	// Write the actual file, using the temp stream.
+	void Serialiser::WriteInternal(std::ostream& fout)
+	{
+		// Write the header, now that's been populated by object serialisation.
+		header_t hdr(*this, fout);
+		WriteField(*this, fout, m_string_pool);
+		WriteField(*this, fout, m_schemas);
+		WriteField(*this, fout, m_user_data_types);
+
+		// Copy the binary data into the output stream.
+		std::ifstream iftemp(m_temp_path, std::ios::in | std::ios::binary);
+		fout << iftemp.rdbuf();
 	}
 
 	//==========================================================================
@@ -143,27 +158,27 @@ namespace Reflect
 			}
 
 			const auto current_fields = current_schema->GetMembers({ "Serialise" }, false);
-			const auto& message_fields = message_schema.second.fields;
+			const auto& message_fields = message_schema.second.Fields;
 
 			for (const auto& message_field : message_fields)
 			{
 				const auto& current_field = std::find_if(current_fields.begin(), current_fields.end(),
 					[&message_field](const auto& f)
 					{
-						return f.GetName() == message_field.name;
+						return f.GetName() == message_field.Name;
 					});
 
 				// Look for fields that are in the message, but removed from the object.
 				if (current_field == current_fields.end())
 				{
-					m_schema_differences.push_back(SchemaDifference(false, std::string("Field ") + message_schema.first + "::" + message_field.name + " no longer exists. It will be ignored"));
+					m_schema_differences.push_back(SchemaDifference(false, std::string("Field ") + message_schema.first + "::" + message_field.Name + " no longer exists. It will be ignored"));
 					continue;
 				}
 
 				// Look for a change in data type.
-				if (current_field->GetTypeName() != message_field.type)
+				if (current_field->GetTypeName() != message_field.Type)
 				{
-					m_schema_differences.push_back(SchemaDifference(false, std::string("Field ") + message_schema.first + "::" + message_field.name + " was a '" + message_field.type + "', but now is a '" + current_field->GetTypeName() + "'. It will be left at its default value"));
+					m_schema_differences.push_back(SchemaDifference(false, std::string("Field ") + message_schema.first + "::" + message_field.Name + " was a '" + message_field.Type + "', but now is a '" + current_field->GetTypeName() + "'. It will be left at its default value"));
 					continue;
 				}
 			}
@@ -173,7 +188,7 @@ namespace Reflect
 				const auto& message_field = std::find_if(message_fields.begin(), message_fields.end(),
 					[&current_field](const auto& f)
 					{
-						return f.name == current_field.GetName();
+						return f.Name == current_field.GetName();
 					});
 
 				// Look for fields that exist in the object, but aren't included in the message.
@@ -218,6 +233,14 @@ namespace Reflect
 		PushCurrentObject(object);
 		ReadField<IReflect, 0>(*this, fin, object);
 		PopCurrentObject();
+	}
+
+	void Unserialiser::Read(std::istream& fin, ReflectMember& member)
+	{
+		// HACK: Get the raw object pointer. The Read function reapplies offset.
+		// Ideally, we'd just feed in member.RawPointer...
+		void* base = (char*)member.RawPointer - member.Properties->Offset;
+		member.Unserialise->Read(*this, fin, base);
 	}
 
 	const FieldSchema& Unserialiser::GetSchema(const std::string& name) const

@@ -33,7 +33,7 @@ namespace Reflect
 		inline void write(Serialiser& s, std::ostream& out, const Ref<T>& r)
 		{
 			s.AddSchema(*r->GetClass());
-			write(s, out, std::string_view(r->GetClass()->GetName()));
+			write(s, out, std::string_view(r->GetClass()->Name));
 			r->Serialise(s, out);
 		}
 
@@ -304,7 +304,7 @@ namespace Reflect
 
 		inline void skip_user_data_type(Unserialiser& u, std::istream& in, const UserDataType* udt)
 		{
-			in.ignore(udt->sz);
+			in.ignore(udt->Size);
 		}
 
 		//
@@ -345,16 +345,16 @@ namespace Reflect
 		//
 		inline void write(Serialiser& s, std::ostream& out, const FieldSchema& f)
 		{
-			write(s, out, f.name);
-			write(s, out, f.type);
-			write(s, out, f.fields);
+			write(s, out, f.Name);
+			write(s, out, f.Type);
+			write(s, out, f.Fields);
 		}
 
 		inline void read(Unserialiser& u, std::istream& in, FieldSchema& f)
 		{
-			read(u, in, f.name);
-			read(u, in, f.type);
-			read(u, in, f.fields);
+			read(u, in, f.Name);
+			read(u, in, f.Type);
+			read(u, in, f.Fields);
 		}
 
 		//
@@ -362,14 +362,14 @@ namespace Reflect
 		//
 		inline void write(Serialiser& s, std::ostream& out, const UserDataType& t)
 		{
-			write(s, out, t.name);
-			write(s, out, t.sz);
+			write(s, out, t.Name);
+			write(s, out, t.Size);
 		}
 
 		inline void read(Unserialiser& u, std::istream& in, UserDataType& t)
 		{
-			read(u, in, t.name);
-			read(u, in, t.sz);
+			read(u, in, t.Name);
+			read(u, in, t.Size);
 		}
 	}
 
@@ -377,6 +377,12 @@ namespace Reflect
 	void WriteField(Serialiser& s, std::ostream& out, const T& v)
 	{
 		FieldImpl::write(s, out, v);
+	}
+
+	template<typename T>
+	void WriteFieldFromPtr(Serialiser& s, std::ostream& out, const void *ptr)
+	{
+		WriteField(s, out, *(T*)ptr);
 	}
 
 	template<typename T, size_t offset>
@@ -390,6 +396,12 @@ namespace Reflect
 	{
 		s.AddUserDataType<T>(TSerialiser::value_size);
 		TSerialiser::Serialise(s, out, v);
+	}
+
+	template<typename TSerialiser, typename T>
+	void WriteCustomFieldFromPtr(Serialiser& s, std::ostream& out, const void* ptr)
+	{
+		WriteCustomField<TSerialiser, T>(s, out, *(T*)ptr);
 	}
 
 	template<typename TSerialiser, typename T, size_t offset>
@@ -427,9 +439,9 @@ namespace Reflect
 			// This will throw if the schema can't be found. Honestly, it's for the best.
 			// We don't know what the type is. This message can't be dealt with...
 			const auto &schema = u.GetSchema(std::string(type));
-			for (const auto& f : schema.fields)
+			for (const auto& f : schema.Fields)
 			{
-				SkipField(u, in, f.type);
+				SkipField(u, in, f.Type);
 			}
 		}
 	}

@@ -21,7 +21,7 @@ namespace Reflect
 			new (&s_classes) class_map_t();
 		}
 
-		s_classes[c->m_name] = c;
+		s_classes[c->Name] = c;
 	}
 
 	REFLECT_DLL void Class::RegisterOverride(const char* name, const Class* c)
@@ -47,7 +47,7 @@ namespace Reflect
 				continue;
 			}
 
-			for (const Class* c = it.second; c != nullptr; c = c->m_super_class)
+			for (const Class* c = it.second; c != nullptr; c = c->SuperClass)
 			{
 				if (c == super)
 				{
@@ -62,7 +62,7 @@ namespace Reflect
 
 	REFLECT_DLL void Class::Unregister(Class* c)
 	{
-		s_classes.erase(c->m_name);
+		s_classes.erase(c->Name);
 
 		if (--s_class_map_counter == 0)
 		{

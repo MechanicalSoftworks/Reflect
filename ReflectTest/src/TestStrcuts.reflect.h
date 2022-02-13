@@ -42,6 +42,8 @@ private:\
 public:\
 virtual Reflect::ReflectMember GetMember(const std::string_view& memberName) override;\
 virtual std::vector<Reflect::ReflectMember> GetMembers(std::vector<std::string> const& flags) override;\
+static constexpr const char* Friends_name = "Friends";\
+static constexpr const char* TimeOnline_name = "TimeOnline";\
 
 
 #define TestStrcuts_Source_h_26_DATA_DICTIONARY \
@@ -169,6 +171,8 @@ private:\
 public:\
 virtual Reflect::ReflectMember GetMember(const std::string_view& memberName) override;\
 virtual std::vector<Reflect::ReflectMember> GetMembers(std::vector<std::string> const& flags) override;\
+static constexpr const char* Friends_name = "Friends";\
+static constexpr const char* TimeOnline_name = "TimeOnline";\
 
 
 #define TestStrcuts_Source_h_58_DATA_DICTIONARY \

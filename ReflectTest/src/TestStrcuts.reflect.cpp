@@ -7,7 +7,7 @@ Reflect::ReflectMemberProp S::__REFLECT_MEMBER_PROPS__[2] = {
 	Reflect::ReflectMemberProp("TimeOnline", Reflect::Util::GetTypeName<int>(), Reflect::Util::GetStaticClass<int>(), std::is_pointer<int>::value, __REFLECT__TimeOnline(), {"Public"}),
 };
 
-const Reflect::Class S::StaticClass = Reflect::Class("S", sizeof(S), alignof(S), nullptr, 2, __REFLECT_MEMBER_PROPS__, Reflect::PlacementNew<S>, Reflect::PlacementDelete<S>);
+const Reflect::Class S::StaticClass = Reflect::Class("S", sizeof(S), alignof(S), nullptr, 2, __REFLECT_MEMBER_PROPS__, 0, nullptr, Reflect::PlacementNew<S>, Reflect::PlacementDelete<S>);
 
 Reflect::ReflectFunction S::GetFunction(const std::string_view &functionName)
 {
@@ -16,12 +16,12 @@ Reflect::ReflectFunction S::GetFunction(const std::string_view &functionName)
 
 Reflect::ReflectMember S::GetMember(const std::string_view& memberName)
 {
+	const Reflect::UnserialiseField* unserialise = nullptr;
 	for(const auto& member : __REFLECT_MEMBER_PROPS__)
 	{
 		if(memberName == member.Name)
 		{
-			//CheckFlags
-			return Reflect::ReflectMember(&member, ((char*)this) + member.Offset);
+			return Reflect::ReflectMember(&member, unserialise, ((char*)this) + member.Offset);
 		}
 	}
 	return SuperClass::GetMember(memberName);
@@ -34,7 +34,8 @@ std::vector<Reflect::ReflectMember> S::GetMembers(std::vector<std::string> const
 	{
 		if(member.ContainsProperty(flags))
 		{
-			members.push_back(Reflect::ReflectMember(&member, ((char*)this) + member.Offset));
+			const Reflect::UnserialiseField* unserialise = nullptr;
+			members.push_back(Reflect::ReflectMember(&member, unserialise, ((char*)this) + member.Offset));
 		}
 	}
 	return members;
@@ -48,7 +49,7 @@ void S::Unserialise(Reflect::Unserialiser &u, std::istream &in) {
 	SuperClass::Unserialise(u, in);
 }
 
-const Reflect::Class Actor::StaticClass = Reflect::Class("Actor", sizeof(Actor), alignof(Actor), nullptr, 0, nullptr, Reflect::PlacementNew<Actor>, Reflect::PlacementDelete<Actor>);
+const Reflect::Class Actor::StaticClass = Reflect::Class("Actor", sizeof(Actor), alignof(Actor), nullptr, 0, nullptr, 0, nullptr, Reflect::PlacementNew<Actor>, Reflect::PlacementDelete<Actor>);
 
 Reflect::ReflectFunction Actor::GetFunction(const std::string_view &functionName)
 {
@@ -57,6 +58,7 @@ Reflect::ReflectFunction Actor::GetFunction(const std::string_view &functionName
 
 Reflect::ReflectMember Actor::GetMember(const std::string_view& memberName)
 {
+	const Reflect::UnserialiseField* unserialise = nullptr;
 	return SuperClass::GetMember(memberName);
 }
 
@@ -79,7 +81,7 @@ Reflect::ReflectMemberProp Player::__REFLECT_MEMBER_PROPS__[2] = {
 	Reflect::ReflectMemberProp("TimeOnline", Reflect::Util::GetTypeName<int>(), Reflect::Util::GetStaticClass<int>(), std::is_pointer<int>::value, __REFLECT__TimeOnline(), {"Public"}),
 };
 
-const Reflect::Class Player::StaticClass = Reflect::Class("Player", sizeof(Player), alignof(Player), &Actor::StaticClass, 2, __REFLECT_MEMBER_PROPS__, Reflect::PlacementNew<Player>, Reflect::PlacementDelete<Player>);
+const Reflect::Class Player::StaticClass = Reflect::Class("Player", sizeof(Player), alignof(Player), &Actor::StaticClass, 2, __REFLECT_MEMBER_PROPS__, 0, nullptr, Reflect::PlacementNew<Player>, Reflect::PlacementDelete<Player>);
 
 Reflect::ReflectFunction Player::GetFunction(const std::string_view &functionName)
 {
@@ -100,12 +102,12 @@ Reflect::ReflectFunction Player::GetFunction(const std::string_view &functionNam
 
 Reflect::ReflectMember Player::GetMember(const std::string_view& memberName)
 {
+	const Reflect::UnserialiseField* unserialise = nullptr;
 	for(const auto& member : __REFLECT_MEMBER_PROPS__)
 	{
 		if(memberName == member.Name)
 		{
-			//CheckFlags
-			return Reflect::ReflectMember(&member, ((char*)this) + member.Offset);
+			return Reflect::ReflectMember(&member, unserialise, ((char*)this) + member.Offset);
 		}
 	}
 	return SuperClass::GetMember(memberName);
@@ -118,7 +120,8 @@ std::vector<Reflect::ReflectMember> Player::GetMembers(std::vector<std::string> 
 	{
 		if(member.ContainsProperty(flags))
 		{
-			members.push_back(Reflect::ReflectMember(&member, ((char*)this) + member.Offset));
+			const Reflect::UnserialiseField* unserialise = nullptr;
+			members.push_back(Reflect::ReflectMember(&member, unserialise, ((char*)this) + member.Offset));
 		}
 	}
 	return members;
