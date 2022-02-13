@@ -427,6 +427,7 @@ namespace Reflect
 		// Misc.
 		const Class* GetClass() const { return m_class; }
 		IReflect* GetOuter() const { return m_outer; }
+		void SetOuter(IReflect* outer) { m_outer = outer; }
 
 		// Reflection.
 		virtual ReflectFunction GetFunction(const std::string_view& functionName) { (void)functionName; return ReflectFunction(nullptr, nullptr);};
