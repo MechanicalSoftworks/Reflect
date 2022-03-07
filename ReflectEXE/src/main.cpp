@@ -1,6 +1,7 @@
 #include "Reflect.h"
 #include <filesystem>
 #include <string_view>
+#include <cstring>
 
 int main(int argc, char* argv[])
 {
@@ -27,16 +28,16 @@ int main(int argc, char* argv[])
 				std::string arg = argv[i];
 				if (arg.find("pchInclude=") != std::string::npos)
 				{
-					options.IncludePCHString = arg.substr(strlen("pchInclude="));
+					options.IncludePCHString = arg.substr(std::strlen("pchInclude="));
 				}
 				else if (arg.find("outputCppDir=") != std::string::npos)
 				{
-					options.OutputCPPDir = arg.substr(strlen("outputCppDir="));
+					options.OutputCPPDir = arg.substr(std::strlen("outputCppDir="));
 					specifiedCPPDir = true;
 				}
 				else if (arg.find("namespace=") != std::string::npos)
 				{
-					options.Namespace = arg.substr(strlen("namespace="));
+					options.Namespace = arg.substr(std::strlen("namespace="));
 				}
 			}
 		}

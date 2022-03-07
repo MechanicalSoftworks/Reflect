@@ -10,12 +10,22 @@
 #pragma error C++17 must be used.
 #endif
 
-#ifdef REFLECT_DLL_EXPORT
-#define REFLECT_DLL __declspec(dllexport)
-#elif defined (REFLECT_DLL_IMPORT)
-#define REFLECT_DLL __declspec(dllimport)
-#else 
-#define REFLECT_DLL
+#ifdef _MSC_VER
+#	ifdef REFLECT_DLL_EXPORT
+#		define REFLECT_DLL __declspec(dllexport)
+#	elif defined (REFLECT_DLL_IMPORT)
+#		define REFLECT_DLL __declspec(dllimport)
+#	else 
+#		define REFLECT_DLL
+#	endif
+#elif defined __GNUC__
+#	ifdef REFLECT_DLL_EXPORT
+#		define REFLECT_DLL __attribute__((__visibility__("default")))
+#	elif defined (REFLECT_DLL_IMPORT)
+#		define REFLECT_DLL
+#	else 
+#		define REFLECT_DLL
+#	endif
 #endif
 
 #define REFLECT_PROPERTY(...)

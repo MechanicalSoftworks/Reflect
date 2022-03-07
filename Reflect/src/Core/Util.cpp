@@ -1,5 +1,9 @@
 #include "Core/Util.h"
 
+#ifdef __GNUC__
+#include <cxxabi.h>
+#endif
+
 namespace Reflect
 {
 	std::string Util::ValidateTypeName(const std::string& str)

@@ -39,7 +39,9 @@ namespace Reflect
 		template<typename T> using WeakRef = std::weak_ptr<T>;
 
 		template<typename T> static Ref<T>	Create(IReflect* outer);
+#if 0
 		template<typename T> static Ref<T>	Create(const std::string_view& name, IReflect* outer);
+#endif
 		template<typename T> static Ref<T>	Create(const Class* static_class, IReflect* outer);
 		template<typename T> static void	Dispose(Ref<T> &ref);
 	};
@@ -50,6 +52,8 @@ namespace Reflect
 		return Ref<T>((T*)CreateInternal(&T::StaticClass, outer));
 	}
 
+	// Don't need this right now, and it's causing problems in the Linux build. Ignoring...
+#if 0
 	template<typename T> 
 	inline Allocator::Ref<T> Allocator::Create(const std::string_view& name, IReflect* outer)
 	{
@@ -61,6 +65,7 @@ namespace Reflect
 
 		return Create<T>(static_class, outer);
 	}
+#endif
 
 	template<typename T>
 	inline Allocator::Ref<T> Allocator::Create(const Class* static_class, IReflect* outer)

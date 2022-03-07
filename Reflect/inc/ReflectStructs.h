@@ -25,7 +25,7 @@ namespace Reflect
 		std::string Type;
 		std::string Name;
 		int TypeSize;
-		ReflectMemberType ReflectMemberType;
+		Reflect::ReflectMemberType ReflectMemberType;
 		bool IsConst;
 		std::vector<std::string> ContainerProps;
 
@@ -68,12 +68,12 @@ namespace Reflect
 
 	struct ReflectMemberData : public ReflectTypeNameData
 	{
-		ReflectType ReflectType = ReflectType::Member;
+		Reflect::ReflectType ReflectType = ReflectType::Member;
 	};
 
 	struct ReflectFunctionData : public ReflectTypeNameData
 	{
-		ReflectType ReflectType = ReflectType::Function;
+		Reflect::ReflectType ReflectType = ReflectType::Function;
 		std::vector<ReflectTypeNameData> Parameters;
 	};
 
@@ -86,7 +86,7 @@ namespace Reflect
 	struct ReflectContainerData : public ReflectTypeNameData
 	{
 		std::string Name, SuperName;
-		ReflectType ReflectType;
+		Reflect::ReflectType ReflectType;
 		int ReflectGenerateBodyLine;
 
 		std::vector<ReflectConstantData> Constants;

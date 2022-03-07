@@ -10,6 +10,9 @@
 
 namespace Reflect
 {
+	struct IReflect;
+	class Class;
+
 	namespace Util
 	{
 		static std::string ToLower(std::string str)
