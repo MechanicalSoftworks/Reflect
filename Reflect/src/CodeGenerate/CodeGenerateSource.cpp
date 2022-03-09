@@ -102,6 +102,7 @@ namespace Reflect
 	{
 		file << "Reflect::ReflectMember " + data.Name + "::GetMember(const std::string_view& memberName)\n{\n";
 		file << "\tconst Reflect::UnserialiseField* unserialise = nullptr;\n";
+		file << "\t(void)unserialise;\n";
 		if (serialiseFields.size() > 0)
 		{
 			file << "\tfor(const auto& field : __SERIALISE_FIELDS__)\n\t{\n";
@@ -132,6 +133,7 @@ namespace Reflect
 			file << "\t\tif(member.ContainsProperty(flags))\n";
 			file << "\t\t{\n";
 			file << "\t\t\tconst Reflect::UnserialiseField* unserialise = nullptr;\n";
+			file << "\t\t\t(void)unserialise;\n";
 			if (serialiseFields.size() > 0)
 			{
 				file << "\t\t\tfor(const auto& field : __SERIALISE_FIELDS__)\n";
@@ -237,7 +239,7 @@ namespace Reflect
 			file << "\tu.PushCurrentObject(this);\n";
 			file << "\tauto new_it = __SERIALISE_FIELDS__.begin();\n";
 			file << "\tconst auto& old_schema = u.GetSchema(\"" << data.Name << "\");\n";	// No need to do a safety check. We've already instantiated the class...means the schema is available.
-			file << "\tfor(int i = 0; i < old_schema.Fields.size(); i++) {\n";
+			file << "\tfor(size_t i = 0; i < old_schema.Fields.size(); i++) {\n";
 			file << "\t\tconst auto& field = old_schema.Fields[i];\n";
 			file << "\t\tnew_it = Reflect::Util::circular_find_if(new_it, __SERIALISE_FIELDS__.begin(), __SERIALISE_FIELDS__.end(), [&field](const auto &f){ return field.Name == f.Name; });\n";
 			file << "\t\tif (new_it == __SERIALISE_FIELDS__.end() || new_it->Type != field.Type) {\n";

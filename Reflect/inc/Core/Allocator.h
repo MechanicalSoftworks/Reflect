@@ -16,6 +16,7 @@ namespace Reflect
 		// Raw pointer manipulation.
 		static IReflect*	CreateInternal(const Class* static_class, IReflect* outer);
 		static void			DestroyInternal(IReflect* o);
+		static const Class*	Lookup(const std::string_view& name);
 
 	public:
 		// Defined here because it's easiest. If Ref is defined above Allocator, it can't access Allocator::DestroyInternal.
@@ -39,9 +40,7 @@ namespace Reflect
 		template<typename T> using WeakRef = std::weak_ptr<T>;
 
 		template<typename T> static Ref<T>	Create(IReflect* outer);
-#if 0
 		template<typename T> static Ref<T>	Create(const std::string_view& name, IReflect* outer);
-#endif
 		template<typename T> static Ref<T>	Create(const Class* static_class, IReflect* outer);
 		template<typename T> static void	Dispose(Ref<T> &ref);
 	};
@@ -52,20 +51,11 @@ namespace Reflect
 		return Ref<T>((T*)CreateInternal(&T::StaticClass, outer));
 	}
 
-	// Don't need this right now, and it's causing problems in the Linux build. Ignoring...
-#if 0
 	template<typename T> 
 	inline Allocator::Ref<T> Allocator::Create(const std::string_view& name, IReflect* outer)
 	{
-		const auto* static_class = Class::Lookup(name);
-		if (!static_class)
-		{
-			throw std::runtime_error(std::string("Unknown class '") + std::string(name) + "'");
-		}
-
-		return Create<T>(static_class, outer);
+		return Create<T>(Lookup(name), outer);
 	}
-#endif
 
 	template<typename T>
 	inline Allocator::Ref<T> Allocator::Create(const Class* static_class, IReflect* outer)

@@ -435,8 +435,8 @@ namespace Reflect
 		virtual std::vector<ReflectMember> GetMembers(std::vector<std::string> const& flags) { (void)flags; return {}; };
 		
 		// Serialisation.
-		virtual void Serialise(Serialiser &s, std::ostream& out) const {}
-		virtual void Unserialise(Unserialiser &u, std::istream& in) {}
+		virtual void Serialise(Serialiser &s, std::ostream& out) const { (void)s; (void)out; }
+		virtual void Unserialise(Unserialiser &u, std::istream& in) { (void)u; (void)in; }
 		virtual void PostUnserialise() {}
 
 	private:

@@ -129,7 +129,7 @@ namespace Reflect
 			template<typename T>
 			inline typename std::enable_if<std::is_pointer_v<T>, const Class*>::type GetStaticClass()
 			{
-				return GetStaticClass<std::remove_pointer<T>::type>();
+				return GetStaticClass<typename std::remove_pointer<T>::type>();
 			}
 		}
 
