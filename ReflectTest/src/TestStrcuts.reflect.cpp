@@ -7,7 +7,7 @@ Reflect::ReflectMemberProp S::__REFLECT_MEMBER_PROPS__[2] = {
 	Reflect::ReflectMemberProp("TimeOnline", Reflect::Util::GetTypeName<int>(), Reflect::Util::GetStaticClass<int>(), std::is_pointer<int>::value, __REFLECT__TimeOnline(), {"Public"}),
 };
 
-const Reflect::Class S::StaticClass = Reflect::Class("S", sizeof(S), alignof(S), nullptr, 2, __REFLECT_MEMBER_PROPS__, 0, nullptr, Reflect::PlacementNew<S>, Reflect::PlacementDelete<S>);
+const Reflect::Class S::StaticClass = Reflect::Class("S", nullptr, 2, __REFLECT_MEMBER_PROPS__, 0, nullptr, Reflect::AllocateObject<S>, Reflect::PlacementNew<S>, Reflect::PlacementDelete<S>, Reflect::FreeObject<S>);
 
 Reflect::ReflectFunction S::GetFunction(const std::string_view &functionName)
 {
@@ -49,7 +49,7 @@ void S::Unserialise(Reflect::Unserialiser &u, std::istream &in) {
 	SuperClass::Unserialise(u, in);
 }
 
-const Reflect::Class Actor::StaticClass = Reflect::Class("Actor", sizeof(Actor), alignof(Actor), nullptr, 0, nullptr, 0, nullptr, Reflect::PlacementNew<Actor>, Reflect::PlacementDelete<Actor>);
+const Reflect::Class Actor::StaticClass = Reflect::Class("Actor", nullptr, 0, nullptr, 0, nullptr, Reflect::AllocateObject<Actor>, Reflect::PlacementNew<Actor>, Reflect::PlacementDelete<Actor>, Reflect::FreeObject<Actor>);
 
 Reflect::ReflectFunction Actor::GetFunction(const std::string_view &functionName)
 {
@@ -81,7 +81,7 @@ Reflect::ReflectMemberProp Player::__REFLECT_MEMBER_PROPS__[2] = {
 	Reflect::ReflectMemberProp("TimeOnline", Reflect::Util::GetTypeName<int>(), Reflect::Util::GetStaticClass<int>(), std::is_pointer<int>::value, __REFLECT__TimeOnline(), {"Public"}),
 };
 
-const Reflect::Class Player::StaticClass = Reflect::Class("Player", sizeof(Player), alignof(Player), &Actor::StaticClass, 2, __REFLECT_MEMBER_PROPS__, 0, nullptr, Reflect::PlacementNew<Player>, Reflect::PlacementDelete<Player>);
+const Reflect::Class Player::StaticClass = Reflect::Class("Player", &Actor::StaticClass, 2, __REFLECT_MEMBER_PROPS__, 0, nullptr, Reflect::AllocateObject<Player>, Reflect::PlacementNew<Player>, Reflect::PlacementDelete<Player>, Reflect::FreeObject<Player>);
 
 Reflect::ReflectFunction Player::GetFunction(const std::string_view &functionName)
 {

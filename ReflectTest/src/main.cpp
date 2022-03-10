@@ -58,11 +58,11 @@ void GetMemberWithFlags()
 void StaticClass()
 {
 	const auto& staticClass = *Reflect::Class::Lookup("Player");
-	Player* player = static_cast<Player *>(aligned_alloc(staticClass.GetRawSize(), staticClass.GetAlignment()));
+	auto player = (Player*)staticClass.Allocate();
 	staticClass.Constructor(player, Reflect::Initialiser(&Player::StaticClass, nullptr));
 	player->Tick();
 	staticClass.Destructor(player);
-	aligned_free(player);
+	staticClass.Free(player);
 }
 
 int main(void)

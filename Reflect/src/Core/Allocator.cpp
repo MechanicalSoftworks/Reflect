@@ -3,19 +3,11 @@
 
 #include <memory>
 
-#ifdef __GNUC__
-void* local_aligned_alloc(std::size_t size, std::size_t alignment) { return std::aligned_alloc(size, alignment); }
-void  local_aligned_free(void* p) noexcept { std::free(p); }
-#else
-void* local_aligned_alloc(std::size_t size, std::size_t alignment) { return _aligned_malloc(size, alignment); }
-void  local_aligned_free(void* p) noexcept { _aligned_free(p); }
-#endif
-
 namespace Reflect
 {
 	IReflect* Allocator::CreateInternal(const Class* static_class, IReflect* outer)
 	{
-		IReflect* o = (IReflect *)local_aligned_alloc(static_class->GetRawSize(), static_class->GetAlignment());
+		IReflect* o = static_class->Allocate();
 		if (!o)
 		{
 			throw std::bad_alloc();
@@ -32,7 +24,7 @@ namespace Reflect
 		{
 			const auto* static_class = o->GetClass();
 			static_class->Destructor(o);
-			local_aligned_free(o);
+			static_class->Free(o);
 		}
 	}
 

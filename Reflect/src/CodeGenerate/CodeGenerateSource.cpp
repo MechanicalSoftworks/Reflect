@@ -90,11 +90,10 @@ namespace Reflect
 	void CodeGenerateSource::WriteStaticClass(const ReflectContainerData& data, const SerialiseFields& serialiseFields, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
 		file << "const Reflect::Class " << data.Name << "::StaticClass = Reflect::Class(\"" << data.Name << "\", "
-			<< "sizeof(" << data.Name << "), alignof(" << data.Name << "), "
 			<< (data.SuperName != "Reflect::IReflect" ? (std::string("&") + data.SuperName + "::StaticClass") : std::string("nullptr")) << ", "
 			<< data.Members.size() << ", " << (data.Members.size() > 0 ? "__REFLECT_MEMBER_PROPS__" : "nullptr") << ", "
 			<< serialiseFields.size() << ", " << (serialiseFields.size() > 0 ? "__SERIALISE_FIELDS__.data()" : "nullptr") << ", "
-			<< "Reflect::PlacementNew<" << data.Name << ">, Reflect::PlacementDelete<" << data.Name << ">"
+			<< "Reflect::AllocateObject<" << data.Name << ">, Reflect::PlacementNew<" << data.Name << ">, Reflect::PlacementDelete<" << data.Name << ">, Reflect::FreeObject<" << data.Name << ">"
 			<< ");\n\n";
 	}
 

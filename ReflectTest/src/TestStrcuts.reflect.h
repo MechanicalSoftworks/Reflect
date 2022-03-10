@@ -7,7 +7,7 @@
 
 #ifdef TestStrcuts_reflect_h
 #error "TestStrcuts_reflect.h already included, missing 'pragma once' in TestStrcuts.h"
-#endif TestStrcuts_reflect_h
+#endif
 #define TestStrcuts_reflect_h
 
 #define TestStrcuts_Source_h_26_STATIC_CLASS \

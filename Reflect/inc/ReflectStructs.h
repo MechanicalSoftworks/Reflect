@@ -289,10 +289,20 @@ namespace Reflect
 		}
 	};
 
-	typedef void (*ConstructorType)(void* obj, const Initialiser& init);
-	typedef void (*DestructorType)(void* obj);
-	template<typename T> void PlacementNew(void* obj, const Initialiser& init) { T::__PlacementNew((T*)obj, init); }
-	template<typename T> void PlacementDelete(void* obj) { T::__PlacementDelete((T*)obj); }
+	//
+	// TODO: Unify these thing a single Allocator class. No need for the global Allocator.
+	//
+	using AllocatorType = IReflect*(*)();
+	template<typename T> IReflect* AllocateObject() { std::allocator<T> a; return a.allocate(1); }
+
+	using ConstructorType = void(*)(IReflect* obj, const Initialiser& init);
+	template<typename T> void PlacementNew(IReflect* obj, const Initialiser& init) { new((T*)obj) T(init); }
+
+	using DestructorType  = void(*)(IReflect* obj);
+	template<typename T> void PlacementDelete(IReflect* obj) { ((T*)obj)->~T(); }
+
+	using FreeType = void(*)(IReflect* obj);
+	template<typename T> void FreeObject(IReflect* obj) { std::allocator<T> a; return a.deallocate((T*)obj, 1); }
 
 	// Helpers for reading individual fields.
 	using ReadFieldType = void (*)(Unserialiser& u, std::istream& in, void* self);
@@ -309,17 +319,17 @@ namespace Reflect
 	class Class
 	{
 	public:
-		Class(const char *name, size_t size, size_t alignment, const Class *super, size_t prop_count, const ReflectMemberProp *props, size_t unserialise_count, const UnserialiseField* unserialisers, ConstructorType constructor, DestructorType destructor)
+		Class(const char *name, const Class *super, size_t prop_count, const ReflectMemberProp *props, size_t unserialise_count, const UnserialiseField* unserialisers, AllocatorType allocate, ConstructorType constructor, DestructorType destructor, FreeType free_)
 			: Name(name)
-			, m_size(size)
-			, m_alignment(alignment)
 			, SuperClass(super)
 			, m_member_prop_count(prop_count)
 			, m_member_props(props)
 			, m_unserialise_count(unserialise_count)
 			, m_unserialise(unserialisers)
+			, Allocate(allocate)
 			, Constructor(constructor)
 			, Destructor(destructor)
+			, Free(free_)
 		{
 			Register(this);
 		}
@@ -329,8 +339,11 @@ namespace Reflect
 			Unregister(this);
 		}
 
+		// Decoupled Allocate from Constructor because maybe users will want to do some memory reuse.
+		const AllocatorType Allocate;
 		const ConstructorType Constructor;
 		const DestructorType Destructor;
+		const FreeType Free;
 
 		// Makes the type usable by Allocator.
 		REFLECT_DLL static void Register(Class* c);
@@ -365,9 +378,6 @@ namespace Reflect
 		}
 
 		const char* const	Name;
-		size_t				GetRawSize() const { return m_size; }
-		size_t				GetAlignment() const { return m_alignment; }
-		size_t				GetSize() const { return (m_size + m_alignment - 1) - m_size % m_alignment; }
 		const Class* const	SuperClass;
 
 	private:
@@ -397,9 +407,6 @@ namespace Reflect
 				}
 			}
 		}
-
-		const size_t					m_size;
-		const size_t					m_alignment;
 
 		const size_t					m_member_prop_count;
 		const ReflectMemberProp* const	m_member_props;
