@@ -3,8 +3,9 @@
 #include "Reflect.h"
 #include "Core/Allocator.h"
 
+#include <set>
 #include <map>
-#include <stack>
+#include <vector>
 
 namespace Reflect
 {
@@ -146,6 +147,51 @@ namespace Reflect
 		}
 
 		//
+		// Set types (non IReflect).
+		//
+		template<typename T>
+		inline typename std::enable_if_t<!std::is_base_of_v<IReflect, T>>
+			write(Serialiser& s, std::ostream& out, const std::set<T>& v)
+		{
+			write(s, out, (uint32_t)v.size());
+			for (const auto &it : v)
+			{
+				write(s, out, it);
+			}
+		}
+
+		template<typename T>
+		inline typename std::enable_if_t<!std::is_base_of_v<IReflect, T>>
+			read(Unserialiser& u, std::istream& in, std::set<T>& v)
+		{
+			v.clear();
+
+			uint32_t count;
+			read(u, in, count);
+
+			for (uint32_t i = 0; i < count; i++)
+			{
+				T t;
+				read(u, in, t);
+				v.insert(std::move(t));
+			}
+		}
+
+		inline void skip_set(Unserialiser& u, std::istream& in, const std::string_view& vector_type)
+		{
+			uint32_t count;
+			read(u, in, count);
+
+			const std::string_view vector_string("std::set<");
+			const std::string_view value_type(vector_type.data() + vector_string.length(), vector_type.length() - vector_string.length() - 1);	// -1 for tailing '>'.
+
+			for (uint32_t i = 0; i < count; i++)
+			{
+				SkipField(u, in, value_type);
+			}
+		}
+
+		//
 		// Map types (non IReflect).
 		//
 		template<typename K, typename V>
@@ -242,7 +288,7 @@ namespace Reflect
 		inline typename std::enable_if_t<std::is_base_of_v<IReflect, T>>
 			write(Serialiser& s, std::ostream& out, const std::vector<T>& v)
 		{
-			s.AddSchema(T::StaticClass());
+			s.AddSchema(T::StaticClass);
 			write(s, out, (uint32_t)v.size());
 			for (const auto &it : v)
 			{
@@ -261,9 +307,41 @@ namespace Reflect
 
 			for (uint32_t i = 0; i < count; i++)
 			{
-				T t(&T::StaticClass());
+				T t(Initialiser(&T::StaticClass, nullptr));
 				read(u, in, t);
 				v.push_back(std::move(t));
+			}
+		}
+
+		//
+		// Vector (IReflect).
+		//
+		template<typename T>
+		inline typename std::enable_if_t<std::is_base_of_v<IReflect, T>>
+			write(Serialiser& s, std::ostream& out, const std::set<T>& v)
+		{
+			s.AddSchema(T::StaticClass);
+			write(s, out, (uint32_t)v.size());
+			for (const auto& it : v)
+			{
+				it->Serialise(s, out);
+			}
+		}
+
+		template<typename T>
+		inline typename std::enable_if_t<std::is_base_of_v<IReflect, T>>
+			read(Unserialiser& u, std::istream& in, std::set<T>& v)
+		{
+			v.clear();
+
+			uint32_t count;
+			read(u, in, count);
+
+			for (uint32_t i = 0; i < count; i++)
+			{
+				T t(Initialiser(&T::StaticClass, nullptr));
+				read(u, in, t);
+				v.insert(std::move(t));
 			}
 		}
 
@@ -271,10 +349,10 @@ namespace Reflect
 		// Map (IReflect).
 		//
 		template<typename K, typename V>
-		inline typename std::enable_if_t<std::is_base_of_v<IReflect, K>>
+		inline typename std::enable_if_t<std::is_base_of_v<IReflect, V>>
 			write(Serialiser& s, std::ostream& out, const std::map<K, V>& m)
 		{
-			s.AddSchema(V::StaticClass());
+			s.AddSchema(V::StaticClass);
 			write(s, out, (uint32_t)m.size());
 			for (const auto& it : m)
 			{
@@ -284,7 +362,7 @@ namespace Reflect
 		}
 
 		template<typename K, typename V>
-		inline typename std::enable_if_t<std::is_base_of_v<IReflect, K>>
+		inline typename std::enable_if_t<std::is_base_of_v<IReflect, V>>
 			read(Unserialiser& u, std::istream& in, std::map<K, V>& m)
 		{
 			m.clear();
@@ -297,7 +375,7 @@ namespace Reflect
 				K k;
 				read(u, in, k);
 
-				V v(&V::StaticClass());
+				V v(Initialiser(&V::StaticClass, nullptr));
 				read(u, in, v);
 				m.insert(std::pair<K, V>(std::move(k), std::move(v)));
 			}
@@ -429,6 +507,7 @@ namespace Reflect
 		else if (type == "double")										FieldImpl::skip<double>(u, in);
 		else if (type == "std::string")									FieldImpl::skip<StringPool::index_t>(u, in);
 		else if (type.find("std::vector<") == 0)						FieldImpl::skip_vector(u, in, type);
+		else if (type.find("std::set<") == 0)							FieldImpl::skip_set(u, in, type);
 		else if (type.find("std::map<") == 0)							FieldImpl::skip_map(u, in, type);
 		else if (type.find("Ref<") == 0)								FieldImpl::skip_ref(u, in, type);
 		else
