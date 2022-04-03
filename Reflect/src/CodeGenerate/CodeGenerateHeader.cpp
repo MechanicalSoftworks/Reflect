@@ -255,7 +255,21 @@ namespace Reflect
 				file << "\tif (str == " << "\"" << c.Name << "\") { x = " << reflectData.Type << "(" << c.Value << "); return true; }\n";
 			}
 			file << "\treturn false;\n";
-			file << "}\n";
+			file << "}\n\n";
+
+			const auto valueVector = "std::vector<std::pair<std::string, " + reflectData.Type + ">>";
+
+			file << "template<typename T> inline const std::vector<std::pair<std::string, T>>& EnumValues();\n";
+
+			file << "template<> inline const " << valueVector << "& EnumValues() { \n";
+			file << "\tstatic " << valueVector << " values{\n";
+			for (const auto& c : reflectData.Constants)
+			{
+				file << "\t\tstd::pair<std::string, " << reflectData.Type << ">(\"" << c.Name << "\", " << reflectData.Type << "(" << c.Value << ")),\n";
+			}
+			file << "\t};\n";
+			file << "\treturn values;\n";
+			file << "}\n\n";
 
 			if (addtionalOptions.Namespace.length())
 			{
