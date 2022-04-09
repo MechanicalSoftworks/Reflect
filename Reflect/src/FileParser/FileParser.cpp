@@ -206,8 +206,9 @@ namespace Reflect
 			else if (token.size())
 			{
 				// We only want to keep the last token before the ':' or '{'. Consider:
-				// class EXPORT Player { ...
-				containerName = std::move(token);
+				// class EXPORT Player final { ...
+				if (token != "final")
+					containerName = std::move(token);
 				token.clear();
 			}
 			++fileData.Cursor;

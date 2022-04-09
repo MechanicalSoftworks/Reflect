@@ -123,7 +123,7 @@ namespace Reflect
 			{
 				for (auto const& p : StrProperties)
 				{
-					if (p == flag)
+					if (p == flag || (p.length() >= flag.length() && p.find(flag) == 0 && p[flag.length()] == '='))
 					{
 						return true;
 					}
