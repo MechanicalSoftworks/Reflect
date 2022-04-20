@@ -11,6 +11,7 @@ namespace Reflect
 		std::string IncludePCHString;
 		std::string OutputCPPDir;
 		std::string Namespace;
+		std::string RelativeFilePath;
 	};
 
 	/// <summary>

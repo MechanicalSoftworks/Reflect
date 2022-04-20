@@ -11,7 +11,10 @@ namespace Reflect
 		{
 			CodeGenerate::IncludeHeader(addtionalOptions.IncludePCHString, file);
 		}
-		CodeGenerate::IncludeHeader(data.FileName + "." + data.FileExtension, file);
+		const std::string prefix = addtionalOptions.RelativeFilePath.length()
+			? addtionalOptions.RelativeFilePath + "/"
+			: "";
+		CodeGenerate::IncludeHeader(prefix + data.FileName + "." + data.FileExtension, file);
 		CodeGenerate::IncludeHeader("Core/Util.h", file);
 		CodeGenerate::IncludeHeader("Core/FieldIO.h", file);
 		file << "\n";

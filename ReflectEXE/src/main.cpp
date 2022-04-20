@@ -52,6 +52,8 @@ int main(int argc, char* argv[])
 					options.OutputCPPDir = file.FilePath;
 				}
 
+				options.RelativeFilePath = file.FilePath.substr(std::min(dir.length() + 1, file.FilePath.length()));
+
 				codeGenerate.Reflect(file, options);
 			}
 		}
