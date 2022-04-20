@@ -5,12 +5,16 @@
 
 namespace Reflect
 {
-	std::string GetCurrentFileID(const std::string& fileName)
+	std::string GetCurrentFileID(const CodeGenerateAddtionalOptions& addtionalOptions, const std::string& fileName)
 	{
-		return  fileName + "_Source_h";
+		auto relative = addtionalOptions.RelativeFilePath;
+		std::replace(relative.begin(), relative.end(), '/',  '_');
+		std::replace(relative.begin(), relative.end(), '\\', '_');
+
+		return relative + "_" + fileName + "_Source_h";
 	}
 
-#define WRITE_CURRENT_FILE_ID(FileName) file << "#define " + GetCurrentFileID(FileName)
+#define WRITE_CURRENT_FILE_ID(FileName) file << "#define " + GetCurrentFileID(addtionalOptions, FileName)
 #define WRITE_CLOSE() file << "\n\n"
 
 #define WRITE_PUBLIC() file << "public:\\\n"
@@ -28,11 +32,18 @@ namespace Reflect
 		CodeGenerate::IncludeHeader("Core/Util.h", file);
 		CodeGenerate::IncludeHeader("array", file, true);
 
+		std::string reflectGuard = addtionalOptions.RelativeFilePath + data.FileName + ReflectFileHeaderGuard;
+		std::replace(reflectGuard.begin(), reflectGuard.end(), '/',  '_');
+		std::replace(reflectGuard.begin(), reflectGuard.end(), '\\', '_');
+		std::replace(reflectGuard.begin(), reflectGuard.end(), '.', '_');
+		std::replace(reflectGuard.begin(), reflectGuard.end(), ':', '_');
+		std::replace(reflectGuard.begin(), reflectGuard.end(), '-', '_');
+
 		file << "\n";
-		file << "#ifdef " + data.FileName + ReflectFileHeaderGuard + "_h\n";
-		file << "#error \"" + data.FileName + ReflectFileHeaderGuard + ".h" + " already included, missing 'pragma once' in " + data.FileName + ".h\"\n";
-		file << "#endif //" + data.FileName + ReflectFileHeaderGuard + "_h\n";
-		file << "#define " + data.FileName + ReflectFileHeaderGuard + "_h\n\n";
+		file << "#ifdef " + reflectGuard + "_h\n";
+		file << "#error \"" + reflectGuard + ".h" + " already included, missing 'pragma once' in " + data.FileName + ".h\"\n";
+		file << "#endif //" + reflectGuard + "_h\n";
+		file << "#define " + reflectGuard + "_h\n\n";
 
 		WriteMacros(data, file, addtionalOptions);
 		WriteEnums(data, file, addtionalOptions);
@@ -47,7 +58,7 @@ namespace Reflect
 				continue;
 			}
 
-			const std::string CurrentFileId = GetCurrentFileID(data.FileName) + "_" + std::to_string(reflectData.ReflectGenerateBodyLine);
+			const std::string CurrentFileId = GetCurrentFileID(addtionalOptions, data.FileName) + "_" + std::to_string(reflectData.ReflectGenerateBodyLine);
 
 			WriteStaticClass(reflectData, file, CurrentFileId, addtionalOptions);
 			WriteMemberProperties(reflectData, file, CurrentFileId, addtionalOptions);
@@ -82,7 +93,7 @@ namespace Reflect
 		}
 
 		file << "#undef CURRENT_FILE_ID\n";
-		file << "#define CURRENT_FILE_ID " + GetCurrentFileID(data.FileName) + "\n";
+		file << "#define CURRENT_FILE_ID " + GetCurrentFileID(addtionalOptions, data.FileName) + "\n";
 	}
 
 	void CodeGenerateHeader::WriteStaticClass(const ReflectContainerData& data, std::ostream& file, const std::string& currentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)
