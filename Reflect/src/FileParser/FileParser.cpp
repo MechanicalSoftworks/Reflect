@@ -361,7 +361,7 @@ namespace Reflect
 
 			// Get constant name.
 			std::string name;
-			while (std::isalnum(fileData.Data[fileData.Cursor]))
+			while (std::isalnum(fileData.Data[fileData.Cursor]) || fileData.Data[fileData.Cursor] == '_' || fileData.Data[fileData.Cursor] == '$')
 			{
 				name += fileData.Data[fileData.Cursor++];
 				if (fileData.Cursor >= endOfContainerCursor)
@@ -419,7 +419,7 @@ namespace Reflect
 			containerData.Constants.push_back(constantData);
 
 			// Move to the next token.
-			while (!std::isalnum(fileData.Data[fileData.Cursor]))
+			while (!std::isalnum(fileData.Data[fileData.Cursor]) && fileData.Data[fileData.Cursor] != '_' && fileData.Data[fileData.Cursor] != '$')
 			{
 				fileData.Cursor++;
 				if (fileData.Cursor >= endOfContainerCursor)
