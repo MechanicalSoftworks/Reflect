@@ -3,8 +3,8 @@
 #include "Core/FieldIO.h"
 
 Reflect::ReflectMemberProp S::__REFLECT_MEMBER_PROPS__[2] = {
-	Reflect::ReflectMemberProp("Friends", Reflect::Util::GetTypeName<int>(), Reflect::Util::GetStaticClass<int>(), std::is_pointer<int>::value, __REFLECT__Friends(), {"EditorOnly", "Public"}),
-	Reflect::ReflectMemberProp("TimeOnline", Reflect::Util::GetTypeName<int>(), Reflect::Util::GetStaticClass<int>(), std::is_pointer<int>::value, __REFLECT__TimeOnline(), {"Public"}),
+	Reflect::CreateReflectMemberProp<int>("Friends", Reflect::Util::GetTypeName<int>(), __REFLECT__Friends(), {"EditorOnly", "Public"}),
+	Reflect::CreateReflectMemberProp<int>("TimeOnline", Reflect::Util::GetTypeName<int>(), __REFLECT__TimeOnline(), {"Public"}),
 };
 
 const Reflect::Class S::StaticClass = Reflect::Class("S", nullptr, 2, __REFLECT_MEMBER_PROPS__, 0, nullptr, Reflect::AllocateObject<S>, Reflect::PlacementNew<S>, Reflect::PlacementDelete<S>, Reflect::FreeObject<S>);
@@ -77,8 +77,8 @@ void Actor::Unserialise(Reflect::Unserialiser &u, std::istream &in) {
 }
 
 Reflect::ReflectMemberProp Player::__REFLECT_MEMBER_PROPS__[2] = {
-	Reflect::ReflectMemberProp("Friends", Reflect::Util::GetTypeName<int>(), Reflect::Util::GetStaticClass<int>(), std::is_pointer<int>::value, __REFLECT__Friends(), {"EditorOnly", "Public"}),
-	Reflect::ReflectMemberProp("TimeOnline", Reflect::Util::GetTypeName<int>(), Reflect::Util::GetStaticClass<int>(), std::is_pointer<int>::value, __REFLECT__TimeOnline(), {"Public"}),
+	Reflect::CreateReflectMemberProp<int>("Friends", Reflect::Util::GetTypeName<int>(), __REFLECT__Friends(), {"EditorOnly", "Public"}),
+	Reflect::CreateReflectMemberProp<int>("TimeOnline", Reflect::Util::GetTypeName<int>(), __REFLECT__TimeOnline(), {"Public"}),
 };
 
 const Reflect::Class Player::StaticClass = Reflect::Class("Player", &Actor::StaticClass, 2, __REFLECT_MEMBER_PROPS__, 0, nullptr, Reflect::AllocateObject<Player>, Reflect::PlacementNew<Player>, Reflect::PlacementDelete<Player>, Reflect::FreeObject<Player>);

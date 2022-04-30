@@ -245,12 +245,39 @@ namespace Reflect
 
 			if (addtionalOptions.Namespace.length())
 			{
-				file << "namespace " << addtionalOptions.Namespace << "{\n";
+				file << "namespace " << addtionalOptions.Namespace << " { enum class " << reflectData.Type << " : " << reflectData.SuperName << "; }\n";
 			}
 
-			file << "enum class " << reflectData.Type << " : " << reflectData.SuperName << ";\n";
+			const std::string typeWithNamespace = addtionalOptions.Namespace.length()
+				? addtionalOptions.Namespace + "::" + reflectData.Type
+				: reflectData.Type;
 
-			file << "inline const char* EnumToString(" << reflectData.Type << " x) {\n";
+			file << "namespace Reflect {\n";
+
+			const auto valueVector = "std::vector<std::pair<std::string, " + typeWithNamespace + ">>";
+			const auto valueMap = "std::map<std::string, " + typeWithNamespace + ">";
+
+			file << "template<> inline const " << valueVector << "& EnumValues() { \n";
+			file << "\tstatic const " << valueVector << " values{\n";
+			for (const auto& c : reflectData.Constants)
+			{
+				file << "\t\tstd::pair<std::string, " << typeWithNamespace << ">(\"" << c.Name << "\", " << typeWithNamespace << "(" << c.Value << ")),\n";
+			}
+			file << "\t};\n";
+			file << "\treturn values;\n";
+			file << "}\n\n";
+
+			file << "template<> inline const " << valueMap << "& EnumMap() { \n";
+			file << "\tstatic const " << valueMap << " values{\n";
+			for (const auto& c : reflectData.Constants)
+			{
+				file << "\t\tstd::pair<std::string, " << typeWithNamespace << ">(\"" << c.Name << "\", " << typeWithNamespace << "(" << c.Value << ")),\n";
+			}
+			file << "\t};\n";
+			file << "\treturn values;\n";
+			file << "}\n\n";
+
+			file << "inline const char* EnumToString(" << typeWithNamespace << " x) {\n";
 			file << "\tswitch((" << reflectData.SuperName << ")x) {\n";
 			for (const auto& c : reflectData.Constants)
 			{
@@ -260,32 +287,15 @@ namespace Reflect
 			file << "\treturn nullptr;\n";
 			file << "}\n\n";
 
-			file << "inline bool StringToEnum(const std::string_view &str, " << reflectData.Type << "& x) {\n";
-			for (const auto& c : reflectData.Constants)
-			{
-				file << "\tif (str == " << "\"" << c.Name << "\") { x = " << reflectData.Type << "(" << c.Value << "); return true; }\n";
-			}
-			file << "\treturn false;\n";
-			file << "}\n\n";
+			file << "inline bool StringToEnum(const std::string& str, " << typeWithNamespace << "& x) {\n";
+			file << "\tconst auto& values = EnumMap<" << typeWithNamespace << ">();\n";
+			file << "\tauto it = values.find(str);\n";
+			file << "\tif (it == values.end()) return false;\n";
+			file << "\tx = it->second;\n";
+			file << "\treturn true;\n";
+			file << "}\n";
 
-			const auto valueVector = "std::vector<std::pair<std::string, " + reflectData.Type + ">>";
-
-			file << "template<typename T> inline const std::vector<std::pair<std::string, T>>& EnumValues();\n";
-
-			file << "template<> inline const " << valueVector << "& EnumValues() { \n";
-			file << "\tstatic " << valueVector << " values{\n";
-			for (const auto& c : reflectData.Constants)
-			{
-				file << "\t\tstd::pair<std::string, " << reflectData.Type << ">(\"" << c.Name << "\", " << reflectData.Type << "(" << c.Value << ")),\n";
-			}
-			file << "\t};\n";
-			file << "\treturn values;\n";
-			file << "}\n\n";
-
-			if (addtionalOptions.Namespace.length())
-			{
-				file << "}\n";
-			}
+			file << "}\n\n";	// Namespace
 		}
 	}
 }

@@ -84,7 +84,7 @@ namespace Reflect
 			file << "Reflect::ReflectMemberProp " + data.Name + "::__REFLECT_MEMBER_PROPS__[" + std::to_string(data.Members.size()) + "] = {\n";
 			for (const auto& member : data.Members)
 			{
-				file << "\tReflect::ReflectMemberProp(\"" + member.Name + "\", Reflect::Util::GetTypeName<" + member.Type + ">(), Reflect::Util::GetStaticClass<" + member.Type + ">(), std::is_pointer<" + member.Type + ">::value, __REFLECT__" + member.Name + "(), " + getMemberProps(member.ContainerProps) + "),\n";
+				file << "\tReflect::CreateReflectMemberProp<" + member.Type + ">(\"" + member.Name + "\", Reflect::Util::GetTypeName<" + member.Type + ">(), __REFLECT__" + member.Name + "(), " + getMemberProps(member.ContainerProps) + "),\n";
 			}
 			file << "};\n\n";
 		}

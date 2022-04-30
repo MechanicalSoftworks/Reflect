@@ -16,6 +16,7 @@ namespace Reflect
 	class Unserialiser;
 	struct IReflect;
 	class Class;
+	class Enum;
 	struct Initialiser;
 	struct UnserialiseField;
 
@@ -109,11 +110,20 @@ namespace Reflect
 
 	struct ReflectMemberProp
 	{
-		ReflectMemberProp(const char* name, const std::string &type, const Class* staticClass, bool isPointer, int offset, std::vector<std::string> const& strProperties)
+	public:
+		ReflectMemberProp(const char* name, const std::string &type, int offset, std::vector<std::string> const& strProperties, const Class* staticClass, bool isPointer)
 			: Name(name)
 			, Type(type)
 			, StaticClass(staticClass)
 			, IsPointer(isPointer)
+			, Offset(offset)
+			, StrProperties(strProperties)
+		{ }
+
+		ReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties, std::unique_ptr<Enum>&& staticEnum)
+			: Name(name)
+			, Type(type)
+			, StaticEnum(std::move(staticEnum))
 			, Offset(offset)
 			, StrProperties(strProperties)
 		{ }
@@ -157,11 +167,62 @@ namespace Reflect
 
 		const char* const	Name;
 		const std::string	Type;
-		const Class* const	StaticClass;
-		const bool			IsPointer;
+		const Class* const	StaticClass = nullptr;
+		const bool			IsPointer = false;
+		const std::unique_ptr<Enum>	StaticEnum;
 		const int			Offset;
 		const std::vector<std::string> StrProperties;
 	};
+
+	template<typename T> inline const std::vector<std::pair<std::string, T>>& EnumValues();
+	template<typename T> inline const std::map<std::string, T>& EnumMap();
+
+	template<typename T>
+	inline typename std::enable_if<!std::is_enum_v<T>, ReflectMemberProp>::type CreateReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties)
+	{
+		return ReflectMemberProp(name, type, offset, strProperties, Reflect::Util::GetStaticClass<T>(), std::is_pointer_v<T>);
+	}
+
+	template<typename T>
+	inline typename std::enable_if<std::is_enum_v<T>, ReflectMemberProp>::type CreateReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties)
+	{
+		class EnumImplementation final : public Reflect::Enum {
+		public:
+			EnumImplementation() : m_map(GenerateMap()) {}
+
+			const char* ToString(int v) const final override
+			{
+				const char* EnumToString(T);
+				return EnumToString((T)v);
+			}
+
+			const std::map<std::string, int>& Map() const final override { return m_map; }
+
+			int Parse(const std::string& str) const final override
+			{
+				bool StringToEnum(const std::string&, T&);
+
+				T v = (T)0;
+				if (!StringToEnum(str, v)) throw new std::runtime_error("Unknown string");
+				return (int)v;
+			}
+
+		private:
+			const std::map<std::string, int> m_map;
+			std::map<std::string, int> GenerateMap()
+			{
+				std::map<std::string, int> int_values;
+				for (const auto& it : EnumValues<T>())
+				{
+					int_values.insert(std::pair<std::string, int>(it.first, (int)it.second));
+				}
+				return int_values;
+			}
+		};
+
+		auto e = std::make_unique<EnumImplementation>();
+		return ReflectMemberProp(name, type, offset, strProperties, std::move(e));
+	}
 
 	/// <summary>
 	/// Store arguments for a function ptr
@@ -314,6 +375,16 @@ namespace Reflect
 		const std::string		Type;
 		const ReadFieldType		Read;
 		const WriteFieldType	Write;
+	};
+
+	class Enum
+	{
+	public:
+		~Enum() {}
+
+		virtual const char* ToString(int v) const = 0;
+		virtual int Parse(const std::string& str) const = 0;
+		virtual const std::map<std::string, int>& Map() const = 0;
 	};
 
 	class Class
