@@ -76,6 +76,11 @@ namespace Reflect
 			struct TypeNameImpl<T*> {
 				static std::string get() { return TypeNameImpl<T>::get() + "*"; }
 			};
+
+			template <typename T>
+			struct TypeNameImpl<std::atomic<T>> {
+				static std::string get() { return "std::atomic<" + TypeNameImpl<T>::get() + ">"; }
+			};
 		}
 
 		template<typename T>

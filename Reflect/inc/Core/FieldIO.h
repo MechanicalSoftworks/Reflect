@@ -84,6 +84,18 @@ namespace Reflect
 		}
 
 		//
+		// Atomics.
+		//
+		template<typename T> inline void write(Serialiser& s, std::ostream& out, const std::atomic<T>& v) { write(s, out, v.load()); }
+		template<typename T> inline void read(Unserialiser& u, std::istream& in, std::atomic<T>& v) { T t; read(u, in, t); v.store(t); }
+		inline void skip_atomic(Unserialiser& u, std::istream& in, const std::string_view& ref_type)
+		{
+			const auto offset = std::string_view("std::atomic<").length();
+			const auto length = ref_type.find('>') - offset;
+			SkipField(u, in, ref_type.substr(offset, length));
+		}
+
+		//
 		// Enum types.
 		//
 		template<typename T, typename = std::enable_if_t<std::is_enum_v<T>>>
@@ -292,7 +304,7 @@ namespace Reflect
 			write(s, out, (uint32_t)v.size());
 			for (const auto &it : v)
 			{
-				it->Serialise(s, out);
+				it.Serialise(s, out);
 			}
 		}
 
@@ -324,7 +336,7 @@ namespace Reflect
 			write(s, out, (uint32_t)v.size());
 			for (const auto& it : v)
 			{
-				it->Serialise(s, out);
+				it.Serialise(s, out);
 			}
 		}
 
@@ -510,6 +522,7 @@ namespace Reflect
 		else if (type.find("std::set<") == 0)							FieldImpl::skip_set(u, in, type);
 		else if (type.find("std::map<") == 0)							FieldImpl::skip_map(u, in, type);
 		else if (type.find("Ref<") == 0)								FieldImpl::skip_ref(u, in, type);
+		else if (type.find("std::atomic<") == 0)						FieldImpl::skip_atomic(u, in, type);
 		else
 		{
 			// Try the userdata schema (probably smaller list to search...).
