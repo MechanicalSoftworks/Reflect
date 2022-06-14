@@ -12,6 +12,7 @@ namespace Reflect
 		std::string OutputCPPDir;
 		std::string Namespace;
 		std::string RelativeFilePath;
+		std::string ExportMacro;
 	};
 
 	/// <summary>

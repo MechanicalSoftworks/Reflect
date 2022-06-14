@@ -39,6 +39,10 @@ int main(int argc, char* argv[])
 				{
 					options.Namespace = arg.substr(std::strlen("namespace="));
 				}
+				else if (arg.find("exportMacro=") != std::string::npos)
+				{
+					options.ExportMacro = arg.substr(std::strlen("exportMacro="));
+				}
 			}
 		}
 

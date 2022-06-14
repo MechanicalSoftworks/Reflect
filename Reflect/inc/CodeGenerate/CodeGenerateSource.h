@@ -27,6 +27,8 @@ namespace Reflect
 		void WriteSerialise(const SerialiseFields& serialiseFields, const Reflect::ReflectContainerData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions);
 		void WriteUnserialise(const SerialiseFields& serialiseFields, const Reflect::ReflectContainerData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions);
 
+		void WriteEnum(const Reflect::ReflectContainerData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions);
+		
 		std::string GetCustomSerialiser(const Reflect::ReflectMemberData&data) const;
 	};
 }

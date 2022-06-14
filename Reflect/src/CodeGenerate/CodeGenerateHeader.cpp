@@ -277,23 +277,8 @@ namespace Reflect
 			file << "\treturn values;\n";
 			file << "}\n\n";
 
-			file << "inline const char* EnumToString(" << typeWithNamespace << " x) {\n";
-			file << "\tswitch((" << reflectData.SuperName << ")x) {\n";
-			for (const auto& c : reflectData.Constants)
-			{
-				file << "\t\tcase " << c.Value << ": return \"" << c.Name << "\";\n";
-			}
-			file << "\t}\n";
-			file << "\treturn nullptr;\n";
-			file << "}\n\n";
-
-			file << "inline bool StringToEnum(const std::string& str, " << typeWithNamespace << "& x) {\n";
-			file << "\tconst auto& values = EnumMap<" << typeWithNamespace << ">();\n";
-			file << "\tauto it = values.find(str);\n";
-			file << "\tif (it == values.end()) return false;\n";
-			file << "\tx = it->second;\n";
-			file << "\treturn true;\n";
-			file << "}\n";
+			file << addtionalOptions.ExportMacro << " const char* EnumToString(" << typeWithNamespace << " x);\n";
+			file << addtionalOptions.ExportMacro << " bool StringToEnum(const std::string& str, " << typeWithNamespace << "& x);\n";
 
 			file << "}\n\n";	// Namespace
 		}
