@@ -108,6 +108,23 @@ namespace Reflect
 		std::vector<ReflectContainerData> ReflectData;
 	};
 
+	class Enum
+	{
+	public:
+		~Enum() {}
+
+		virtual const char* ToString(int v) const = 0;
+
+		virtual int Parse(const std::string& str) const = 0;
+		virtual bool ParseTo(const std::string& str, void* ptr) const = 0;
+
+		virtual const std::map<std::string, int>& Map() const = 0;
+		virtual const std::vector<std::pair<std::string, int>>& Values() const = 0;
+
+		virtual int IndexOf(const void* ptr) const = 0;
+		virtual void AssignIndex(void* ptr, int index) const = 0;
+	};
+
 	struct ReflectMemberProp
 	{
 	public:
@@ -420,23 +437,6 @@ namespace Reflect
 		const std::string		Type;
 		const ReadFieldType		Read;
 		const WriteFieldType	Write;
-	};
-
-	class Enum
-	{
-	public:
-		~Enum() {}
-
-		virtual const char* ToString(int v) const = 0;
-
-		virtual int Parse(const std::string& str) const = 0;
-		virtual bool ParseTo(const std::string& str, void* ptr) const = 0;
-
-		virtual const std::map<std::string, int>& Map() const = 0;
-		virtual const std::vector<std::pair<std::string, int>>& Values() const = 0;
-
-		virtual int IndexOf(const void* ptr) const = 0;
-		virtual void AssignIndex(void* ptr, int index) const = 0;
 	};
 
 	class Class
