@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.16)
 project (Reflect)
 set(CMAKE_CXX_STANDARD 17)
 add_compile_options($<$<CXX_COMPILER_ID:MSVC>:/MP>)
