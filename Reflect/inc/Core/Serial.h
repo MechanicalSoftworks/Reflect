@@ -48,7 +48,7 @@ namespace Reflect
 
 	public:
 		// 4 billion strings should be enough, right?
-		typedef uint32_t index_t;
+		using index_t = uint32_t;
 
 		index_t Add(const std::string_view& view);
 		const std::string_view At(index_t i) const;

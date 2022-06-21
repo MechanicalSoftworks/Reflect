@@ -28,7 +28,7 @@ namespace Reflect
 		template<typename T>
 		class Ref : public std::unique_ptr<T, decltype(&Allocator::DestroyInternal)>
 		{
-			typedef std::unique_ptr<T, decltype(&Allocator::DestroyInternal)> SuperClass;
+			using SuperClass = std::unique_ptr<T, decltype(&Allocator::DestroyInternal)>;
 		public:
 			Ref() : SuperClass(nullptr, &Allocator::DestroyInternal) {}
 			Ref(T *t) : SuperClass(t, &Allocator::DestroyInternal) {}

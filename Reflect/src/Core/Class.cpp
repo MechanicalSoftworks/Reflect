@@ -4,7 +4,7 @@
 
 namespace Reflect
 {
-	typedef std::map<std::string, Class*> class_map_t;
+	using class_map_t = std::map<std::string, Class*>;
 
 	// Static initialisation order is important, but can't be guaranteed.
 	// So we allocate stack memory for the map, and manually invoke the class constructor when its used.
@@ -33,6 +33,20 @@ namespace Reflect
 	{
 		auto it = s_classes.find(std::string(name));
 		return it != s_classes.end() ? it->second : nullptr;
+	}
+
+	REFLECT_DLL std::vector<Class*> Class::LookupInModule(const std::string_view& module)
+	{
+		std::vector<Class*> classes;
+		std::string k;
+		for (const auto& c : s_classes)
+		{
+			if (c.second->GetPropertyValue("Module", k))
+			{
+				classes.push_back(c.second);
+			}
+		}
+		return classes;
 	}
 
 	REFLECT_DLL std::vector<Class*> Class::DescendantsOf(const Class* super)

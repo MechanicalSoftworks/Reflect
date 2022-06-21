@@ -68,32 +68,12 @@ namespace Reflect
 
 	void CodeGenerateSource::WriteMemberProperties(const ReflectContainerData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
-		auto getMemberProps = [](const std::vector<std::string>& flags) -> std::string
-		{
-			if (flags.size() == 0)
-			{
-				return "{ }";
-			}
-
-			std::string value;
-			value += "{";
-			for (auto const& flag : flags)
-			{
-				if (flag != flags.back())
-				{
-					value += "\"" + flag + "\"" + ", ";
-				}
-			}
-			value += "\"" + flags.back() + "\"" + "}";
-			return value;
-		};
-
 		if (data.Members.size() > 0)
 		{
 			file << "Reflect::ReflectMemberProp " + data.Name + "::__REFLECT_MEMBER_PROPS__[" + std::to_string(data.Members.size()) + "] = {\n";
 			for (const auto& member : data.Members)
 			{
-				file << "\tReflect::CreateReflectMemberProp<" + member.Type + ">(\"" + member.Name + "\", Reflect::Util::GetTypeName<" + member.Type + ">(), __REFLECT__" + member.Name + "(), " + getMemberProps(member.ContainerProps) + "),\n";
+				file << "\tReflect::CreateReflectMemberProp<" + member.Type + ">(\"" + member.Name + "\", Reflect::Util::GetTypeName<" + member.Type + ">(), __REFLECT__" + member.Name + "(), " + GetMemberProps(member.ContainerProps) + "),\n";
 			}
 			file << "};\n\n";
 		}
@@ -103,6 +83,7 @@ namespace Reflect
 	{
 		file << "const Reflect::Class " << data.Name << "::StaticClass = Reflect::Class(\"" << data.Name << "\", "
 			<< (data.SuperName != "Reflect::IReflect" ? (std::string("&") + data.SuperName + "::StaticClass") : std::string("nullptr")) << ", "
+			<< GetMemberProps(data.ContainerProps) << ", "
 			<< data.Members.size() << ", " << (data.Members.size() > 0 ? "__REFLECT_MEMBER_PROPS__" : "nullptr") << ", "
 			<< serialiseFields.size() << ", " << (serialiseFields.size() > 0 ? "__SERIALISE_FIELDS__.data()" : "nullptr") << ", "
 			<< "Reflect::AllocateObject<" << data.Name << ">, Reflect::PlacementNew<" << data.Name << ">, Reflect::PlacementDelete<" << data.Name << ">, Reflect::FreeObject<" << data.Name << ">"
@@ -308,5 +289,25 @@ namespace Reflect
 		}
 
 		return "";
+	}
+
+	std::string CodeGenerateSource::GetMemberProps(const std::vector<std::string>& flags) const
+	{
+		if (flags.size() == 0)
+		{
+			return "{ }";
+		}
+
+		std::string value;
+		value += "{";
+		for (auto const& flag : flags)
+		{
+			if (flag != flags.back())
+			{
+				value += "\"" + flag + "\"" + ", ";
+			}
+		}
+		value += "\"" + flags.back() + "\"" + "}";
+		return value;
 	}
 }

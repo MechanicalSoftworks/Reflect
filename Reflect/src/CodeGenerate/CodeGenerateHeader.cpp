@@ -101,7 +101,7 @@ namespace Reflect
 		file << "#define " + currentFileId + "_STATIC_CLASS \\\n";
 		WRITE_PUBLIC();
 		if (data.SuperName.length())
-			file << "\ttypedef " + data.SuperName + " SuperClass;\\\n";
+			file << "\tusing SuperClass = " + data.SuperName + ";\\\n";
 		file << "\tstatic const Reflect::Class StaticClass;\\\n";
 		file << "\tstatic void __PlacementNew(" << data.Name << "* obj, const Reflect::Initialiser& init) { new(obj) " << data.Name << "(init); }\\\n";
 		file << "\tstatic void __PlacementDelete(" << data.Name << "* obj) { obj->~" << data.Name << "(); }\\\n";

@@ -442,9 +442,10 @@ namespace Reflect
 	class Class
 	{
 	public:
-		Class(const char *name, const Class *super, size_t prop_count, const ReflectMemberProp *props, size_t unserialise_count, const UnserialiseField* unserialisers, AllocatorType allocate, ConstructorType constructor, DestructorType destructor, FreeType free_)
+		Class(const char *name, const Class *super, std::vector<std::string> const& strProperties, size_t prop_count, const ReflectMemberProp *props, size_t unserialise_count, const UnserialiseField* unserialisers, AllocatorType allocate, ConstructorType constructor, DestructorType destructor, FreeType free_)
 			: Name(name)
 			, SuperClass(super)
+			, StrProperties(strProperties)
 			, m_member_prop_count(prop_count)
 			, m_member_props(props)
 			, m_unserialise_count(unserialise_count)
@@ -477,6 +478,7 @@ namespace Reflect
 
 		// Reflect!
 		REFLECT_DLL static Class* Lookup(const std::string_view &name);
+		REFLECT_DLL static std::vector<Class*> LookupInModule(const std::string_view &key);
 		REFLECT_DLL static std::vector<Class*> DescendantsOf(const Class* c);
 		
 		template<typename T>
@@ -500,8 +502,46 @@ namespace Reflect
 			return members;
 		}
 
+		bool ContainsProperty(std::vector<std::string> const& flags) const
+		{
+			for (auto const& flag : flags)
+			{
+				for (auto const& p : StrProperties)
+				{
+					if (p == flag || (p.length() >= flag.length() && p.find(flag) == 0 && p[flag.length()] == '='))
+					{
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+
+		bool GetPropertyValue(const std::string_view &flag, std::string& value) const
+		{
+			for (auto const& p : StrProperties)
+			{
+				if (p.find(flag) != 0)
+				{
+					continue;
+				}
+
+				const auto assign = p.find('=');
+				if (assign != flag.length())
+				{
+					continue;
+				}
+
+				value = p.substr(assign + 1);
+				return true;
+			}
+
+			return false;
+		}
+
 		const char* const	Name;
 		const Class* const	SuperClass;
+		const std::vector<std::string>	StrProperties;
 
 	private:
 		REFLECT_DLL void GetMembersInternal(std::vector<Reflect::ReflectMember>& members, std::vector<std::string> const& flags, bool recursive) const
@@ -553,7 +593,8 @@ namespace Reflect
 	{
 		// Initialisation.
 		IReflect(const Initialiser& init) { m_class = init.Type; m_outer = init.Outer; }
-
+		virtual ~IReflect() {}
+		
 		// Misc.
 		const Class* GetClass() const { return m_class; }
 		IReflect* GetOuter() const { return m_outer; }
