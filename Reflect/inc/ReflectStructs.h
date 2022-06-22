@@ -478,11 +478,10 @@ namespace Reflect
 
 		// Reflect!
 		REFLECT_DLL static Class* Lookup(const std::string_view &name);
-		REFLECT_DLL static std::vector<Class*> LookupInModule(const std::string_view &key);
-		REFLECT_DLL static std::vector<Class*> DescendantsOf(const Class* c);
-		
-		template<typename T>
-		static std::vector<Class*> DescendantsOf() { return DescendantsOf(&T::StaticClass); }
+		REFLECT_DLL static std::vector<Class*> LookupWhere(const std::function<bool(const Class*)>& pred);
+
+		REFLECT_DLL static std::vector<Class*> LookupDescendantsOf(const Class* c);
+		template<typename T> static std::vector<Class*> LookupDescendantsOf() { return LookupDescendantsOf(&T::StaticClass); }
 
 		template<typename T>
 		bool IsOrDescendantOf() const { return IsOrDescendantOf(&T::StaticClass); }

@@ -35,13 +35,12 @@ namespace Reflect
 		return it != s_classes.end() ? it->second : nullptr;
 	}
 
-	REFLECT_DLL std::vector<Class*> Class::LookupInModule(const std::string_view& module)
+	REFLECT_DLL std::vector<Class*> Class::LookupWhere(const std::function<bool(const Class*)>& pred)
 	{
 		std::vector<Class*> classes;
-		std::string k;
 		for (const auto& c : s_classes)
 		{
-			if (c.second->GetPropertyValue("Module", k))
+			if (pred(c.second))
 			{
 				classes.push_back(c.second);
 			}
@@ -49,7 +48,7 @@ namespace Reflect
 		return classes;
 	}
 
-	REFLECT_DLL std::vector<Class*> Class::DescendantsOf(const Class* super)
+	REFLECT_DLL std::vector<Class*> Class::LookupDescendantsOf(const Class* super)
 	{
 		std::vector<Class*> descendants;
 
