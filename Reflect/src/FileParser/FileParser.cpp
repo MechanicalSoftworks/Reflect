@@ -230,7 +230,7 @@ namespace Reflect
 				{
 					token += fileData.Data.at(fileData.Cursor);
 				}
-				else if (token == "public" || token == "protected" || token == "private")
+				else if (token == "virtual" || token == "public" || token == "protected" || token == "private")
 				{
 					token.clear();
 				}
