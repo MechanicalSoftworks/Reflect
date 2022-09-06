@@ -6,6 +6,7 @@
 #include <set>
 #include <map>
 #include <vector>
+#include <array>
 
 namespace Reflect
 {
@@ -151,6 +152,52 @@ namespace Reflect
 
 			const std::string_view vector_string("std::vector<");
 			const std::string_view value_type(vector_type.data() + vector_string.length(), vector_type.length() - vector_string.length() - 1);	// -1 for tailing '>'.
+
+			for (uint32_t i = 0; i < count; i++)
+			{
+				SkipField(u, in, value_type);
+			}
+		}
+
+		//
+		// Array (non IReflect).
+		//
+		template<typename T, size_t N>
+		inline typename std::enable_if_t<!std::is_base_of_v<IReflect, T>>
+			write(Serialiser& s, std::ostream& out, const std::array<T, N>& v)
+		{
+			// Write size to make this resilient to schema changes.
+			write(s, out, (uint32_t)v.size());
+			for (const auto &it : v)
+			{
+				write(s, out, it);
+			}
+		}
+
+		template<typename T, size_t N>
+		inline typename std::enable_if_t<!std::is_base_of_v<IReflect, T>>
+			read(Unserialiser& u, std::istream& in, std::array<T, N>& v)
+		{
+			uint32_t count;
+			read(u, in, count);
+
+			for (uint32_t i = 0; i < std::min<uint32_t>(v.size(), count); i++)
+			{
+				read(u, in, v[i]);
+			}
+			for (uint32_t i = count; i < (uint32_t)v.size(); i++)
+			{
+				v[i] = T();
+			}
+		}
+
+		inline void skip_array(Unserialiser& u, std::istream& in, const std::string_view& vector_type)
+		{
+			uint32_t count;
+			read(u, in, count);
+
+			const std::string_view vector_string("std::array<");
+			const std::string_view value_type(vector_type.data() + vector_string.length(), vector_type.find(','));
 
 			for (uint32_t i = 0; i < count; i++)
 			{
@@ -326,7 +373,44 @@ namespace Reflect
 		}
 
 		//
-		// Vector (IReflect).
+		// Array (IReflect)
+		//
+		template<typename T, size_t N>
+		inline typename std::enable_if_t<std::is_base_of_v<IReflect, T>>
+			write(Serialiser& s, std::ostream& out, const std::array<T, N>& v)
+		{
+			s.AddSchema(T::StaticClass);
+			// Write size to make this resilient to schema changes.
+			write(s, out, (uint32_t)v.size());
+			for (const auto &it : v)
+			{
+				it.Serialise(s, out);
+			}
+		}
+
+		template<typename T, size_t N>
+		inline typename std::enable_if_t<std::is_base_of_v<IReflect, T>>
+			read(Unserialiser& u, std::istream& in, std::array<T, N>& v)
+		{
+			v.clear();
+
+			uint32_t count;
+			read(u, in, count);
+
+			for (uint32_t i = 0; i < std::min<uint32_t>(v.size(), count); i++)
+			{
+				T t(Initialiser(&T::StaticClass, nullptr));
+				read(u, in, v);
+				v[i] = std::move(t);
+			}
+			for (uint32_t i = count; i < (uint32_t)v.size(); i++)
+			{
+				v[i] = T(Initialiser(&T::StaticClass, nullptr));
+			}
+		}
+
+		//
+		// Set (IReflect).
 		//
 		template<typename T>
 		inline typename std::enable_if_t<std::is_base_of_v<IReflect, T>>
@@ -519,6 +603,7 @@ namespace Reflect
 		else if (type == "double")										FieldImpl::skip<double>(u, in);
 		else if (type == "std::string")									FieldImpl::skip<StringPool::index_t>(u, in);
 		else if (type.find("std::vector<") == 0)						FieldImpl::skip_vector(u, in, type);
+		else if (type.find("std::array<") == 0)							FieldImpl::skip_array(u, in, type);
 		else if (type.find("std::set<") == 0)							FieldImpl::skip_set(u, in, type);
 		else if (type.find("std::map<") == 0)							FieldImpl::skip_map(u, in, type);
 		else if (type.find("Ref<") == 0)								FieldImpl::skip_ref(u, in, type);
