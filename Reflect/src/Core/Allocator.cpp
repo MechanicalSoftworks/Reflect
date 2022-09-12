@@ -7,14 +7,14 @@ namespace Reflect
 {
 	IReflect* Allocator::CreateInternal(const Class* static_class, IReflect* outer)
 	{
-		IReflect* o = static_class->Allocate();
+		IReflect* o = static_class->Allocator.Allocate();
 		if (!o)
 		{
 			throw std::bad_alloc();
 		}
 
 		const Initialiser init(static_class, outer);
-		static_class->Constructor(o, init);
+		static_class->Allocator.Construct(o, init);
 		return o;
 	}
 
@@ -23,8 +23,8 @@ namespace Reflect
 		if (o)
 		{
 			const auto* static_class = o->GetClass();
-			static_class->Destructor(o);
-			static_class->Free(o);
+			static_class->Allocator.Destroy(o);
+			static_class->Allocator.Deallocate(o);
 		}
 	}
 

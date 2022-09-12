@@ -86,7 +86,7 @@ namespace Reflect
 			<< GetMemberProps(data.ContainerProps) << ", "
 			<< data.Members.size() << ", " << (data.Members.size() > 0 ? "__REFLECT_MEMBER_PROPS__" : "nullptr") << ", "
 			<< serialiseFields.size() << ", " << (serialiseFields.size() > 0 ? "__SERIALISE_FIELDS__.data()" : "nullptr") << ", "
-			<< "Reflect::AllocateObject<" << data.Name << ">, Reflect::PlacementNew<" << data.Name << ">, Reflect::PlacementDelete<" << data.Name << ">, Reflect::FreeObject<" << data.Name << ">"
+			<< "Reflect::ClassAllocator::Create<" << data.Name << ">()"
 			<< ");\n\n";
 	}
 

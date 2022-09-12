@@ -7,7 +7,7 @@ Reflect::ReflectMemberProp S::__REFLECT_MEMBER_PROPS__[2] = {
 	Reflect::CreateReflectMemberProp<int>("TimeOnline", Reflect::Util::GetTypeName<int>(), __REFLECT__TimeOnline(), {"Public"}),
 };
 
-const Reflect::Class S::StaticClass = Reflect::Class("S", nullptr, {}, 2, __REFLECT_MEMBER_PROPS__, 0, nullptr, Reflect::AllocateObject<S>, Reflect::PlacementNew<S>, Reflect::PlacementDelete<S>, Reflect::FreeObject<S>);
+const Reflect::Class S::StaticClass = Reflect::Class("S", nullptr, {}, 2, __REFLECT_MEMBER_PROPS__, 0, nullptr, Reflect::ClassAllocator::Create<S>());
 
 Reflect::ReflectFunction S::GetFunction(const std::string_view &functionName)
 {
@@ -49,7 +49,7 @@ void S::Unserialise(Reflect::Unserialiser &u, std::istream &in) {
 	SuperClass::Unserialise(u, in);
 }
 
-const Reflect::Class Actor::StaticClass = Reflect::Class("Actor", nullptr, {}, 0, nullptr, 0, nullptr, Reflect::AllocateObject<Actor>, Reflect::PlacementNew<Actor>, Reflect::PlacementDelete<Actor>, Reflect::FreeObject<Actor>);
+const Reflect::Class Actor::StaticClass = Reflect::Class("Actor", nullptr, {}, 0, nullptr, 0, nullptr, Reflect::ClassAllocator::Create<Actor>());
 
 Reflect::ReflectFunction Actor::GetFunction(const std::string_view &functionName)
 {
@@ -81,7 +81,7 @@ Reflect::ReflectMemberProp Player::__REFLECT_MEMBER_PROPS__[2] = {
 	Reflect::CreateReflectMemberProp<int>("TimeOnline", Reflect::Util::GetTypeName<int>(), __REFLECT__TimeOnline(), {"Public"}),
 };
 
-const Reflect::Class Player::StaticClass = Reflect::Class("Player", &Actor::StaticClass, {}, 2, __REFLECT_MEMBER_PROPS__, 0, nullptr, Reflect::AllocateObject<Player>, Reflect::PlacementNew<Player>, Reflect::PlacementDelete<Player>, Reflect::FreeObject<Player>);
+const Reflect::Class Player::StaticClass = Reflect::Class("Player", &Actor::StaticClass, {}, 2, __REFLECT_MEMBER_PROPS__, 0, nullptr, Reflect::ClassAllocator::Create<Player>());
 
 Reflect::ReflectFunction Player::GetFunction(const std::string_view &functionName)
 {

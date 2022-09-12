@@ -200,11 +200,6 @@ namespace Reflect
 			}
 		}
 
-		return error;
-	}
-
-	void Unserialiser::Read(std::istream& fin, IReflect* object, IReflect* outer)
-	{
 		// Read the root object type.
 		StringPool::index_t root_type_index;
 		FieldImpl::read(*this, fin, root_type_index);
@@ -217,6 +212,11 @@ namespace Reflect
 			throw std::runtime_error("Failed to find the message root object type");
 		}
 
+		return error;
+	}
+
+	void Unserialiser::Read(std::istream& fin, IReflect* object, IReflect* outer)
+	{
 		// Create the root entity.
 		if (!object)
 		{
@@ -226,7 +226,7 @@ namespace Reflect
 		else
 		{
 			const Initialiser init(m_root_class, outer);
-			m_root_class->Constructor(object, init);
+			m_root_class->Allocator.Construct(object, init);
 		}
 
 		// Recreate the scene.
