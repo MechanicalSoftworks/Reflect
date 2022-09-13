@@ -12,13 +12,10 @@
 
 namespace Reflect
 {
-	class ISerialiser;
-	class IUnserialiser;
 	struct IReflect;
 	class Class;
 	class Enum;
 	struct Initialiser;
-	struct UnserialiseField;
 
 	struct ReflectTypeNameData
 	{
@@ -124,6 +121,12 @@ namespace Reflect
 		virtual int IndexOf(const void* ptr) const = 0;
 		virtual void AssignIndex(void* ptr, int index) const = 0;
 	};
+
+	//
+	// These exist if we ever need to provide some sort of common interface.
+	//
+	class ISerialiser { public: virtual ~ISerialiser() {} };
+	class IUnserialiser { public: virtual ~IUnserialiser() {} };
 
 	using ReadMemberType = void (*)(IUnserialiser& u, std::istream& in, void* self);
 	using WriteMemberType = void (*)(ISerialiser& s, std::ostream& out, const void* self);

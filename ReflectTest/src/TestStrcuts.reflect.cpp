@@ -47,7 +47,6 @@ Reflect::ReflectFunction Actor::GetFunction(const std::string_view &functionName
 
 Reflect::ReflectMember Actor::GetMember(const std::string_view& memberName) const
 {
-	const Reflect::UnserialiseField* unserialise = nullptr;
 	return SuperClass::GetMember(memberName);
 }
 
