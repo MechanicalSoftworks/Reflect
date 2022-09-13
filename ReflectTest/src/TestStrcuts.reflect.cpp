@@ -1,6 +1,5 @@
 #include "TestStrcuts.h"
 #include "Core/Util.h"
-#include "Core/FieldIO.h"
 
 Reflect::ReflectMemberProp S::__REFLECT_MEMBER_PROPS__[2] = {
 	Reflect::CreateReflectMemberProp<int>("Friends", Reflect::Util::GetTypeName<int>(), __REFLECT__Friends(), {"EditorOnly", "Public"}, nullptr, nullptr),
