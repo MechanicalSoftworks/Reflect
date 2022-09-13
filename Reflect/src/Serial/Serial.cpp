@@ -88,7 +88,7 @@ namespace Reflect
 
 		// Write the entity data to the temp file.
 		// Schema and string pool information will be written at the same time.
-		member.Unserialise->Write(*this, oftemp, member.RawPointer);
+		member.Properties->Write(*this, oftemp, member.RawPointer);
 		oftemp.close();
 
 		// Write the actual file.
@@ -178,7 +178,7 @@ namespace Reflect
 				// Look for a change in data type.
 				if (current_field->GetTypeName() != message_field.Type)
 				{
-					m_schema_differences.push_back(SchemaDifference(false, std::string("Field ") + message_schema.first + "::" + message_field.Name + " was a '" + message_field.Type + "', but now is a '" + current_field->GetTypeName() + "'. It will be left at its default value"));
+					m_schema_differences.push_back(SchemaDifference(false, std::string("Field ") + message_schema.first + "::" + message_field.Name + " was a '" + message_field.Type + "', but now is a '" + std::string(current_field->GetTypeName()) + "'. It will be left at its default value"));
 					continue;
 				}
 			}
@@ -240,7 +240,7 @@ namespace Reflect
 		// HACK: Get the raw object pointer. The Read function reapplies offset.
 		// Ideally, we'd just feed in member.RawPointer...
 		void* base = (char*)member.RawPointer - member.Properties->Offset;
-		member.Unserialise->Read(*this, fin, base);
+		member.Properties->Read(*this, fin, base);
 	}
 
 	const FieldSchema& Unserialiser::GetSchema(const std::string& name) const

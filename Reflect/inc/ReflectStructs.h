@@ -12,8 +12,8 @@
 
 namespace Reflect
 {
-	class Serialiser;
-	class Unserialiser;
+	class ISerialiser;
+	class IUnserialiser;
 	struct IReflect;
 	class Class;
 	class Enum;
@@ -125,27 +125,34 @@ namespace Reflect
 		virtual void AssignIndex(void* ptr, int index) const = 0;
 	};
 
+	using ReadMemberType = void (*)(IUnserialiser& u, std::istream& in, void* self);
+	using WriteMemberType = void (*)(ISerialiser& s, std::ostream& out, const void* self);
+
 	struct ReflectMemberProp
 	{
 	public:
-		ReflectMemberProp(const char* name, const std::string &type, int offset, std::vector<std::string> const& strProperties, const Class* staticClass, bool isPointer)
+		constexpr ReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties, const Class* staticClass, bool isPointer, const ReadMemberType& read, const WriteMemberType& write)
 			: Name(name)
 			, Type(type)
 			, StaticClass(staticClass)
 			, IsPointer(isPointer)
 			, Offset(offset)
 			, StrProperties(strProperties)
-		{ }
+			, Read(read)
+			, Write(write)
+		{}
 
-		ReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties, std::unique_ptr<Enum>&& staticEnum)
+		ReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties, std::unique_ptr<Enum>&& staticEnum, const ReadMemberType& read, const WriteMemberType& write)
 			: Name(name)
 			, Type(type)
 			, StaticEnum(std::move(staticEnum))
 			, Offset(offset)
 			, StrProperties(strProperties)
+			, Read(read)
+			, Write(write)
 		{ }
 
-		bool ContainsProperty(std::vector<std::string> const& flags) const
+		constexpr bool ContainsProperty(std::vector<std::string> const& flags) const
 		{
 			for (auto const& flag : flags)
 			{
@@ -160,7 +167,7 @@ namespace Reflect
 			return false;
 		}
 
-		bool GetPropertyValue(const std::string_view &flag, std::string& value) const
+		constexpr bool GetPropertyValue(const std::string_view &flag, std::string& value) const
 		{
 			for (auto const& p : StrProperties)
 			{
@@ -182,26 +189,28 @@ namespace Reflect
 			return false;
 		}
 
-		const char* const	Name;
-		const std::string	Type;
-		const Class* const	StaticClass = nullptr;
-		const bool			IsPointer = false;
+		const char* const		Name;
+		const std::string		Type;
+		const Class* const		StaticClass = nullptr;
+		const bool				IsPointer = false;
 		const std::unique_ptr<Enum>	StaticEnum;
-		const int			Offset;
+		const int				Offset;
 		const std::vector<std::string> StrProperties;
+		const ReadMemberType	Read;
+		const WriteMemberType	Write;
 	};
 
 	template<typename T> inline const std::vector<std::pair<std::string, T>>& EnumValues();
 	template<typename T> inline const std::map<std::string, T>& EnumMap();
 
 	template<typename T>
-	inline typename std::enable_if<!std::is_enum_v<T>, ReflectMemberProp>::type CreateReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties)
+	inline constexpr typename std::enable_if<!std::is_enum_v<T>, ReflectMemberProp>::type CreateReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties, const ReadMemberType& read, const WriteMemberType& write)
 	{
-		return ReflectMemberProp(name, type, offset, strProperties, Reflect::Util::GetStaticClass<T>(), std::is_pointer_v<T>);
+		return ReflectMemberProp(name, type, offset, strProperties, Reflect::Util::GetStaticClass<T>(), std::is_pointer_v<T>, read, write);
 	}
 
 	template<typename T>
-	inline typename std::enable_if<std::is_enum_v<T>, ReflectMemberProp>::type CreateReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties)
+	inline typename std::enable_if<std::is_enum_v<T>, ReflectMemberProp>::type CreateReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties, const ReadMemberType& read, const WriteMemberType& write)
 	{
 		class EnumImplementation final : public Reflect::Enum
 		{
@@ -283,7 +292,7 @@ namespace Reflect
 		};
 
 		auto e = std::make_unique<EnumImplementation>();
-		return ReflectMemberProp(name, type, offset, strProperties, std::move(e));
+		return ReflectMemberProp(name, type, offset, strProperties, std::move(e), read, write);
 	}
 
 	/// <summary>
@@ -294,7 +303,7 @@ namespace Reflect
 	public:
 		struct Arg
 		{
-			Arg(std::string type, void* ptr)
+			Arg(const std::string_view& type, void* ptr)
 				: Type(type)
 				, Ptr(ptr)
 			{ }
@@ -386,14 +395,12 @@ namespace Reflect
 
 	struct ReflectMember
 	{
-		ReflectMember(const ReflectMemberProp *prop, const UnserialiseField* unserialise, void* memberPtr)
+		ReflectMember(const ReflectMemberProp *prop, void* memberPtr)
 			: Properties(prop)
-			, Unserialise(unserialise)
 			, RawPointer(memberPtr)
 		{}
 
 		const ReflectMemberProp* const	Properties;
-		const UnserialiseField* const	Unserialise;
 		void* const						RawPointer;
 
 		bool IsValid() const { return RawPointer != nullptr; }
@@ -444,29 +451,15 @@ namespace Reflect
 		}
 	};
 
-	// Helpers for reading individual fields.
-	using ReadFieldType = void (*)(Unserialiser& u, std::istream& in, void* self);
-	using WriteFieldType = void (*)(Serialiser& s, std::ostream& out, const void* self);
-	struct UnserialiseField
-	{
-		UnserialiseField(const char* n, const std::string& t, ReadFieldType r, WriteFieldType w) : Name(n), Type(t), Read(r), Write(w) {}
-		const char* const		Name;
-		const std::string		Type;
-		const ReadFieldType		Read;
-		const WriteFieldType	Write;
-	};
-
 	class Class
 	{
 	public:
-		Class(const char *name, const Class *super, std::vector<std::string> const& strProperties, size_t prop_count, const ReflectMemberProp *props, size_t unserialise_count, const UnserialiseField* unserialisers, const ClassAllocator& allocator)
+		Class(const char *name, const Class *super, std::vector<std::string> const& strProperties, size_t prop_count, const ReflectMemberProp *props, const ClassAllocator& allocator)
 			: Name(name)
 			, SuperClass(super)
 			, StrProperties(strProperties)
 			, m_member_prop_count(prop_count)
 			, m_member_props(props)
-			, m_unserialise_count(unserialise_count)
-			, m_unserialise(unserialisers)
 			, Allocator(allocator)
 		{
 			Register(this);
@@ -562,28 +555,13 @@ namespace Reflect
 				const auto& member = m_member_props[i];
 				if (member.ContainsProperty(flags))
 				{
-					// Find an unserialiser.
-					const UnserialiseField* unserialise = nullptr;
-					for (size_t i = 0; i < m_unserialise_count; i++)
-					{
-						if (m_unserialise[i].Name == member.Name)
-						{
-							unserialise = m_unserialise + i;
-							break;
-						}
-					}
-
-
-					members.push_back(Reflect::ReflectMember(&member, unserialise, (void *)(size_t)member.Offset));
+					members.push_back(Reflect::ReflectMember(&member, (void *)(size_t)member.Offset));
 				}
 			}
 		}
 
 		const size_t					m_member_prop_count;
 		const ReflectMemberProp* const	m_member_props;
-
-		const size_t					m_unserialise_count;
-		const UnserialiseField* const	m_unserialise;
 	};
 
 	struct Initialiser
@@ -609,13 +587,13 @@ namespace Reflect
 		void SetOuter(IReflect* outer) { m_outer = outer; }
 
 		// Reflection.
-		virtual ReflectFunction GetFunction(const std::string_view& functionName) { (void)functionName; return ReflectFunction(nullptr, nullptr);};
-		virtual ReflectMember GetMember(const std::string_view& memberName) { (void)memberName; return ReflectMember(nullptr, nullptr, nullptr); };
-		virtual std::vector<ReflectMember> GetMembers(std::vector<std::string> const& flags) { (void)flags; return {}; };
+		virtual ReflectFunction GetFunction(const std::string_view& functionName) const { (void)functionName; return ReflectFunction(nullptr, nullptr);};
+		virtual ReflectMember GetMember(const std::string_view& memberName) const { (void)memberName; return ReflectMember(nullptr, nullptr); };
+		virtual std::vector<ReflectMember> GetMembers(std::vector<std::string> const& flags) const { (void)flags; return {}; };
 		
 		// Serialisation.
-		virtual void Serialise(Serialiser &s, std::ostream& out) const { (void)s; (void)out; }
-		virtual void Unserialise(Unserialiser &u, std::istream& in) { (void)u; (void)in; }
+		virtual void Serialise(ISerialiser &s, std::ostream& out) const { (void)s; (void)out; }
+		virtual void Unserialise(IUnserialiser &u, std::istream& in) { (void)u; (void)in; }
 		virtual void PostUnserialise() {}
 
 	private:

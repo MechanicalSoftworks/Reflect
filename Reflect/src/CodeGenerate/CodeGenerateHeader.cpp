@@ -28,7 +28,6 @@ namespace Reflect
 
 		CodeGenerate::IncludeHeader("ReflectStructs.h", file);
 		CodeGenerate::IncludeHeader("Core/Core.h", file);
-		CodeGenerate::IncludeHeader("Core/Serial.h", file);
 		CodeGenerate::IncludeHeader("Core/Util.h", file);
 		CodeGenerate::IncludeHeader("array", file, true);
 
@@ -60,11 +59,11 @@ namespace Reflect
 
 			const std::string CurrentFileId = GetCurrentFileID(addtionalOptions, data.FileName) + "_" + std::to_string(reflectData.ReflectGenerateBodyLine);
 
+			WriteMemberPropertiesOffsets(reflectData, file, CurrentFileId, addtionalOptions);
 			WriteStaticClass(reflectData, file, CurrentFileId, addtionalOptions);
 			WriteMemberProperties(reflectData, file, CurrentFileId, addtionalOptions);
 			WriteFunctions(reflectData, file, CurrentFileId, addtionalOptions);
 			WriteFunctionGet(reflectData, file, CurrentFileId, addtionalOptions);
-			WriteMemberPropertiesOffsets(reflectData, file, CurrentFileId, addtionalOptions);
 			WriteMemberGet(reflectData, file, CurrentFileId, addtionalOptions);
 
 			std::vector<Reflect::ReflectMemberData> serialiseFields;
@@ -76,18 +75,14 @@ namespace Reflect
 					serialiseFields.push_back(member);
 				}
 			}
-			WriteDataDictionary(serialiseFields, reflectData, file, CurrentFileId, addtionalOptions);
-			WriteSerialiseMethods(serialiseFields, reflectData, file, CurrentFileId, addtionalOptions);
 
 			WRITE_CURRENT_FILE_ID(data.FileName) + "_" + std::to_string(reflectData.ReflectGenerateBodyLine) + "_GENERATED_BODY \\\n";
+			file << CurrentFileId + "_PROPERTIES_OFFSET \\\n";
 			file << CurrentFileId + "_STATIC_CLASS \\\n";
 			file << CurrentFileId + "_PROPERTIES \\\n";
 			file << CurrentFileId + "_FUNCTION_DECLARE \\\n";
 			file << CurrentFileId + "_FUNCTION_GET \\\n";
-			file << CurrentFileId + "_PROPERTIES_OFFSET \\\n";
 			file << CurrentFileId + "_PROPERTIES_GET \\\n";
-			file << CurrentFileId + "_DATA_DICTIONARY \\\n";
-			file << CurrentFileId + "_SERIALISE_METHODS \\\n";
 
 			WRITE_CLOSE();
 		}
@@ -103,8 +98,6 @@ namespace Reflect
 		if (data.SuperName.length())
 			file << "\tusing SuperClass = " + data.SuperName + ";\\\n";
 		file << "\tstatic const Reflect::Class StaticClass;\\\n";
-		file << "\tstatic void __PlacementNew(" << data.Name << "* obj, const Reflect::Initialiser& init) { new(obj) " << data.Name << "(init); }\\\n";
-		file << "\tstatic void __PlacementDelete(" << data.Name << "* obj) { obj->~" << data.Name << "(); }\\\n";
 		WRITE_CLOSE();
 	}
 
@@ -112,7 +105,62 @@ namespace Reflect
 	{
 		file << "#define " + currentFileId + "_PROPERTIES \\\n";
 		WRITE_PRIVATE();
-		file << "\tstatic Reflect::ReflectMemberProp __REFLECT_MEMBER_PROPS__[" + std::to_string(data.Members.size()) + "];\\\n";
+
+		if (data.Members.size())
+		{
+			// Write wrappers for the IO functions.
+			// I think these are necessary because they use the __OFFSETOF__ constexprs.
+			// The actual property table isn't happy taking a function pointer to the main ReadField+WriteField functions
+			// because they need to be instantiated with the __OFFSETOF__ constexprs, but it's happy to have an untemplated
+			// function that uses __OFFSETOF__ internally, because it doens't need to evaluate it.
+			for (const auto& member : data.Members)
+			{
+				if (!CodeGenerate::IsSerialised(member))
+				{
+					continue;
+				}
+				
+				const auto customSerialiser = CodeGenerate::GetCustomSerialiser(member);
+				std::string readField, writeField;
+				if (customSerialiser.length())
+				{
+					readField = "ReadCustomField<" + customSerialiser + ", " + member.Type + ", __OFFSETOF__" + member.Name + "()>";
+					writeField = "WriteCustomFieldFromPtr<" + customSerialiser + ", " + member.Type + ">";
+				}
+				else
+				{
+					readField = "ReadField<" + member.Type + ", __OFFSETOF__" + member.Name + "()>";
+					writeField = "WriteFieldFromPtr<" + member.Type + ">";
+				}
+
+				file << "\tstatic void __READ__" << member.Name << "(Reflect::IUnserialiser& u, std::istream& in, void* self) { " << readField << "(u, in, self); }\\\n";
+				file << "\tstatic void __WRITE__" << member.Name << "(Reflect::ISerialiser& s, std::ostream& out, const void* self) { " << writeField << "(s, out, self); }\\\n";
+			}
+
+			//
+			// TODO: Find a way to make this constexpr. Seems to not like the __OFFSETOF__[property]() functions. We only know
+			//		 member offsets when the class body has been completely defined, which it hasn't when this __REFLECT_MEMBER_PROPS__
+			//		 lives within the class body!
+			//
+			file << "\tstatic inline const std::array<Reflect::ReflectMemberProp, " << data.Members.size() << "> __REFLECT_MEMBER_PROPS__ = {\\\n";
+			for (const auto& member : data.Members)
+			{
+				std::string readField, writeField;
+				if (CodeGenerate::IsSerialised(member))
+				{
+					readField = "__READ__" + member.Name;
+					writeField = "__WRITE__" + member.Name;
+				}
+				else
+				{
+					readField = writeField = "nullptr";
+				}
+
+				file << "\t\tReflect::CreateReflectMemberProp<" + member.Type + ">(\"" + member.Name + "\", Reflect::Util::GetTypeName<" + member.Type + ">(), __OFFSETOF__" + member.Name + "(), " + CodeGenerate::GetMemberProps(member.ContainerProps) + ", " + readField + ", " + writeField + "),\\\n";
+			}
+			file << "\t};\\\n";
+		}
+
 		WRITE_CLOSE();
 	}
 
@@ -122,7 +170,7 @@ namespace Reflect
 		WRITE_PRIVATE();
 		for (const auto& member : data.Members)
 		{
-			file << "\tstatic constexpr int __REFLECT__" + member.Name + "() { return offsetof(" + data.Name + ", " + member.Name + "); }; \\\n";
+			file << "\tstatic constexpr int __OFFSETOF__" + member.Name + "() { return offsetof(" + data.Name + ", " + member.Name + "); }; \\\n";
 		}
 		WRITE_CLOSE();
 	}
@@ -131,8 +179,8 @@ namespace Reflect
 	{
 		file << "#define " + currentFileId + "_PROPERTIES_GET \\\n";
 		WRITE_PUBLIC();
-		file << "virtual Reflect::ReflectMember GetMember(const std::string_view& memberName) override;\\\n";
-		file << "virtual std::vector<Reflect::ReflectMember> GetMembers(std::vector<std::string> const& flags) override;\\\n";
+		file << "virtual Reflect::ReflectMember GetMember(const std::string_view& memberName) const override;\\\n";
+		file << "virtual std::vector<Reflect::ReflectMember> GetMembers(std::vector<std::string> const& flags) const override;\\\n";
 		for (const auto& member : data.Members)
 		{
 			file << "static constexpr const char* " << member.Name << "_name = \"" << member.Name << "\";\\\n";
@@ -205,30 +253,7 @@ namespace Reflect
 	{
 		file << "#define " + currentFileId + "_FUNCTION_GET \\\n";
 		WRITE_PUBLIC();
-		file << "\tvirtual Reflect::ReflectFunction GetFunction(const std::string_view &functionName) override;\\\n";
-		WRITE_CLOSE();
-	}
-
-	void CodeGenerateHeader::WriteDataDictionary(const std::vector<Reflect::ReflectMemberData>& serialiseFields, const Reflect::ReflectContainerData& data, std::ostream& file, const std::string& currentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)
-	{
-		file << "#define " + currentFileId + "_DATA_DICTIONARY \\\n";
-		WRITE_PUBLIC();
-		if (serialiseFields.size())
-		{
-			file << "static const std::array<Reflect::UnserialiseField," << serialiseFields.size() << "> __SERIALISE_FIELDS__;\\\n";
-		}
-		WRITE_CLOSE();
-	}
-
-	void CodeGenerateHeader::WriteSerialiseMethods(const std::vector<Reflect::ReflectMemberData>& serialiseFields, const Reflect::ReflectContainerData& data, std::ostream& file, const std::string& currentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)
-	{
-		file << "#define " + currentFileId + "_SERIALISE_METHODS \\\n";
-		WRITE_PUBLIC();
-
-		// Always write - sometimes we might need to passthrough a class.
-		file << "virtual void Serialise(Reflect::Serialiser &s, std::ostream &out) const override;\\\n";
-		file << "virtual void Unserialise(Reflect::Unserialiser &u, std::istream &in) override;\\\n";
-
+		file << "\tvirtual Reflect::ReflectFunction GetFunction(const std::string_view &functionName) const override;\\\n";
 		WRITE_CLOSE();
 	}
 

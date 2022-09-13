@@ -103,6 +103,18 @@ namespace Reflect
 		uint64_t	Size;
 	};
 
+	class REFLECT_DLL ISerialiser
+	{
+	public:
+		virtual ~ISerialiser() {}
+	};
+
+	class REFLECT_DLL IUnserialiser
+	{
+	public:
+		virtual ~IUnserialiser() {}
+	};
+
 	//
 	// Serialises all objects tagged with 'serialise'.
 	// The root object writes itself and all its children into a 'temp' stream.
@@ -112,7 +124,7 @@ namespace Reflect
 	// After all that is done, the actual output file is opened. Then the header,
 	// schemas, string pool, and binary data are written.
 	//
-	class REFLECT_DLL Serialiser
+	class REFLECT_DLL Serialiser : public ISerialiser
 	{
 	public:
 		Serialiser();
@@ -149,7 +161,7 @@ namespace Reflect
 	//
 	// Parses a message and recreates the objects.
 	//
-	class REFLECT_DLL Unserialiser
+	class REFLECT_DLL Unserialiser : public IUnserialiser
 	{
 	public:
 		struct SchemaDifference

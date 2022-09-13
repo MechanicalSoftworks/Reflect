@@ -181,7 +181,7 @@ namespace Reflect
 			uint32_t count;
 			read(u, in, count);
 
-			for (uint32_t i = 0; i < std::min<uint32_t>(v.size(), count); i++)
+			for (uint32_t i = 0; i < std::min((uint32_t)v.size(), count); i++)
 			{
 				read(u, in, v[i]);
 			}
@@ -397,7 +397,7 @@ namespace Reflect
 			uint32_t count;
 			read(u, in, count);
 
-			for (uint32_t i = 0; i < std::min<uint32_t>(v.size(), count); i++)
+			for (uint32_t i = 0; i < std::min((uint32_t)v.size(), count); i++)
 			{
 				T t(Initialiser(&T::StaticClass, nullptr));
 				read(u, in, v);

@@ -35,7 +35,7 @@ namespace Reflect
 
 		for (const auto& f : std::filesystem::recursive_directory_iterator(directory))
 		{
-			std::string filePath = f.path().u8string();
+			std::string filePath = f.path().string();
 
 			if ((f.is_regular_file() || f.is_character_file()) &&
 				CheckExtension(filePath, { ".h", ".hpp", ".hxx"}) &&
@@ -46,10 +46,10 @@ namespace Reflect
 				//std::cout << "Parsing: " << filePath << std::endl;
 				std::ifstream file = OpenFile(filePath);
 				FileParsedData data = LoadFile(file);
-				const auto ext = f.path().filename().u8string().find_last_of('.');
-				data.FileName = f.path().filename().u8string().substr(0, ext);
-				data.FileExtension = f.path().filename().u8string().substr(ext + 1);
-				data.FilePath = f.path().parent_path().u8string();
+				const auto ext = f.path().filename().string().find_last_of('.');
+				data.FileName = f.path().filename().string().substr(0, ext);
+				data.FileExtension = f.path().filename().string().substr(ext + 1);
+				data.FilePath = f.path().parent_path().string();
 				data.SubPath = data.FilePath.substr(directory.length());
 				m_filesParsed.push_back(data);
 				CloseFile(file);
