@@ -117,18 +117,23 @@ namespace Reflect
 			};
 
 			template <typename T>
-			struct TypeNameImpl<Ref<T>> {
-				static constexpr std::string get() { return "Ref<" + TypeNameImpl<T>::get() + ">"; }
+			struct TypeNameImpl<std::unique_ptr<T>> {
+				static constexpr std::string get() { return "std::unique_ptr<" + TypeNameImpl<T>::get() + ">"; }
+			};
+
+			template <typename T>
+			struct TypeNameImpl<std::shared_ptr<T>> {
+				static constexpr std::string get() { return "std::shared_ptr<" + TypeNameImpl<T>::get() + ">"; }
+			};
+
+			template <typename T>
+			struct TypeNameImpl<std::weak_ptr<T>> {
+				static constexpr std::string get() { return "std::weak_ptr<" + TypeNameImpl<T>::get() + ">"; }
 			};
 
 			template <typename T>
 			struct TypeNameImpl<std::vector<T>> {
 				static constexpr std::string get() { return "std::vector<" + TypeNameImpl<T>::get() + ">"; }
-			};
-
-			template <typename T>
-			struct TypeNameImpl<std::vector<Ref<T>>> {
-				static constexpr std::string get() { return "std::vector<Ref<" + TypeNameImpl<T>::get() + ">>"; }
 			};
 
 			template <typename K, typename V>
