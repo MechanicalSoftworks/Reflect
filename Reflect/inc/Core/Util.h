@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Core/Core.h"
-#include "Core/Allocator.h"
 #include <string>
 #include <algorithm>
 #include <typeinfo>
@@ -9,6 +8,7 @@
 #include <map>
 #include <atomic>
 #include <array>
+#include <memory>
 
 namespace Reflect
 {

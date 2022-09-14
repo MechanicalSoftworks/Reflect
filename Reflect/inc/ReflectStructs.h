@@ -2,7 +2,6 @@
 
 #include "Core/Core.h"
 #include "Core/Enums.h"
-#include "Core/Allocator.h"
 #include "Core/Util.h"
 #include <vector>
 #include <functional>
@@ -581,7 +580,7 @@ namespace Reflect
 	struct REFLECT_DLL IReflect
 	{
 		// Initialisation.
-		IReflect(const Initialiser& init) { m_class = init.Type; m_outer = init.Outer; }
+		IReflect(const Initialiser& init) : m_class(init.Type) { m_outer = init.Outer; }
 		virtual ~IReflect() {}
 		
 		// Misc.
@@ -598,7 +597,9 @@ namespace Reflect
 		virtual void PostUnserialise() {}
 
 	private:
+		// Don't mark this as 'const Class* const'! Prevents the assignment operator from working.
 		const Class* m_class = nullptr;
+
 		IReflect* m_outer = nullptr;
 	};
 }
