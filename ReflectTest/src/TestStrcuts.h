@@ -58,7 +58,7 @@ class EXPORT Player : public Actor
 	REFLECT_GENERATED_BODY()
 
 public:
-	Player(const Reflect::Initialiser& init) 
+	Player(const Reflect::Constructor& init) 
 		: SuperClass(init)
 		, Id("PlayerExampleId") 
 	{}

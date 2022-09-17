@@ -14,7 +14,7 @@ namespace Reflect
 	struct IReflect;
 	class Class;
 	class Enum;
-	struct Initialiser;
+	struct Constructor;
 
 	struct ReflectTypeNameData
 	{
@@ -424,12 +424,12 @@ namespace Reflect
 	class REFLECT_DLL ClassAllocator
 	{
 		using AllocateType   = IReflect*(*)();
-		using ConstructType  = void(*)(IReflect* obj, const Initialiser& init);
+		using ConstructType  = void(*)(IReflect* obj, const Constructor& init);
 		using DestroyType    = void(*)(IReflect* obj);
 		using DeallocateType = void(*)(IReflect* obj);
 
 		template<typename T> static IReflect* AllocateObject() { std::allocator<T> a; return a.allocate(1); }
-		template<typename T> static void ConstructObject(IReflect* obj, const Initialiser& init) { new((T*)obj) T(init); }
+		template<typename T> static void ConstructObject(IReflect* obj, const Constructor& init) { new((T*)obj) T(init); }
 		template<typename T> static void DestroyObject(IReflect* obj) { ((T*)obj)->~T(); }
 		template<typename T> static void DeallocateObject(IReflect* obj) { std::allocator<T> a; return a.deallocate((T*)obj, 1); }
 
@@ -566,9 +566,9 @@ namespace Reflect
 		const ReflectMemberProp* const	m_member_props;
 	};
 
-	struct Initialiser
+	struct Constructor
 	{
-		Initialiser(const Class* static_class, IReflect* outer)
+		Constructor(const Class* static_class, IReflect* outer)
 			: Type(static_class)
 			, Outer(outer)
 		{}
@@ -580,7 +580,7 @@ namespace Reflect
 	struct REFLECT_DLL IReflect
 	{
 		// Initialisation.
-		IReflect(const Initialiser& init) : m_class(init.Type) { m_outer = init.Outer; }
+		IReflect(const Constructor& init) : m_class(init.Type) { m_outer = init.Outer; }
 		virtual ~IReflect() {}
 		
 		// Misc.
@@ -595,6 +595,12 @@ namespace Reflect
 		
 		// Serialisation.
 		virtual void PostUnserialise() {}
+
+		// Cleanup.
+		virtual void Dispose() noexcept {}							// Kick off the destruction of threaded resources.
+																	// We don't want to block the job thread waiting for a destruction.
+		virtual bool IsDisposeComplete() noexcept { return true; }	// Whether the threaded resources are freed.
+		virtual void Finalise() noexcept {}							// Final cleanup of internal resources.
 
 	private:
 		// Don't mark this as 'const Class* const'! Prevents the assignment operator from working.
