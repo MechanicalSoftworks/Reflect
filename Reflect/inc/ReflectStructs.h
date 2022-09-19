@@ -592,6 +592,7 @@ namespace Reflect
 		virtual ReflectFunction GetFunction(const std::string_view& functionName) const { (void)functionName; return ReflectFunction(nullptr, nullptr);};
 		virtual ReflectMember GetMember(const std::string_view& memberName) const { (void)memberName; return ReflectMember(nullptr, nullptr); };
 		virtual std::vector<ReflectMember> GetMembers(std::vector<std::string> const& flags) const { (void)flags; return {}; };
+		virtual std::vector<ReflectMember> GetMembers() const { return {}; };
 		
 		// Serialisation.
 		virtual void PostUnserialise() {}

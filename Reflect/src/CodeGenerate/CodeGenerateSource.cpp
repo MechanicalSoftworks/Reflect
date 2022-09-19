@@ -76,7 +76,7 @@ namespace Reflect
 		file << "}\n\n";
 
 		file << "std::vector<Reflect::ReflectMember> " + data.Name + "::GetMembers(std::vector<std::string> const& flags) const\n{\n";
-		file << "\tstd::vector<Reflect::ReflectMember> members = SuperClass::GetMembers(flags);\n";
+		file << "\tauto members = SuperClass::GetMembers(flags);\n";
 		if (data.Members.size() > 0)
 		{
 			file << "\tfor(auto& member : __REFLECT_MEMBER_PROPS__)\n\t{\n";
@@ -84,6 +84,18 @@ namespace Reflect
 			file << "\t\t{\n";
 			file << "\t\t\tmembers.push_back(Reflect::ReflectMember(&member, ((char*)this) + member.Offset));\n";
 			file << "\t\t}\n";
+			file << "\t}\n";
+		}
+		file << "\treturn members;\n";
+		file << "}\n\n";
+
+		file << "std::vector<Reflect::ReflectMember> " + data.Name + "::GetMembers() const\n{\n";
+		file << "\tauto members = SuperClass::GetMembers();\n";
+		if (data.Members.size() > 0)
+		{
+			file << "\tmembers.reserve(members.size() + __REFLECT_MEMBER_PROPS__.size());\n";
+			file << "\tfor(auto& member : __REFLECT_MEMBER_PROPS__)\n\t{\n";
+			file << "\t\tmembers.push_back(Reflect::ReflectMember(&member, ((char*)this) + member.Offset));\n";
 			file << "\t}\n";
 		}
 		file << "\treturn members;\n";

@@ -181,6 +181,7 @@ namespace Reflect
 		WRITE_PUBLIC();
 		file << "virtual Reflect::ReflectMember GetMember(const std::string_view& memberName) const override;\\\n";
 		file << "virtual std::vector<Reflect::ReflectMember> GetMembers(std::vector<std::string> const& flags) const override;\\\n";
+		file << "virtual std::vector<Reflect::ReflectMember> GetMembers() const override;\\\n";
 		for (const auto& member : data.Members)
 		{
 			file << "static constexpr const char* " << member.Name << "_name = \"" << member.Name << "\";\\\n";
