@@ -464,34 +464,34 @@ namespace Reflect
 			, m_member_props(props)
 			, Allocator(allocator)
 		{
-			Register(this);
+			Register(*this);
 		}
 
 		~Class()
 		{
-			Unregister(this);
+			Unregister(*this);
 		}
 
 		// Makes the type usable by Allocator.
-		REFLECT_DLL static void Register(Class* c);
-		REFLECT_DLL static void Unregister(Class* c);
+		REFLECT_DLL static void Register(Class& c);
+		REFLECT_DLL static void Unregister(Class& c);
 
 		// Map a type name to a different type.
-		REFLECT_DLL static void RegisterOverride(const char *name, const Class* c);
+		REFLECT_DLL static void RegisterOverride(const char *name, const Class& c);
 
 		// Reflect!
 		REFLECT_DLL static Class* Lookup(const std::string_view &name);
-		REFLECT_DLL static std::vector<Class*> LookupWhere(const std::function<bool(const Class*)>& pred);
+		REFLECT_DLL static std::vector<std::reference_wrapper<Class>> LookupWhere(const std::function<bool(const Class&)>& pred);
 
-		REFLECT_DLL static std::vector<Class*> LookupDescendantsOf(const Class* c);
-		template<typename T> static std::vector<Class*> LookupDescendantsOf() { return LookupDescendantsOf(&T::StaticClass); }
+		REFLECT_DLL static std::vector<std::reference_wrapper<Class>> LookupDescendantsOf(const Class& c);
+		template<typename T> static auto LookupDescendantsOf() { return LookupDescendantsOf(T::StaticClass); }
 
 		template<typename T>
-		bool IsOrDescendantOf() const { return IsOrDescendantOf(&T::StaticClass); }
-		inline bool IsOrDescendantOf(const Class* c) const 
+		bool IsOrDescendantOf() const { return IsOrDescendantOf(T::StaticClass); }
+		inline bool IsOrDescendantOf(const Class& c) const 
 		{
 			return 
-				this == c || 
+				this == &c || 
 				(SuperClass ? SuperClass->IsOrDescendantOf(c) : false);
 		}
 
@@ -568,25 +568,20 @@ namespace Reflect
 
 	struct Constructor
 	{
-		Constructor(const Class* static_class, IReflect* outer)
-			: Type(static_class)
-			, Outer(outer)
-		{}
-
-		const Class* const Type;
+		Constructor(const Class& type, IReflect* outer = nullptr, uint32_t flags = 0) : Type(type), Outer(outer), Flags(flags) {}
+		const Class& Type;
 		IReflect* const Outer;
+		const uint32_t Flags;
 	};
 
 	struct REFLECT_DLL IReflect
 	{
 		// Initialisation.
-		IReflect(const Constructor& init) : m_class(init.Type) { m_outer = init.Outer; }
+		IReflect(const Constructor& init) : m_class(&init.Type) {}
 		virtual ~IReflect() {}
 		
 		// Misc.
 		const Class* GetClass() const { return m_class; }
-		IReflect* GetOuter() const { return m_outer; }
-		virtual void SetOuter(IReflect* outer) { m_outer = outer; }
 
 		// Reflection.
 		virtual ReflectFunction GetFunction(const std::string_view& functionName) const { (void)functionName; return ReflectFunction(nullptr, nullptr);};
@@ -605,9 +600,7 @@ namespace Reflect
 
 	private:
 		// Don't mark this as 'const Class* const'! Prevents the assignment operator from working.
-		const Class* m_class = nullptr;
-
-		IReflect* m_outer = nullptr;
+		const Class* m_class;
 	};
 }
 
