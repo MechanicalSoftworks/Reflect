@@ -349,6 +349,8 @@ namespace Reflect
 
 		while (true)
 		{
+			bool hex = false;
+
 			// Eat whitespace.
 			while (std::isspace(fileData.Data[fileData.Cursor]))
 			{
@@ -397,8 +399,13 @@ namespace Reflect
 
 				// Get value.
 				std::string num;
-				while (std::isdigit(fileData.Data[fileData.Cursor]))
+				while (std::isdigit(fileData.Data[fileData.Cursor]) || fileData.Data[fileData.Cursor] == 'x')
 				{
+					if (fileData.Data[fileData.Cursor] == 'x')
+					{
+						hex = true;
+					}
+
 					num += fileData.Data[fileData.Cursor++];
 					if (fileData.Cursor >= endOfContainerCursor)
 					{
@@ -406,7 +413,7 @@ namespace Reflect
 					}
 				}
 
-				value = std::strtoll(num.c_str(), nullptr, 10);
+				value = std::strtoll(num.c_str(), nullptr, hex ? 16 : 10);
 			}
 			else
 			{
