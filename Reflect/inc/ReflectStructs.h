@@ -581,7 +581,7 @@ namespace Reflect
 		virtual ~IReflect() {}
 		
 		// Misc.
-		const Class* GetClass() const { return m_class; }
+		const auto& GetClass() const { return *m_class; }
 
 		// Reflection.
 		virtual ReflectFunction GetFunction(const std::string_view& functionName) const { (void)functionName; return ReflectFunction(nullptr, nullptr);};
