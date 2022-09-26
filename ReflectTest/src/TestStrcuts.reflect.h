@@ -1,7 +1,6 @@
  // This file is auto generated please don't modify.
 #include "ReflectStructs.h"
 #include "Core/Core.h"
-#include "Core/Serial.h"
 #include "Core/Util.h"
 #include <array>
 
@@ -14,8 +13,6 @@
 public:\
 	typedef Reflect::IReflect SuperClass;\
 	static const Reflect::Class StaticClass;\
-	static void __PlacementNew(S* obj, const Reflect::Initialiser& init) { new(obj) S(init); }\
-	static void __PlacementDelete(S* obj) { obj->~S(); }\
 
 
 #define TestStrcuts_Source_h_26_PROPERTIES \
@@ -29,7 +26,7 @@ private:\
 
 #define TestStrcuts_Source_h_26_FUNCTION_GET \
 public:\
-	virtual Reflect::ReflectFunction GetFunction(const std::string_view &functionName) override;\
+	virtual Reflect::ReflectFunction GetFunction(const std::string_view &functionName) const override;\
 
 
 #define TestStrcuts_Source_h_26_PROPERTIES_OFFSET \
@@ -40,8 +37,8 @@ private:\
 
 #define TestStrcuts_Source_h_26_PROPERTIES_GET \
 public:\
-virtual Reflect::ReflectMember GetMember(const std::string_view& memberName) override;\
-virtual std::vector<Reflect::ReflectMember> GetMembers(std::vector<std::string> const& flags) override;\
+virtual Reflect::ReflectMember GetMember(const std::string_view& memberName) const override;\
+virtual std::vector<Reflect::ReflectMember> GetMembers(std::vector<std::string> const& flags) const override;\
 static constexpr const char* Friends_name = "Friends";\
 static constexpr const char* TimeOnline_name = "TimeOnline";\
 
@@ -52,8 +49,6 @@ public:\
 
 #define TestStrcuts_Source_h_26_SERIALISE_METHODS \
 public:\
-virtual void Serialise(Reflect::Serialiser &s, std::ostream &out) const override;\
-virtual void Unserialise(Reflect::Unserialiser &u, std::istream &in) override;\
 
 
 #define TestStrcuts_Source_h_26_GENERATED_BODY \
@@ -71,8 +66,6 @@ TestStrcuts_Source_h_26_SERIALISE_METHODS \
 public:\
 	typedef Reflect::IReflect SuperClass;\
 	static const Reflect::Class StaticClass;\
-	static void __PlacementNew(Actor* obj, const Reflect::Initialiser& init) { new(obj) Actor(init); }\
-	static void __PlacementDelete(Actor* obj) { obj->~Actor(); }\
 
 
 #define TestStrcuts_Source_h_44_PROPERTIES \
@@ -86,7 +79,7 @@ private:\
 
 #define TestStrcuts_Source_h_44_FUNCTION_GET \
 public:\
-	virtual Reflect::ReflectFunction GetFunction(const std::string_view &functionName) override;\
+	virtual Reflect::ReflectFunction GetFunction(const std::string_view &functionName) const override;\
 
 
 #define TestStrcuts_Source_h_44_PROPERTIES_OFFSET \
@@ -95,8 +88,8 @@ private:\
 
 #define TestStrcuts_Source_h_44_PROPERTIES_GET \
 public:\
-virtual Reflect::ReflectMember GetMember(const std::string_view& memberName) override;\
-virtual std::vector<Reflect::ReflectMember> GetMembers(std::vector<std::string> const& flags) override;\
+virtual Reflect::ReflectMember GetMember(const std::string_view& memberName) const override;\
+virtual std::vector<Reflect::ReflectMember> GetMembers(std::vector<std::string> const& flags) const override;\
 
 
 #define TestStrcuts_Source_h_44_DATA_DICTIONARY \
@@ -105,8 +98,7 @@ public:\
 
 #define TestStrcuts_Source_h_44_SERIALISE_METHODS \
 public:\
-virtual void Serialise(Reflect::Serialiser &s, std::ostream &out) const override;\
-virtual void Unserialise(Reflect::Unserialiser &u, std::istream &in) override;\
+
 
 
 #define TestStrcuts_Source_h_44_GENERATED_BODY \
@@ -124,8 +116,6 @@ TestStrcuts_Source_h_44_SERIALISE_METHODS \
 public:\
 	typedef Actor SuperClass;\
 	static const Reflect::Class StaticClass;\
-	static void __PlacementNew(Player* obj, const Reflect::Initialiser& init) { new(obj) Player(init); }\
-	static void __PlacementDelete(Player* obj) { obj->~Player(); }\
 
 
 #define TestStrcuts_Source_h_58_PROPERTIES \
@@ -158,7 +148,7 @@ private:\
 
 #define TestStrcuts_Source_h_58_FUNCTION_GET \
 public:\
-	virtual Reflect::ReflectFunction GetFunction(const std::string_view &functionName) override;\
+	virtual Reflect::ReflectFunction GetFunction(const std::string_view &functionName) const override;\
 
 
 #define TestStrcuts_Source_h_58_PROPERTIES_OFFSET \
@@ -169,8 +159,8 @@ private:\
 
 #define TestStrcuts_Source_h_58_PROPERTIES_GET \
 public:\
-virtual Reflect::ReflectMember GetMember(const std::string_view& memberName) override;\
-virtual std::vector<Reflect::ReflectMember> GetMembers(std::vector<std::string> const& flags) override;\
+virtual Reflect::ReflectMember GetMember(const std::string_view& memberName) const override;\
+virtual std::vector<Reflect::ReflectMember> GetMembers(std::vector<std::string> const& flags) const override;\
 static constexpr const char* Friends_name = "Friends";\
 static constexpr const char* TimeOnline_name = "TimeOnline";\
 
@@ -181,8 +171,7 @@ public:\
 
 #define TestStrcuts_Source_h_58_SERIALISE_METHODS \
 public:\
-virtual void Serialise(Reflect::Serialiser &s, std::ostream &out) const override;\
-virtual void Unserialise(Reflect::Unserialiser &u, std::istream &in) override;\
+
 
 
 #define TestStrcuts_Source_h_58_GENERATED_BODY \

@@ -66,4 +66,41 @@ namespace Reflect
 			file << "#include \"" + headerToInclude + "\"\n";
 		}
 	}
+
+	std::string CodeGenerate::GetMemberProps(const std::vector<std::string>& flags)
+	{
+		if (flags.size() == 0)
+		{
+			return "{ }";
+		}
+
+		std::string value;
+		value += "{";
+		for (auto const& flag : flags)
+		{
+			if (flag != flags.back())
+			{
+				value += "\"" + flag + "\"" + ", ";
+			}
+		}
+		value += "\"" + flags.back() + "\"" + "}";
+		return value;
+	}
+
+	std::string CodeGenerate::GetCustomSerialiser(const Reflect::ReflectMemberData& data)
+	{
+		const auto it = std::find_if(data.ContainerProps.begin(), data.ContainerProps.end(), [](const auto& p) { return p.find("CustomSerialiser=") == 0; });
+		if (it != data.ContainerProps.end())
+		{
+			return it->substr(it->find('=') + 1);
+		}
+
+		return "";
+	}
+
+	bool CodeGenerate::IsSerialised(const Reflect::ReflectMemberData& data)
+	{
+		const auto it = std::find_if(data.ContainerProps.begin(), data.ContainerProps.end(), [](const auto& p) { return p.find("Serialise") == 0; });
+		return it != data.ContainerProps.end();
+	}
 }

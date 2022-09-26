@@ -1,6 +1,8 @@
 #include "Core/Enums.h"
 #include "Core/Util.h"
 
+#include <stdexcept>
+
 namespace Reflect
 {
 	ReflectFlags StringToReflectFlags(const std::string& str)

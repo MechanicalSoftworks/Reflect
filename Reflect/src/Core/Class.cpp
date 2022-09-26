@@ -14,19 +14,19 @@ namespace Reflect
 	static int s_class_map_counter = 0;
 	static class_map_t& s_classes = reinterpret_cast<class_map_t&> (s_class_map_buffer);
 
-	REFLECT_DLL void Class::Register(Class* c)
+	REFLECT_DLL void Class::Register(Class& c)
 	{
 		if (s_class_map_counter++ == 0)
 		{
 			new (&s_classes) class_map_t();
 		}
 
-		s_classes[c->Name] = c;
+		s_classes[c.Name] = &c;
 	}
 
-	REFLECT_DLL void Class::RegisterOverride(const char* name, const Class* c)
+	REFLECT_DLL void Class::RegisterOverride(const char* name, const Class& c)
 	{
-		s_classes[name] = (Class *)c;
+		s_classes[name] = (Class *)&c;
 	}
 
 	REFLECT_DLL Class* Class::Lookup(const std::string_view& name)
@@ -35,36 +35,36 @@ namespace Reflect
 		return it != s_classes.end() ? it->second : nullptr;
 	}
 
-	REFLECT_DLL std::vector<Class*> Class::LookupWhere(const std::function<bool(const Class*)>& pred)
+	REFLECT_DLL std::vector<std::reference_wrapper<Class>> Class::LookupWhere(const std::function<bool(const Class&)>& pred)
 	{
-		std::vector<Class*> classes;
+		std::vector<std::reference_wrapper<Class>> classes;
 		for (const auto& c : s_classes)
 		{
-			if (pred(c.second))
+			if (pred(*c.second))
 			{
-				classes.push_back(c.second);
+				classes.push_back(*c.second);
 			}
 		}
 		return classes;
 	}
 
-	REFLECT_DLL std::vector<Class*> Class::LookupDescendantsOf(const Class* super)
+	REFLECT_DLL std::vector<std::reference_wrapper<Class>> Class::LookupDescendantsOf(const Class& super)
 	{
-		std::vector<Class*> descendants;
+		std::vector<std::reference_wrapper<Class>> descendants;
 
 		for (const auto& it : s_classes)
 		{
 			// Not a descendant of yourself, silly!
-			if (it.second == super)
+			if (it.second == &super)
 			{
 				continue;
 			}
 
 			for (const Class* c = it.second; c != nullptr; c = c->SuperClass)
 			{
-				if (c == super)
+				if (c == &super)
 				{
-					descendants.push_back(it.second);
+					descendants.push_back(*it.second);
 					break;
 				}
 			}
@@ -73,9 +73,9 @@ namespace Reflect
 		return descendants;
 	}
 
-	REFLECT_DLL void Class::Unregister(Class* c)
+	REFLECT_DLL void Class::Unregister(Class& c)
 	{
-		s_classes.erase(c->Name);
+		s_classes.erase(c.Name);
 
 		if (--s_class_map_counter == 0)
 		{

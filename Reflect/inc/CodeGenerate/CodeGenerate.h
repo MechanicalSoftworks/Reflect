@@ -27,6 +27,11 @@ namespace Reflect
 		REFLECT_DLL void Reflect(const FileParsedData& data, const CodeGenerateAddtionalOptions& addtionalOptions);
 		static void IncludeHeader(const std::string& headerToInclude, std::ostream& file, bool windowsInclude = false);
 
+		static std::string GetMemberProps(const std::vector<std::string>& flags);
+
+		static std::string GetCustomSerialiser(const Reflect::ReflectMemberData& data);
+		static bool IsSerialised(const Reflect::ReflectMemberData& data);
+
 	private:
 		static void WriteIfDifferent(const std::string& filePath, const std::string& str);
 	};

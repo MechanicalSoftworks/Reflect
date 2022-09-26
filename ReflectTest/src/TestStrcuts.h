@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Reflect.h"
+#include <Reflect.h>
 #include "TestStrcuts.reflect.h"
 
 #define EXPORT
@@ -25,7 +25,7 @@ struct S : REFLECT_BASE()
 {
 	REFLECT_GENERATED_BODY()
 
-	S(const Reflect::Initialiser &init) : SuperClass(init){}
+	using SuperClass::SuperClass;
 
 	REFLECT_PROPERTY(EditorOnly, Public)
 	int Friends;
@@ -44,7 +44,7 @@ class EXPORT Actor : REFLECT_BASE()
 	REFLECT_GENERATED_BODY()
 
 public:
-	Actor(const Reflect::Initialiser & init) : SuperClass(init) {}
+	using SuperClass::SuperClass;
 
 	virtual void Tick()
 	{
@@ -58,7 +58,7 @@ class EXPORT Player : public Actor
 	REFLECT_GENERATED_BODY()
 
 public:
-	Player(const Reflect::Initialiser& init) 
+	Player(const Reflect::Constructor& init) 
 		: SuperClass(init)
 		, Id("PlayerExampleId") 
 	{}

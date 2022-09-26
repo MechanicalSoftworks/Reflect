@@ -2,7 +2,6 @@
 
 #include "Core/Core.h"
 #include "Core/Enums.h"
-#include "Core/Allocator.h"
 #include "Core/Util.h"
 #include <vector>
 #include <functional>
@@ -12,13 +11,10 @@
 
 namespace Reflect
 {
-	class Serialiser;
-	class Unserialiser;
 	struct IReflect;
 	class Class;
 	class Enum;
-	struct Initialiser;
-	struct UnserialiseField;
+	struct Constructor;
 
 	struct ReflectTypeNameData
 	{
@@ -125,27 +121,40 @@ namespace Reflect
 		virtual void AssignIndex(void* ptr, int index) const = 0;
 	};
 
+	//
+	// These exist if we ever need to provide some sort of common interface.
+	//
+	class ISerialiser { public: virtual ~ISerialiser() {} };
+	class IUnserialiser { public: virtual ~IUnserialiser() {} };
+
+	using ReadMemberType = void (*)(IUnserialiser& u, std::istream& in, void* self);
+	using WriteMemberType = void (*)(ISerialiser& s, std::ostream& out, const void* self);
+
 	struct ReflectMemberProp
 	{
 	public:
-		ReflectMemberProp(const char* name, const std::string &type, int offset, std::vector<std::string> const& strProperties, const Class* staticClass, bool isPointer)
+		REFLECT_CONSTEXPR ReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties, const Class* staticClass, bool isPointer, const ReadMemberType& read, const WriteMemberType& write)
 			: Name(name)
 			, Type(type)
 			, StaticClass(staticClass)
 			, IsPointer(isPointer)
 			, Offset(offset)
 			, StrProperties(strProperties)
-		{ }
+			, Read(read)
+			, Write(write)
+		{}
 
-		ReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties, std::unique_ptr<Enum>&& staticEnum)
+		ReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties, std::unique_ptr<Enum>&& staticEnum, const ReadMemberType& read, const WriteMemberType& write)
 			: Name(name)
 			, Type(type)
 			, StaticEnum(std::move(staticEnum))
 			, Offset(offset)
 			, StrProperties(strProperties)
+			, Read(read)
+			, Write(write)
 		{ }
 
-		bool ContainsProperty(std::vector<std::string> const& flags) const
+		REFLECT_CONSTEXPR bool ContainsProperty(std::vector<std::string> const& flags) const
 		{
 			for (auto const& flag : flags)
 			{
@@ -160,7 +169,7 @@ namespace Reflect
 			return false;
 		}
 
-		bool GetPropertyValue(const std::string_view &flag, std::string& value) const
+		REFLECT_CONSTEXPR bool GetPropertyValue(const std::string_view &flag, std::string& value) const
 		{
 			for (auto const& p : StrProperties)
 			{
@@ -182,26 +191,28 @@ namespace Reflect
 			return false;
 		}
 
-		const char* const	Name;
-		const std::string	Type;
-		const Class* const	StaticClass = nullptr;
-		const bool			IsPointer = false;
+		const char* const		Name;
+		const std::string		Type;
+		const Class* const		StaticClass = nullptr;
+		const bool				IsPointer = false;
 		const std::unique_ptr<Enum>	StaticEnum;
-		const int			Offset;
+		const int				Offset;
 		const std::vector<std::string> StrProperties;
+		const ReadMemberType	Read;
+		const WriteMemberType	Write;
 	};
 
 	template<typename T> inline const std::vector<std::pair<std::string, T>>& EnumValues();
 	template<typename T> inline const std::map<std::string, T>& EnumMap();
 
 	template<typename T>
-	inline typename std::enable_if<!std::is_enum_v<T>, ReflectMemberProp>::type CreateReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties)
+	inline REFLECT_CONSTEXPR typename std::enable_if<!std::is_enum_v<T>, ReflectMemberProp>::type CreateReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties, const ReadMemberType& read, const WriteMemberType& write)
 	{
-		return ReflectMemberProp(name, type, offset, strProperties, Reflect::Util::GetStaticClass<T>(), std::is_pointer_v<T>);
+		return ReflectMemberProp(name, type, offset, strProperties, Reflect::Util::GetStaticClass<T>(), std::is_pointer_v<T>, read, write);
 	}
 
 	template<typename T>
-	inline typename std::enable_if<std::is_enum_v<T>, ReflectMemberProp>::type CreateReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties)
+	inline typename std::enable_if<std::is_enum_v<T>, ReflectMemberProp>::type CreateReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties, const ReadMemberType& read, const WriteMemberType& write)
 	{
 		class EnumImplementation final : public Reflect::Enum
 		{
@@ -283,7 +294,7 @@ namespace Reflect
 		};
 
 		auto e = std::make_unique<EnumImplementation>();
-		return ReflectMemberProp(name, type, offset, strProperties, std::move(e));
+		return ReflectMemberProp(name, type, offset, strProperties, std::move(e), read, write);
 	}
 
 	/// <summary>
@@ -294,7 +305,7 @@ namespace Reflect
 	public:
 		struct Arg
 		{
-			Arg(std::string type, void* ptr)
+			Arg(const std::string_view& type, void* ptr)
 				: Type(type)
 				, Ptr(ptr)
 			{ }
@@ -386,14 +397,12 @@ namespace Reflect
 
 	struct ReflectMember
 	{
-		ReflectMember(const ReflectMemberProp *prop, const UnserialiseField* unserialise, void* memberPtr)
+		ReflectMember(const ReflectMemberProp *prop, void* memberPtr)
 			: Properties(prop)
-			, Unserialise(unserialise)
 			, RawPointer(memberPtr)
 		{}
 
 		const ReflectMemberProp* const	Properties;
-		const UnserialiseField* const	Unserialise;
 		void* const						RawPointer;
 
 		bool IsValid() const { return RawPointer != nullptr; }
@@ -412,83 +421,77 @@ namespace Reflect
 		}
 	};
 
-	//
-	// TODO: Unify these thing a single Allocator class. No need for the global Allocator.
-	//
-	using AllocatorType = IReflect*(*)();
-	template<typename T> IReflect* AllocateObject() { std::allocator<T> a; return a.allocate(1); }
-
-	using ConstructorType = void(*)(IReflect* obj, const Initialiser& init);
-	template<typename T> void PlacementNew(IReflect* obj, const Initialiser& init) { new((T*)obj) T(init); }
-
-	using DestructorType  = void(*)(IReflect* obj);
-	template<typename T> void PlacementDelete(IReflect* obj) { ((T*)obj)->~T(); }
-
-	using FreeType = void(*)(IReflect* obj);
-	template<typename T> void FreeObject(IReflect* obj) { std::allocator<T> a; return a.deallocate((T*)obj, 1); }
-
-	// Helpers for reading individual fields.
-	using ReadFieldType = void (*)(Unserialiser& u, std::istream& in, void* self);
-	using WriteFieldType = void (*)(Serialiser& s, std::ostream& out, const void* self);
-	struct UnserialiseField
+	class REFLECT_DLL ClassAllocator
 	{
-		UnserialiseField(const char* n, const std::string& t, ReadFieldType r, WriteFieldType w) : Name(n), Type(t), Read(r), Write(w) {}
-		const char* const		Name;
-		const std::string		Type;
-		const ReadFieldType		Read;
-		const WriteFieldType	Write;
+		using AllocateType   = IReflect*(*)();
+		using ConstructType  = void(*)(IReflect* obj, const Constructor& init);
+		using DestroyType    = void(*)(IReflect* obj);
+		using DeallocateType = void(*)(IReflect* obj);
+
+		template<typename T> static IReflect* AllocateObject() { std::allocator<T> a; return a.allocate(1); }
+		template<typename T> static void ConstructObject(IReflect* obj, const Constructor& init) { new((T*)obj) T(init); }
+		template<typename T> static void DestroyObject(IReflect* obj) { ((T*)obj)->~T(); }
+		template<typename T> static void DeallocateObject(IReflect* obj) { std::allocator<T> a; return a.deallocate((T*)obj, 1); }
+
+		ClassAllocator(const AllocateType& allocate, const ConstructType& construct, const DestroyType& destroy, const DeallocateType& deallocate)
+			: Allocate(allocate)
+			, Construct(construct)
+			, Destroy(destroy)
+			, Deallocate(deallocate)
+		{}
+
+	public:
+		const AllocateType   Allocate;
+		const ConstructType  Construct;
+		const DestroyType    Destroy;
+		const DeallocateType Deallocate;
+
+		template<typename T>
+		static ClassAllocator Create()
+		{
+			return ClassAllocator(AllocateObject<T>, ConstructObject<T>, DestroyObject<T>, DeallocateObject<T>);
+		}
 	};
 
 	class Class
 	{
 	public:
-		Class(const char *name, const Class *super, std::vector<std::string> const& strProperties, size_t prop_count, const ReflectMemberProp *props, size_t unserialise_count, const UnserialiseField* unserialisers, AllocatorType allocate, ConstructorType constructor, DestructorType destructor, FreeType free_)
+		Class(const char *name, const Class *super, std::vector<std::string> const& strProperties, size_t prop_count, const ReflectMemberProp *props, const ClassAllocator& allocator)
 			: Name(name)
 			, SuperClass(super)
 			, StrProperties(strProperties)
 			, m_member_prop_count(prop_count)
 			, m_member_props(props)
-			, m_unserialise_count(unserialise_count)
-			, m_unserialise(unserialisers)
-			, Allocate(allocate)
-			, Constructor(constructor)
-			, Destructor(destructor)
-			, Free(free_)
+			, Allocator(allocator)
 		{
-			Register(this);
+			Register(*this);
 		}
 
 		~Class()
 		{
-			Unregister(this);
+			Unregister(*this);
 		}
 
-		// Decoupled Allocate from Constructor because maybe users will want to do some memory reuse.
-		const AllocatorType Allocate;
-		const ConstructorType Constructor;
-		const DestructorType Destructor;
-		const FreeType Free;
-
 		// Makes the type usable by Allocator.
-		REFLECT_DLL static void Register(Class* c);
-		REFLECT_DLL static void Unregister(Class* c);
+		REFLECT_DLL static void Register(Class& c);
+		REFLECT_DLL static void Unregister(Class& c);
 
 		// Map a type name to a different type.
-		REFLECT_DLL static void RegisterOverride(const char *name, const Class* c);
+		REFLECT_DLL static void RegisterOverride(const char *name, const Class& c);
 
 		// Reflect!
 		REFLECT_DLL static Class* Lookup(const std::string_view &name);
-		REFLECT_DLL static std::vector<Class*> LookupWhere(const std::function<bool(const Class*)>& pred);
+		REFLECT_DLL static std::vector<std::reference_wrapper<Class>> LookupWhere(const std::function<bool(const Class&)>& pred);
 
-		REFLECT_DLL static std::vector<Class*> LookupDescendantsOf(const Class* c);
-		template<typename T> static std::vector<Class*> LookupDescendantsOf() { return LookupDescendantsOf(&T::StaticClass); }
+		REFLECT_DLL static std::vector<std::reference_wrapper<Class>> LookupDescendantsOf(const Class& c);
+		template<typename T> static auto LookupDescendantsOf() { return LookupDescendantsOf(T::StaticClass); }
 
 		template<typename T>
-		bool IsOrDescendantOf() const { return IsOrDescendantOf(&T::StaticClass); }
-		inline bool IsOrDescendantOf(const Class* c) const 
+		bool IsOrDescendantOf() const { return IsOrDescendantOf(T::StaticClass); }
+		inline bool IsOrDescendantOf(const Class& c) const 
 		{
 			return 
-				this == c || 
+				this == &c || 
 				(SuperClass ? SuperClass->IsOrDescendantOf(c) : false);
 		}
 
@@ -538,8 +541,9 @@ namespace Reflect
 			return false;
 		}
 
-		const char* const	Name;
-		const Class* const	SuperClass;
+		const char* const				Name;
+		const Class* const				SuperClass;
+		const ClassAllocator			Allocator;
 		const std::vector<std::string>	StrProperties;
 
 	private:
@@ -553,65 +557,50 @@ namespace Reflect
 				const auto& member = m_member_props[i];
 				if (member.ContainsProperty(flags))
 				{
-					// Find an unserialiser.
-					const UnserialiseField* unserialise = nullptr;
-					for (size_t i = 0; i < m_unserialise_count; i++)
-					{
-						if (m_unserialise[i].Name == member.Name)
-						{
-							unserialise = m_unserialise + i;
-							break;
-						}
-					}
-
-
-					members.push_back(Reflect::ReflectMember(&member, unserialise, (void *)(size_t)member.Offset));
+					members.push_back(Reflect::ReflectMember(&member, (void *)(size_t)member.Offset));
 				}
 			}
 		}
 
 		const size_t					m_member_prop_count;
 		const ReflectMemberProp* const	m_member_props;
-
-		const size_t					m_unserialise_count;
-		const UnserialiseField* const	m_unserialise;
 	};
 
-	struct Initialiser
+	struct Constructor
 	{
-		Initialiser(const Class* static_class, IReflect* outer)
-			: Type(static_class)
-			, Outer(outer)
-		{}
-
-		const Class* const Type;
+		Constructor(const Class& type, IReflect* outer = nullptr, uint32_t flags = 0) : Type(type), Outer(outer), Flags(flags) {}
+		const Class& Type;
 		IReflect* const Outer;
+		const uint32_t Flags;
 	};
 
 	struct REFLECT_DLL IReflect
 	{
 		// Initialisation.
-		IReflect(const Initialiser& init) { m_class = init.Type; m_outer = init.Outer; }
+		IReflect(const Constructor& init) : m_class(&init.Type) {}
 		virtual ~IReflect() {}
 		
 		// Misc.
-		const Class* GetClass() const { return m_class; }
-		IReflect* GetOuter() const { return m_outer; }
-		void SetOuter(IReflect* outer) { m_outer = outer; }
+		const auto& GetClass() const { return *m_class; }
 
 		// Reflection.
-		virtual ReflectFunction GetFunction(const std::string_view& functionName) { (void)functionName; return ReflectFunction(nullptr, nullptr);};
-		virtual ReflectMember GetMember(const std::string_view& memberName) { (void)memberName; return ReflectMember(nullptr, nullptr, nullptr); };
-		virtual std::vector<ReflectMember> GetMembers(std::vector<std::string> const& flags) { (void)flags; return {}; };
+		virtual ReflectFunction GetFunction(const std::string_view& functionName) const { (void)functionName; return ReflectFunction(nullptr, nullptr);};
+		virtual ReflectMember GetMember(const std::string_view& memberName) const { (void)memberName; return ReflectMember(nullptr, nullptr); };
+		virtual std::vector<ReflectMember> GetMembers(std::vector<std::string> const& flags) const { (void)flags; return {}; };
+		virtual std::vector<ReflectMember> GetMembers() const { return {}; };
 		
 		// Serialisation.
-		virtual void Serialise(Serialiser &s, std::ostream& out) const { (void)s; (void)out; }
-		virtual void Unserialise(Unserialiser &u, std::istream& in) { (void)u; (void)in; }
 		virtual void PostUnserialise() {}
 
+		// Cleanup.
+		virtual void Dispose() noexcept {}							// Kick off the destruction of threaded resources.
+																	// We don't want to block the job thread waiting for a destruction.
+		virtual bool IsDisposeComplete() noexcept { return true; }	// Whether the threaded resources are freed.
+		virtual void Finalise() noexcept {}							// Final cleanup of internal resources.
+
 	private:
-		const Class* m_class = nullptr;
-		IReflect* m_outer = nullptr;
+		// Don't mark this as 'const Class* const'! Prevents the assignment operator from working.
+		const Class* m_class;
 	};
 }
 

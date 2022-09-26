@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 project (Reflect)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 add_compile_options($<$<CXX_COMPILER_ID:MSVC>:/MP>)
 
 if (UNIX)
@@ -40,4 +40,4 @@ file(GLOB LIB_HEADER_FILES CONFIGURE_DEPENDS ${LIB_INCLUDE_DIR}/*/*.h ${LIB_INCL
 add_subdirectory(Reflect)
 add_subdirectory(ReflectDLL)
 add_subdirectory(ReflectEXE)
-add_subdirectory(ReflectTest)
+#add_subdirectory(ReflectTest)
