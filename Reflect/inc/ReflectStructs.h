@@ -133,7 +133,7 @@ namespace Reflect
 	struct ReflectMemberProp
 	{
 	public:
-		constexpr ReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties, const Class* staticClass, bool isPointer, const ReadMemberType& read, const WriteMemberType& write)
+		REFLECT_CONSTEXPR ReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties, const Class* staticClass, bool isPointer, const ReadMemberType& read, const WriteMemberType& write)
 			: Name(name)
 			, Type(type)
 			, StaticClass(staticClass)
@@ -154,7 +154,7 @@ namespace Reflect
 			, Write(write)
 		{ }
 
-		constexpr bool ContainsProperty(std::vector<std::string> const& flags) const
+		REFLECT_CONSTEXPR bool ContainsProperty(std::vector<std::string> const& flags) const
 		{
 			for (auto const& flag : flags)
 			{
@@ -169,7 +169,7 @@ namespace Reflect
 			return false;
 		}
 
-		constexpr bool GetPropertyValue(const std::string_view &flag, std::string& value) const
+		REFLECT_CONSTEXPR bool GetPropertyValue(const std::string_view &flag, std::string& value) const
 		{
 			for (auto const& p : StrProperties)
 			{
@@ -206,7 +206,7 @@ namespace Reflect
 	template<typename T> inline const std::map<std::string, T>& EnumMap();
 
 	template<typename T>
-	inline constexpr typename std::enable_if<!std::is_enum_v<T>, ReflectMemberProp>::type CreateReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties, const ReadMemberType& read, const WriteMemberType& write)
+	inline REFLECT_CONSTEXPR typename std::enable_if<!std::is_enum_v<T>, ReflectMemberProp>::type CreateReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties, const ReadMemberType& read, const WriteMemberType& write)
 	{
 		return ReflectMemberProp(name, type, offset, strProperties, Reflect::Util::GetStaticClass<T>(), std::is_pointer_v<T>, read, write);
 	}

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Reflect.h"
+#include <Reflect.h>
 #include "TestStrcuts.reflect.h"
 
 #define EXPORT

@@ -90,7 +90,7 @@ namespace Reflect
 			// From https://bitwizeshift.github.io/posts/2021/03/09/getting-an-unmangled-type-name-at-compile-time/
 			//
 			template <typename T>
-			constexpr auto type_name() -> std::string
+			REFLECT_CONSTEXPR auto type_name() -> std::string
 			{
 				constexpr auto& value = impl::type_name_holder<T>::value;
 				return std::string{ value.data(), value.size() - 1 };	// -1 to strip off the '\n' appended in 'substring_as_array'.
@@ -98,68 +98,68 @@ namespace Reflect
 
 			template <typename T>
 			struct TypeNameImpl {
-				static constexpr std::string get() { return type_name<T>(); }
+				static REFLECT_CONSTEXPR std::string get() { return type_name<T>(); }
 			};
 
 			template <>
 			struct TypeNameImpl<std::string> {
-				static constexpr std::string get() { return "std::string"; }
+				static REFLECT_CONSTEXPR std::string get() { return "std::string"; }
 			};
 
 			template <>
 			struct TypeNameImpl<long long> {
-				static constexpr std::string get() { return "__int64"; }
+				static REFLECT_CONSTEXPR std::string get() { return "__int64"; }
 			};
 
 			template <>
 			struct TypeNameImpl<unsigned long long> {
-				static constexpr std::string get() { return "unsigned __int64"; }
+				static REFLECT_CONSTEXPR std::string get() { return "unsigned __int64"; }
 			};
 
 			template <typename T>
 			struct TypeNameImpl<std::unique_ptr<T>> {
-				static constexpr std::string get() { return "std::unique_ptr<" + TypeNameImpl<T>::get() + ">"; }
+				static REFLECT_CONSTEXPR std::string get() { return "std::unique_ptr<" + TypeNameImpl<T>::get() + ">"; }
 			};
 
 			template <typename T>
 			struct TypeNameImpl<std::shared_ptr<T>> {
-				static constexpr std::string get() { return "std::shared_ptr<" + TypeNameImpl<T>::get() + ">"; }
+				static REFLECT_CONSTEXPR std::string get() { return "std::shared_ptr<" + TypeNameImpl<T>::get() + ">"; }
 			};
 
 			template <typename T>
 			struct TypeNameImpl<std::weak_ptr<T>> {
-				static constexpr std::string get() { return "std::weak_ptr<" + TypeNameImpl<T>::get() + ">"; }
+				static REFLECT_CONSTEXPR std::string get() { return "std::weak_ptr<" + TypeNameImpl<T>::get() + ">"; }
 			};
 
 			template <typename T>
 			struct TypeNameImpl<std::vector<T>> {
-				static constexpr std::string get() { return "std::vector<" + TypeNameImpl<T>::get() + ">"; }
+				static REFLECT_CONSTEXPR std::string get() { return "std::vector<" + TypeNameImpl<T>::get() + ">"; }
 			};
 
 			template <typename K, typename V>
 			struct TypeNameImpl<std::map<K, V>> {
-				static constexpr std::string get() { return "std::map<" + TypeNameImpl<K>::get() + "," + TypeNameImpl<V>::get() + ">"; }
+				static REFLECT_CONSTEXPR std::string get() { return "std::map<" + TypeNameImpl<K>::get() + "," + TypeNameImpl<V>::get() + ">"; }
 			};
 
 			template <typename T>
 			struct TypeNameImpl<T*> {
-				static constexpr std::string get() { return TypeNameImpl<T>::get() + "*"; }
+				static REFLECT_CONSTEXPR std::string get() { return TypeNameImpl<T>::get() + "*"; }
 			};
 
 			template <typename T>
 			struct TypeNameImpl<std::atomic<T>> {
-				static constexpr std::string get() { return "std::atomic<" + TypeNameImpl<T>::get() + ">"; }
+				static REFLECT_CONSTEXPR std::string get() { return "std::atomic<" + TypeNameImpl<T>::get() + ">"; }
 			};
 		}
 
 		template<typename T>
-		constexpr std::string GetTypeName()
+		REFLECT_CONSTEXPR std::string GetTypeName()
 		{
 			return detail::TypeNameImpl<T>::get();
 		}
 
 		template<typename T>
-		constexpr std::string GetTypeName(const T& type)
+		REFLECT_CONSTEXPR std::string GetTypeName(const T& type)
 		{
 			return GetTypeName<T>();
 		}

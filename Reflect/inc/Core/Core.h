@@ -10,6 +10,12 @@
 #pragma error C++17 must be used.
 #endif
 
+#if __cplusplus >= 202110L
+#	define REFLECT_CONSTEXPR constexpr
+#else
+#	define REFLECT_CONSTEXPR
+#endif
+
 #ifdef _MSC_VER
 #	ifdef REFLECT_DLL_EXPORT
 #		define REFLECT_DLL __declspec(dllexport)
