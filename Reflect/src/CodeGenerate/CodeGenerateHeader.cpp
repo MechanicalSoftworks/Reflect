@@ -2,6 +2,7 @@
 #include "CodeGenerate/CodeGenerate.h"
 #include "Instrumentor.h"
 #include <assert.h>
+#include <filesystem>
 
 namespace Reflect
 {
@@ -31,8 +32,9 @@ namespace Reflect
 		CodeGenerate::IncludeHeader("Core/Util.h", file);
 		CodeGenerate::IncludeHeader("array", file, true);
 
-		std::string reflectGuard = addtionalOptions.RelativeFilePath + data.FileName + ReflectFileHeaderGuard;
-		std::replace(reflectGuard.begin(), reflectGuard.end(), '/',  '_');
+		const auto relativePath = data.FilePath + "\\" + std::string(data.FileName + "." + data.FileExtension);
+		std::string reflectGuard = relativePath + ReflectFileHeaderGuard;
+		std::replace(reflectGuard.begin(), reflectGuard.end(), '/', '_');
 		std::replace(reflectGuard.begin(), reflectGuard.end(), '\\', '_');
 		std::replace(reflectGuard.begin(), reflectGuard.end(), '.', '_');
 		std::replace(reflectGuard.begin(), reflectGuard.end(), ':', '_');
