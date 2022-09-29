@@ -29,6 +29,7 @@ namespace Reflect
 
 		CodeGenerate::IncludeHeader("ReflectStructs.h", file);
 		CodeGenerate::IncludeHeader("Core/Core.h", file);
+		CodeGenerate::IncludeHeader("Core/Enums.h", file);
 		CodeGenerate::IncludeHeader("Core/Util.h", file);
 		CodeGenerate::IncludeHeader("array", file, true);
 
@@ -47,50 +48,62 @@ namespace Reflect
 		file << "#define " + reflectGuard + "_h\n\n";
 
 		WriteMacros(data, file, addtionalOptions);
-		WriteEnums(data, file, addtionalOptions);
 	}
 
 	void CodeGenerateHeader::WriteMacros(const FileParsedData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
 		for (const auto& reflectData : data.ReflectData)
 		{
-			if (reflectData.ReflectType == ReflectType::Enum)
-			{
-				continue;
-			}
-
 			const std::string CurrentFileId = GetCurrentFileID(addtionalOptions, data.FileName) + "_" + std::to_string(reflectData.ReflectGenerateBodyLine);
 
-			WriteMemberPropertiesOffsets(reflectData, file, CurrentFileId, addtionalOptions);
-			WriteStaticClass(reflectData, file, CurrentFileId, addtionalOptions);
-			WriteMemberProperties(reflectData, file, CurrentFileId, addtionalOptions);
-			WriteFunctions(reflectData, file, CurrentFileId, addtionalOptions);
-			WriteFunctionGet(reflectData, file, CurrentFileId, addtionalOptions);
-			WriteMemberGet(reflectData, file, CurrentFileId, addtionalOptions);
-
-			std::vector<Reflect::ReflectMemberData> serialiseFields;
-			for (const auto& member : reflectData.Members)
+			if (reflectData.ReflectType == ReflectType::Enum)
 			{
-				const auto it = std::find_if(member.ContainerProps.begin(), member.ContainerProps.end(), [](const auto& p) { return p == "Serialise"; });
-				if (it != member.ContainerProps.end())
-				{
-					serialiseFields.push_back(member);
-				}
+				WriteEnumMacros(reflectData, data, file, CurrentFileId, addtionalOptions);
 			}
-
-			WRITE_CURRENT_FILE_ID(data.FileName) + "_" + std::to_string(reflectData.ReflectGenerateBodyLine) + "_GENERATED_BODY \\\n";
-			file << CurrentFileId + "_PROPERTIES_OFFSET \\\n";
-			file << CurrentFileId + "_STATIC_CLASS \\\n";
-			file << CurrentFileId + "_PROPERTIES \\\n";
-			file << CurrentFileId + "_FUNCTION_DECLARE \\\n";
-			file << CurrentFileId + "_FUNCTION_GET \\\n";
-			file << CurrentFileId + "_PROPERTIES_GET \\\n";
+			else
+			{
+				WriteClassMacros(reflectData, data, file, CurrentFileId, addtionalOptions);
+			}
 
 			WRITE_CLOSE();
 		}
 
 		file << "#undef CURRENT_FILE_ID\n";
 		file << "#define CURRENT_FILE_ID " + GetCurrentFileID(addtionalOptions, data.FileName) + "\n";
+	}
+
+	void CodeGenerateHeader::WriteClassMacros(const Reflect::ReflectContainerData& reflectData, const FileParsedData& data, std::ostream& file, const std::string& CurrentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)
+	{
+		WriteMemberPropertiesOffsets(reflectData, file, CurrentFileId, addtionalOptions);
+		WriteStaticClass(reflectData, file, CurrentFileId, addtionalOptions);
+		WriteMemberProperties(reflectData, file, CurrentFileId, addtionalOptions);
+		WriteFunctions(reflectData, file, CurrentFileId, addtionalOptions);
+		WriteFunctionGet(reflectData, file, CurrentFileId, addtionalOptions);
+		WriteMemberGet(reflectData, file, CurrentFileId, addtionalOptions);
+
+		WRITE_CURRENT_FILE_ID(data.FileName) + "_" + std::to_string(reflectData.ReflectGenerateBodyLine) + "_GENERATED_BODY \\\n";
+		file << CurrentFileId + "_PROPERTIES_OFFSET \\\n";
+		file << CurrentFileId + "_STATIC_CLASS \\\n";
+		file << CurrentFileId + "_PROPERTIES \\\n";
+		file << CurrentFileId + "_FUNCTION_DECLARE \\\n";
+		file << CurrentFileId + "_FUNCTION_GET \\\n";
+		file << CurrentFileId + "_PROPERTIES_GET \\\n";
+	}
+
+	void CodeGenerateHeader::WriteEnumMacros(const Reflect::ReflectContainerData& reflectData, const FileParsedData& data, std::ostream& file, const std::string& CurrentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)
+	{
+		WriteEnumConstructors(reflectData, file, CurrentFileId, addtionalOptions);
+		WriteEnumOperators(reflectData, file, CurrentFileId, addtionalOptions);
+		WriteEnumValues(reflectData, file, CurrentFileId, addtionalOptions);
+		WriteEnumMaps(reflectData, file, CurrentFileId, addtionalOptions);
+		WriteEnumMethods(reflectData, file, CurrentFileId, addtionalOptions);
+
+		WRITE_CURRENT_FILE_ID(data.FileName) + "_" + std::to_string(reflectData.ReflectGenerateBodyLine) + "_GENERATED_BODY \\\n";
+		file << CurrentFileId + "_CONSTRUCTORS \\\n";
+		file << CurrentFileId + "_OPERATORS \\\n";
+		file << CurrentFileId + "_METHODS \\\n";
+		file << CurrentFileId + "_VALUES \\\n";
+		file << CurrentFileId + "_MAPS \\\n";
 	}
 
 	void CodeGenerateHeader::WriteStaticClass(const ReflectContainerData& data, std::ostream& file, const std::string& currentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)
@@ -260,55 +273,75 @@ namespace Reflect
 		WRITE_CLOSE();
 	}
 
-	void CodeGenerateHeader::WriteEnums(const FileParsedData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
+	void CodeGenerateHeader::WriteEnumConstructors(const ReflectContainerData& data, std::ostream& file, const std::string& currentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
-		file << "\n\n";
+		file << "#define " + currentFileId + "_CONSTRUCTORS \\\n";
+		WRITE_PUBLIC();
+		file << "\tusing SuperClass = " + data.SuperName + ";\\\n";
+		file << "\t" << data.Name << "() = default;\\\n";
+		file << "\tconstexpr " << data.Name << "(ValueType v) : SuperClass(v) {};\\\n";
+		WRITE_CLOSE();
+	}
 
-		for (const auto& reflectData : data.ReflectData)
+	void CodeGenerateHeader::WriteEnumOperators(const ReflectContainerData& data, std::ostream& file, const std::string& currentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)
+	{
+		file << "#define " + currentFileId + "_OPERATORS \\\n";
+		WRITE_PUBLIC();
+		// Allow switch and comparisons.
+		file << "\tconstexpr operator ValueType() const { return ValueType(Value); }\\\n";
+
+		// Prevent usage: if(value)
+		file << "\texplicit operator bool() const = delete;\\\n";
+
+		file << "\tconstexpr bool operator==(ValueType rhs) const { return Value == rhs; }\\\n";
+		file << "\tconstexpr bool operator!=(ValueType rhs) const { return Value != rhs; }\\\n";
+		file << "\tconstexpr auto& operator=(ValueType v) { Value = v; return *this; }\\\n";
+		WRITE_CLOSE();
+	}
+
+	void CodeGenerateHeader::WriteEnumValues(const ReflectContainerData& data, std::ostream& file, const std::string& currentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)
+	{
+		file << "#define " + currentFileId + "_VALUES \\\n";
+		WRITE_PUBLIC();
+		file << "\tstatic constexpr std::array<std::pair<std::string_view, ValueType>, " << data.Constants.size() << "> Values{\\\n";
+		for (const auto& c : data.Constants)
 		{
-			if (reflectData.ReflectType != ReflectType::Enum)
-			{
-				continue;
-			}
-
-			if (addtionalOptions.Namespace.length())
-			{
-				file << "namespace " << addtionalOptions.Namespace << " { enum class " << reflectData.Type << " : " << reflectData.SuperName << "; }\n";
-			}
-
-			const std::string typeWithNamespace = addtionalOptions.Namespace.length()
-				? addtionalOptions.Namespace + "::" + reflectData.Type
-				: reflectData.Type;
-
-			file << "namespace Reflect {\n";
-
-			const auto valueVector = "std::vector<std::pair<std::string, " + typeWithNamespace + ">>";
-			const auto valueMap = "std::map<std::string, " + typeWithNamespace + ">";
-
-			file << "template<> inline const " << valueVector << "& EnumValues() { \n";
-			file << "\tstatic const " << valueVector << " values{\n";
-			for (const auto& c : reflectData.Constants)
-			{
-				file << "\t\tstd::pair<std::string, " << typeWithNamespace << ">(\"" << c.Name << "\", " << typeWithNamespace << "(" << c.Value << ")),\n";
-			}
-			file << "\t};\n";
-			file << "\treturn values;\n";
-			file << "}\n\n";
-
-			file << "template<> inline const " << valueMap << "& EnumMap() { \n";
-			file << "\tstatic const " << valueMap << " values{\n";
-			for (const auto& c : reflectData.Constants)
-			{
-				file << "\t\tstd::pair<std::string, " << typeWithNamespace << ">(\"" << c.Name << "\", " << typeWithNamespace << "(" << c.Value << ")),\n";
-			}
-			file << "\t};\n";
-			file << "\treturn values;\n";
-			file << "}\n\n";
-
-			file << addtionalOptions.ExportMacro << " const char* EnumToString(" << typeWithNamespace << " x);\n";
-			file << addtionalOptions.ExportMacro << " bool StringToEnum(const std::string& str, " << typeWithNamespace << "& x);\n";
-
-			file << "}\n\n";	// Namespace
+			file << "\t\tstd::pair{ \"" << c.Name << "\", ValueType(" << c.Value << ") },\\\n";
 		}
+		file << "};\\\n";
+		WRITE_CLOSE();
+	}
+
+	void CodeGenerateHeader::WriteEnumMaps(const ReflectContainerData& data, std::ostream& file, const std::string& currentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)
+	{
+		file << "#define " + currentFileId + "_MAPS \\\n";
+		WRITE_PRIVATE();
+		file << "\tstatic inline const std::map<std::string_view, ValueType> StringToEnum{\\\n";
+		for (const auto& c : data.Constants)
+		{
+			file << "\t\t{ \"" << c.Name << "\", ValueType(" << c.Value << ") },\\\n";
+		}
+		file << "\t};\\\n";
+
+		file << "\tstatic inline const std::map<ValueType, std::string_view> EnumToString{\\\n";
+		for (const auto& c : data.Constants)
+		{
+			file << "\t\t{ ValueType(" << c.Value << "), \"" << c.Name << "\" },\\\n";
+		}
+		file << "\t};\\\n";
+		WRITE_CLOSE();
+	}
+
+	void CodeGenerateHeader::WriteEnumMethods(const ReflectContainerData& data, std::ostream& file, const std::string& currentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)
+	{
+		file << "#define " + currentFileId + "_METHODS \\\n";
+		WRITE_PUBLIC();
+		file << "\tstatic const auto& ToString(ValueType v) { return EnumToString.at(v); }\\\n";
+		file << "\tconst auto& ToString() const { return ToString((ValueType)Value); }\\\n";
+		file << "\tbool TryParse(const std::string_view& value) { const auto it = StringToEnum.find(value); \
+if (it == StringToEnum.end()) { return false; } \
+Value = it->second; return true; \
+}\\\n";
+		WRITE_CLOSE();
 	}
 }

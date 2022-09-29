@@ -44,7 +44,7 @@ namespace Reflect
 					// MSVC specifies "class std::string", whereas GCC specifies "std::string".
 					// Strip off "class" and "struct" for MSVC to make them the same.
 #if defined(_MSC_VER)
-					//if (type.starts_with("enum ")) return 5;
+					if (type.starts_with("enum ")) return 5;
 					if (type.starts_with("class ")) return 6;
 					if (type.starts_with("struct ")) return 7;
 #endif

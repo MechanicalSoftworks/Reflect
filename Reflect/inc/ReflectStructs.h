@@ -202,99 +202,10 @@ namespace Reflect
 		const WriteMemberType	Write;
 	};
 
-	template<typename T> inline const std::vector<std::pair<std::string, T>>& EnumValues();
-	template<typename T> inline const std::map<std::string, T>& EnumMap();
-
 	template<typename T>
 	inline REFLECT_CONSTEXPR typename std::enable_if<!std::is_enum_v<T>, ReflectMemberProp>::type CreateReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties, const ReadMemberType& read, const WriteMemberType& write)
 	{
 		return ReflectMemberProp(name, type, offset, strProperties, Reflect::Util::GetStaticClass<T>(), std::is_pointer_v<T>, read, write);
-	}
-
-	template<typename T>
-	inline typename std::enable_if<std::is_enum_v<T>, ReflectMemberProp>::type CreateReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties, const ReadMemberType& read, const WriteMemberType& write)
-	{
-		class EnumImplementation final : public Reflect::Enum
-		{
-			static auto GenerateMap()
-			{
-				std::map<std::string, int> int_values;
-				for (const auto& it : EnumValues<T>())
-				{
-					int_values.insert(std::pair<std::string, int>(it.first, (int)it.second));
-				}
-				return int_values;
-			}
-
-			static auto GenerateValues()
-			{
-				std::vector<std::pair<std::string, int>> int_values;
-				for (const auto& it : EnumValues<T>())
-				{
-					int_values.push_back(std::pair<std::string, int>(it.first, (int)it.second));
-				}
-				return int_values;
-			}
-
-		public:
-			EnumImplementation()
-				: m_map(GenerateMap())
-				, m_values(GenerateValues())
-			{}
-
-			const char* ToString(int v) const final override
-			{
-				const char* EnumToString(T);
-				return EnumToString((T)v);
-			}
-
-			const std::map<std::string, int>& Map() const final override { return m_map; }
-			const std::vector<std::pair<std::string, int>>& Values() const final override { return m_values; }
-
-			int Parse(const std::string& str) const final override
-			{
-				bool StringToEnum(const std::string&, T&);
-
-				T v = (T)0;
-				if (!StringToEnum(str, v))
-				{
-					throw new std::runtime_error("Unknown string");
-				}
-
-				return (int)v;
-			}
-
-			bool ParseTo(const std::string& str, void* ptr) const final override
-			{
-				bool StringToEnum(const std::string&, T&);
-				return StringToEnum(str, *(T*)ptr);
-			}
-
-			int IndexOf(const void* ptr) const final override
-			{
-				const auto& val = *(T*)ptr;
-				for (size_t i = 0; i < m_values.size(); ++i)
-				{
-					if ((T)m_values[i].second == val)
-					{
-						return (int)i;
-					}
-				}
-				return -1;
-			}
-
-			void AssignIndex(void* ptr, int index) const final override
-			{
-				*(T*)ptr = (T)m_values.at(index).second;
-			}
-
-		private:
-			const std::map<std::string, int> m_map;
-			const std::vector<std::pair<std::string, int>> m_values;
-		};
-
-		auto e = std::make_unique<EnumImplementation>();
-		return ReflectMemberProp(name, type, offset, strProperties, std::move(e), read, write);
 	}
 
 	/// <summary>

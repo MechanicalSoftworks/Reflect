@@ -7,6 +7,7 @@
 #include <stack>
 #include <assert.h>
 #include <cstring>
+#include <string_view>
 
 namespace Reflect
 {
@@ -182,7 +183,8 @@ namespace Reflect
 		}
 		else if (containerData.ReflectType == ReflectType::Enum)
 		{
-			kw = "enum";
+			// Enums are strongly typed as members of classes.
+			kw = "class";
 		}
 		int newPos = (int)fileData.Data.find(kw, fileData.Cursor);
 		if (newPos != std::string::npos)
@@ -218,8 +220,6 @@ namespace Reflect
 		containerData.TypeSize = DEFAULT_TYPE_SIZE;
 
 		// Assume the first type name found is the super class.
-		// Stop searching after "REFLECT_BASE()".
-		containerData.SuperName = "Reflect::IReflect";
 		if (fileData.Data.at(fileData.Cursor) == ':')
 		{
 			token.clear();
@@ -236,6 +236,7 @@ namespace Reflect
 				}
 				else if (token.find("REFLECT_BASE()") == 0) // Use find to catch "REFLECT_BASE()," as well.
 				{
+					containerData.SuperName = "Reflect::IReflect";
 					break;
 				}
 				else if (token.length())
@@ -274,10 +275,8 @@ namespace Reflect
 
 	void FileParser::ReflectClassContainer(FileParsedData& fileData, ReflectContainerData& conatinerData, int endOfContainerCursor)
 	{
-		std::stack<char> bracketStack;
-
 		int generatedBodyLine = static_cast<int>(fileData.Data.find(ReflectGeneratedBodykey, fileData.GeneratedBodyLineOffset));
-		assert(generatedBodyLine != -1 && "[FileParser::ReflectContainer] 'REFLECT_GENERATED_BODY()' is missing from a container.");
+		assert(generatedBodyLine != -1 && "[FileParser::ReflectClassContainer] 'REFLECT_GENERATED_BODY()' is missing from a container.");
 		fileData.GeneratedBodyLineOffset = generatedBodyLine + static_cast<int>(strlen(ReflectGeneratedBodykey));
 		conatinerData.ReflectGenerateBodyLine = CountNumberOfSinceTop(fileData, generatedBodyLine, '\n') + 1;
 
@@ -341,7 +340,19 @@ namespace Reflect
 
 	void FileParser::ReflectEnumContainer(FileParsedData& fileData, ReflectContainerData& containerData, int endOfContainerCursor)
 	{
-		assert(containerData.SuperName.length() && "[FileParser::ReflectEnumContainer] Enums need a fixed size base class.");
+		using namespace std::literals;
+
+		int generatedBodyLine = static_cast<int>(fileData.Data.find(ReflectGeneratedBodykey, fileData.GeneratedBodyLineOffset));
+		assert(generatedBodyLine != -1 && "[FileParser::ReflectEnumContainer] 'REFLECT_GENERATED_BODY()' is missing from a container.");
+		fileData.GeneratedBodyLineOffset = generatedBodyLine + static_cast<int>(strlen(ReflectGeneratedBodykey));
+		containerData.ReflectGenerateBodyLine = CountNumberOfSinceTop(fileData, generatedBodyLine, '\n') + 1;
+
+		const auto kw = "enum"sv;
+		int newPos = (int)fileData.Data.find(kw, fileData.Cursor);
+		assert(newPos != std::string::npos && "[FileParser::ReflectEnumContainer] 'enum' is missing from a container.");
+		fileData.Cursor = newPos;
+		fileData.Cursor += kw.length();
+
 		int64_t value = -1;
 
 		// Consume the opening brace.

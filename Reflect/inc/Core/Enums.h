@@ -46,6 +46,20 @@ namespace Reflect
 		INVALID_MEMBER,
 	};
 	REFLECT_DLL std::string ReflectReturnCodeToString(const ReflectReturnCode& code);
+
+	template<typename TValue>
+	class IEnum
+	{
+	public:
+		constexpr IEnum() : Value(0) {}
+		constexpr IEnum(TValue v) : Value(v) {}
+
+		TValue load() const { return Value; }
+		void store(TValue v) { Value = v; }
+
+	protected:
+		TValue Value;
+	};
 }
 
 /// <summary>

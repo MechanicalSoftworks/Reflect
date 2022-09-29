@@ -39,15 +39,6 @@ namespace Reflect
 		{
 			file << "}" << std::endl;
 		}
-
-		for (auto& reflectData : data.ReflectData)
-		{
-			if (reflectData.ReflectType == ReflectType::Enum)
-			{
-				WriteEnum(reflectData, file, addtionalOptions);
-				continue;
-			}
-		}
 	}
 
 	void CodeGenerateSource::WriteStaticClass(const ReflectContainerData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
@@ -129,35 +120,4 @@ namespace Reflect
 	//	}
 	//	file << "\n";
 	//}
-
-	void CodeGenerateSource::WriteEnum(const Reflect::ReflectContainerData& reflectData, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
-	{
-		file << "\n\n";
-
-		const std::string typeWithNamespace = addtionalOptions.Namespace.length()
-			? addtionalOptions.Namespace + "::" + reflectData.Type
-			: reflectData.Type;
-
-		file << "namespace Reflect {\n";
-
-		file << addtionalOptions.ExportMacro << " const char* EnumToString(" << typeWithNamespace << " x) {\n";
-		file << "\tswitch((" << reflectData.SuperName << ")x) {\n";
-		for (const auto& c : reflectData.Constants)
-		{
-			file << "\t\tcase " << c.Value << ": return \"" << c.Name << "\";\n";
-		}
-		file << "\t}\n";
-		file << "\treturn nullptr;\n";
-		file << "}\n\n";
-
-		file << addtionalOptions.ExportMacro << " bool StringToEnum(const std::string& str, " << typeWithNamespace << "& x) {\n";
-		file << "\tconst auto& values = EnumMap<" << typeWithNamespace << ">();\n";
-		file << "\tauto it = values.find(str);\n";
-		file << "\tif (it == values.end()) return false;\n";
-		file << "\tx = it->second;\n";
-		file << "\treturn true;\n";
-		file << "}\n";
-
-		file << "}\n\n";	// Namespace
-	}
 }
