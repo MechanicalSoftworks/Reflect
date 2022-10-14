@@ -13,7 +13,6 @@ namespace Reflect
 {
 	struct IReflect;
 	class Class;
-	class Enum;
 	struct Constructor;
 
 	struct ReflectTypeNameData
@@ -77,6 +76,7 @@ namespace Reflect
 	{
 		std::string Name;
 		int64_t Value;
+		std::vector<std::string> Flags;
 	};
 
 	struct ReflectContainerData : public ReflectTypeNameData
@@ -104,23 +104,6 @@ namespace Reflect
 		std::vector<ReflectContainerData> ReflectData;
 	};
 
-	class Enum
-	{
-	public:
-		~Enum() {}
-
-		virtual const char* ToString(int v) const = 0;
-
-		virtual int Parse(const std::string& str) const = 0;
-		virtual bool ParseTo(const std::string& str, void* ptr) const = 0;
-
-		virtual const std::map<std::string, int>& Map() const = 0;
-		virtual const std::vector<std::pair<std::string, int>>& Values() const = 0;
-
-		virtual int IndexOf(const void* ptr) const = 0;
-		virtual void AssignIndex(void* ptr, int index) const = 0;
-	};
-
 	//
 	// These exist if we ever need to provide some sort of common interface.
 	//
@@ -144,10 +127,10 @@ namespace Reflect
 			, Write(write)
 		{}
 
-		ReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties, std::unique_ptr<Enum>&& staticEnum, const ReadMemberType& read, const WriteMemberType& write)
+		REFLECT_CONSTEXPR ReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties, const Enum& staticEnum, const ReadMemberType& read, const WriteMemberType& write)
 			: Name(name)
 			, Type(type)
-			, StaticEnum(std::move(staticEnum))
+			, StaticEnum(&staticEnum)
 			, Offset(offset)
 			, StrProperties(strProperties)
 			, Read(read)
@@ -194,8 +177,8 @@ namespace Reflect
 		const char* const		Name;
 		const std::string		Type;
 		const Class* const		StaticClass = nullptr;
+		const Enum* const		StaticEnum = nullptr;
 		const bool				IsPointer = false;
-		const std::unique_ptr<Enum>	StaticEnum;
 		const int				Offset;
 		const std::vector<std::string> StrProperties;
 		const ReadMemberType	Read;
@@ -203,9 +186,17 @@ namespace Reflect
 	};
 
 	template<typename T>
-	inline REFLECT_CONSTEXPR typename std::enable_if<!std::is_enum_v<T>, ReflectMemberProp>::type CreateReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties, const ReadMemberType& read, const WriteMemberType& write)
+	inline REFLECT_CONSTEXPR typename std::enable_if<!std::is_base_of_v<BaseEnumContainer, T>, ReflectMemberProp>::type 
+		CreateReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties, const ReadMemberType& read, const WriteMemberType& write)
 	{
 		return ReflectMemberProp(name, type, offset, strProperties, Reflect::Util::GetStaticClass<T>(), std::is_pointer_v<T>, read, write);
+	}
+
+	template<typename T>
+	inline REFLECT_CONSTEXPR typename std::enable_if<std::is_base_of_v<BaseEnumContainer, T>, ReflectMemberProp>::type 
+		CreateReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties, const ReadMemberType& read, const WriteMemberType& write)
+	{
+		return ReflectMemberProp(name, type, offset, strProperties, T::StaticEnum, read, write);
 	}
 
 	/// <summary>
@@ -417,39 +408,12 @@ namespace Reflect
 
 		bool ContainsProperty(std::vector<std::string> const& flags) const
 		{
-			for (auto const& flag : flags)
-			{
-				for (auto const& p : StrProperties)
-				{
-					if (p == flag || (p.length() >= flag.length() && p.find(flag) == 0 && p[flag.length()] == '='))
-					{
-						return true;
-					}
-				}
-			}
-			return false;
+			return Util::ContainsProperty(StrProperties, flags);
 		}
 
-		bool GetPropertyValue(const std::string_view &flag, std::string& value) const
+		bool GetPropertyValue(const std::string_view &flag, std::string_view& value) const
 		{
-			for (auto const& p : StrProperties)
-			{
-				if (p.find(flag) != 0)
-				{
-					continue;
-				}
-
-				const auto assign = p.find('=');
-				if (assign != flag.length())
-				{
-					continue;
-				}
-
-				value = p.substr(assign + 1);
-				return true;
-			}
-
-			return false;
+			return Util::GetPropertyValue(StrProperties, flag, value);
 		}
 
 		const char* const				Name;

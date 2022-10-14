@@ -27,12 +27,14 @@ namespace Reflect
 		{
 			if (reflectData.ReflectType == ReflectType::Enum)
 			{
-				continue;
+				WriteStaticEnum(reflectData, file, addtionalOptions);
 			}
-
-			WriteStaticClass(reflectData, file, addtionalOptions);
-			WriteFunctionGet(reflectData, file, addtionalOptions);
-			WriteMemberGet(reflectData, file, addtionalOptions);
+			else
+			{
+				WriteStaticClass(reflectData, file, addtionalOptions);
+				WriteFunctionGet(reflectData, file, addtionalOptions);
+				WriteMemberGet(reflectData, file, addtionalOptions);
+			}
 		}
 
 		if (addtionalOptions.Namespace.length())
@@ -120,4 +122,42 @@ namespace Reflect
 	//	}
 	//	file << "\n";
 	//}
+
+	void CodeGenerateSource::WriteStaticEnum(const ReflectContainerData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
+	{
+		file << "const Reflect::Enum " << data.Name << "::StaticEnum = Reflect::Enum(\"" << data.Name << "\", \n";
+		file << "\t" << CodeGenerate::GetMemberProps(data.ContainerProps) << ", \n";
+
+		file << "\t{\n";
+		for (const auto& c : data.Constants)
+		{
+			std::string_view displayLabel;
+			if (!Util::GetPropertyValue(c.Flags, "DisplayLabel", displayLabel))
+			{
+				displayLabel = c.Name;
+			}
+
+			file << "\t\tReflect::EnumConstant(\"" << c.Name << "\", " << c.Value << ", \"" << displayLabel << "\", " << CodeGenerate::GetMemberProps(c.Flags) << "),\n";
+		}
+		file << "\t},\n";
+
+		file << "\t{\n";
+		for (const auto& c : data.Constants)
+		{
+			file << "\t\t{ \"" << c.Name << "\", Definition(" << c.Value << ") },\n";
+		}
+		file << "\t},\n";
+
+		file << "\t{\n";
+		for (const auto& c : data.Constants)
+		{
+			file << "\t\t{ Definition(" << c.Value << "), \"" << c.Name << "\" },\n";
+		}
+		file << "\t},\n";
+
+		file << "\t[](const void* ptr) -> Reflect::Enum::ConstantType { return ((" << data.Name << "*)ptr)->Value; },\n";
+		file << "\t[](void* ptr, Reflect::Enum::ConstantType value) -> void { ((" << data.Name << "*)ptr)->Value = (" << data.Name << "::ValueType)value; } \n";
+
+		file << ");\n\n";
+	}
 }

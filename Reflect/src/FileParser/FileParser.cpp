@@ -222,13 +222,24 @@ namespace Reflect
 		// Assume the first type name found is the super class.
 		if (fileData.Data.at(fileData.Cursor) == ':')
 		{
+			bool inTemplate = false;
 			token.clear();
 			++fileData.Cursor;
 			while (fileData.Data.at(fileData.Cursor) != '{')
 			{
-				if (!std::isspace(fileData.Data.at(fileData.Cursor)))
+				const char ch = fileData.Data.at(fileData.Cursor);
+				if (ch == '<')
 				{
-					token += fileData.Data.at(fileData.Cursor);
+					inTemplate = true;
+				}
+				else if (ch == '>')
+				{
+					inTemplate = false;
+				}
+				
+				if (!std::isspace(ch) || inTemplate)
+				{
+					token += ch;
 				}
 				else if (token == "virtual" || token == "public" || token == "protected" || token == "private")
 				{
@@ -360,6 +371,7 @@ namespace Reflect
 
 		while (true)
 		{
+			ReflectConstantData constantData = {};
 			bool hex = false;
 
 			// Eat whitespace.
@@ -373,10 +385,9 @@ namespace Reflect
 			}
 
 			// Get constant name.
-			std::string name;
 			while (std::isalnum(fileData.Data[fileData.Cursor]) || fileData.Data[fileData.Cursor] == '_' || fileData.Data[fileData.Cursor] == '$')
 			{
-				name += fileData.Data[fileData.Cursor++];
+				constantData.Name += fileData.Data[fileData.Cursor++];
 				if (fileData.Cursor >= endOfContainerCursor)
 				{
 					return;
@@ -431,10 +442,25 @@ namespace Reflect
 				value++;
 			}
 
-			ReflectConstantData constantData = {};
-			constantData.Name = name;
+			// Eat whitespace.
+			while (std::isspace(fileData.Data[fileData.Cursor]))
+			{
+				fileData.Cursor++;
+				if (fileData.Cursor >= endOfContainerCursor)
+				{
+					return;
+				}
+			}
+
+			const std::string_view v(fileData.Data.begin() + fileData.Cursor, fileData.Data.end());
+			if (v.starts_with(MetaKey))
+			{
+				fileData.Cursor += strlen(MetaKey);
+				constantData.Flags = ReflectFlags(fileData);
+			}
+
 			constantData.Value = value;
-			containerData.Constants.push_back(constantData);
+			containerData.Constants.push_back(std::move(constantData));
 
 			// Move to the next token.
 			while (!std::isalnum(fileData.Data[fileData.Cursor]) && fileData.Data[fileData.Cursor] != '_' && fileData.Data[fileData.Cursor] != '$')

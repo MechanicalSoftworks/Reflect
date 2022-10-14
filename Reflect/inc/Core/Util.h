@@ -26,6 +26,79 @@ namespace Reflect
 			return str;
 		}
 
+		static bool GetPropertyValue(const std::vector<std::string>& properties, const std::string_view& flag, std::string_view& value)
+		{
+			for (auto const& p : properties)
+			{
+				if (p.find(flag) != 0)
+				{
+					continue;
+				}
+
+				const auto assign = p.find('=');
+				if (assign != flag.length())
+				{
+					continue;
+				}
+
+				value = std::string_view(p.begin() + assign + 1, p.end());
+				return true;
+			}
+
+			return false;
+		}
+
+		static bool ContainsProperty(const std::vector<std::string>& properties, std::vector<std::string> const& flags)
+		{
+			for (auto const& flag : flags)
+			{
+				for (auto const& p : properties)
+				{
+					if (p == flag || (p.length() >= flag.length() && p.find(flag) == 0 && p[flag.length()] == '='))
+					{
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+
+		[[nodiscard]] static auto		SplitStringView(const std::string_view& str, char delim)
+		{
+			std::vector<std::string_view> v;
+
+			auto start = 0ull;
+			auto end = str.find(delim);
+			while (end != std::string::npos)
+			{
+				v.push_back(str.substr(start, end - start));
+				start = end + 1;
+				end = str.find(delim, start);
+			}
+
+			if (str.length())
+			{
+				v.push_back(str.substr(start, end));
+			}
+
+			return v;
+		}
+
+		[[nodiscard]] static std::string_view	ltrim_stringview(const std::string_view& str, const char* chars = "\t\n\v\f\r ")
+		{
+			return str.substr(str.find_first_not_of(chars));
+		}
+
+		[[nodiscard]] static std::string_view	rtrim_stringview(const std::string_view& str, const char* chars = "\t\n\v\f\r ")
+		{
+			return str.substr(0, str.find_last_not_of(chars) + 1);
+		}
+
+		[[nodiscard]] static std::string_view	trim_stringview(const std::string_view& str, const char* chars = "\t\n\v\f\r ")
+		{
+			return rtrim_stringview(ltrim_stringview(str, chars), chars);
+		}
+
 		//
 		// Cross platform name generator.
 		//

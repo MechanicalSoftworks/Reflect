@@ -92,18 +92,14 @@ namespace Reflect
 
 	void CodeGenerateHeader::WriteEnumMacros(const Reflect::ReflectContainerData& reflectData, const FileParsedData& data, std::ostream& file, const std::string& CurrentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
-		WriteEnumConstructors(reflectData, file, CurrentFileId, addtionalOptions);
+		WriteStaticEnum(reflectData, file, CurrentFileId, addtionalOptions);
 		WriteEnumOperators(reflectData, file, CurrentFileId, addtionalOptions);
 		WriteEnumValues(reflectData, file, CurrentFileId, addtionalOptions);
-		WriteEnumMaps(reflectData, file, CurrentFileId, addtionalOptions);
-		WriteEnumMethods(reflectData, file, CurrentFileId, addtionalOptions);
 
 		WRITE_CURRENT_FILE_ID(data.FileName) + "_" + std::to_string(reflectData.ReflectGenerateBodyLine) + "_GENERATED_BODY \\\n";
-		file << CurrentFileId + "_CONSTRUCTORS \\\n";
+		file << CurrentFileId + "_STATIC_ENUM \\\n";
 		file << CurrentFileId + "_OPERATORS \\\n";
-		file << CurrentFileId + "_METHODS \\\n";
 		file << CurrentFileId + "_VALUES \\\n";
-		file << CurrentFileId + "_MAPS \\\n";
 	}
 
 	void CodeGenerateHeader::WriteStaticClass(const ReflectContainerData& data, std::ostream& file, const std::string& currentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)
@@ -199,7 +195,7 @@ namespace Reflect
 		file << "virtual std::vector<Reflect::ReflectMember> GetMembers() const override;\\\n";
 		for (const auto& member : data.Members)
 		{
-			file << "static constexpr const char* " << member.Name << "_name = \"" << member.Name << "\";\\\n";
+			file << "static constexpr const char* nameof_" << member.Name << " = \"" << member.Name << "\";\\\n";
 		}
 		WRITE_CLOSE();
 	}
@@ -273,13 +269,15 @@ namespace Reflect
 		WRITE_CLOSE();
 	}
 
-	void CodeGenerateHeader::WriteEnumConstructors(const ReflectContainerData& data, std::ostream& file, const std::string& currentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)
+	void CodeGenerateHeader::WriteStaticEnum(const ReflectContainerData& data, std::ostream& file, const std::string& currentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
-		file << "#define " + currentFileId + "_CONSTRUCTORS \\\n";
+		file << "#define " + currentFileId + "_STATIC_ENUM \\\n";
 		WRITE_PUBLIC();
 		file << "\tusing SuperClass = " + data.SuperName + ";\\\n";
+		file << "\tfriend class SuperClass;\\\n";
+		file << "\tstatic const Reflect::Enum StaticEnum;\\\n";
 		file << "\t" << data.Name << "() = default;\\\n";
-		file << "\tconstexpr " << data.Name << "(ValueType v) : SuperClass(v) {};\\\n";
+		file << "\tconstexpr " << data.Name << "(Definition v) : SuperClass(v) {};\\\n";
 		WRITE_CLOSE();
 	}
 
@@ -288,14 +286,14 @@ namespace Reflect
 		file << "#define " + currentFileId + "_OPERATORS \\\n";
 		WRITE_PUBLIC();
 		// Allow switch and comparisons.
-		file << "\tconstexpr operator ValueType() const { return ValueType(Value); }\\\n";
+		file << "\tconstexpr operator Definition() const { return Definition(Value); }\\\n";
 
 		// Prevent usage: if(value)
 		file << "\texplicit operator bool() const = delete;\\\n";
 
-		file << "\tconstexpr bool operator==(ValueType rhs) const { return Value == rhs; }\\\n";
-		file << "\tconstexpr bool operator!=(ValueType rhs) const { return Value != rhs; }\\\n";
-		file << "\tconstexpr auto& operator=(ValueType v) { Value = v; return *this; }\\\n";
+		file << "\tconstexpr bool operator==(Definition rhs) const { return Value == rhs; }\\\n";
+		file << "\tconstexpr bool operator!=(Definition rhs) const { return Value != rhs; }\\\n";
+		file << "\tconstexpr auto& operator=(Definition v) { Value = v; return *this; }\\\n";
 		WRITE_CLOSE();
 	}
 
@@ -303,45 +301,14 @@ namespace Reflect
 	{
 		file << "#define " + currentFileId + "_VALUES \\\n";
 		WRITE_PUBLIC();
-		file << "\tstatic constexpr std::array<std::pair<std::string_view, ValueType>, " << data.Constants.size() << "> Values{\\\n";
-		for (const auto& c : data.Constants)
-		{
-			file << "\t\tstd::pair{ \"" << c.Name << "\", ValueType(" << c.Value << ") },\\\n";
-		}
-		file << "};\\\n";
-		WRITE_CLOSE();
-	}
 
-	void CodeGenerateHeader::WriteEnumMaps(const ReflectContainerData& data, std::ostream& file, const std::string& currentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)
-	{
-		file << "#define " + currentFileId + "_MAPS \\\n";
-		WRITE_PRIVATE();
-		file << "\tstatic inline const std::map<std::string_view, ValueType> StringToEnum{\\\n";
+		file << "\tstatic constexpr std::array<std::pair<std::string_view, Definition>, " << data.Constants.size() << "> Names{\\\n";
 		for (const auto& c : data.Constants)
 		{
-			file << "\t\t{ \"" << c.Name << "\", ValueType(" << c.Value << ") },\\\n";
+			file << "\t\tstd::pair{ \"" << c.Name << "\", Definition(" << c.Value << ") },\\\n";
 		}
 		file << "\t};\\\n";
 
-		file << "\tstatic inline const std::map<ValueType, std::string_view> EnumToString{\\\n";
-		for (const auto& c : data.Constants)
-		{
-			file << "\t\t{ ValueType(" << c.Value << "), \"" << c.Name << "\" },\\\n";
-		}
-		file << "\t};\\\n";
-		WRITE_CLOSE();
-	}
-
-	void CodeGenerateHeader::WriteEnumMethods(const ReflectContainerData& data, std::ostream& file, const std::string& currentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)
-	{
-		file << "#define " + currentFileId + "_METHODS \\\n";
-		WRITE_PUBLIC();
-		file << "\tstatic const auto& ToString(ValueType v) { return EnumToString.at(v); }\\\n";
-		file << "\tconst auto& ToString() const { return ToString((ValueType)Value); }\\\n";
-		file << "\tbool TryParse(const std::string_view& value) { const auto it = StringToEnum.find(value); \
-if (it == StringToEnum.end()) { return false; } \
-Value = it->second; return true; \
-}\\\n";
 		WRITE_CLOSE();
 	}
 }

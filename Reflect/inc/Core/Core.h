@@ -34,6 +34,7 @@
 #	endif
 #endif
 
+#define REFLECT_META(...)
 #define REFLECT_PROPERTY(...)
 
 #define BODY_MACRO_COMBINE_INNER(A, B, C, D) A##B##C##D
@@ -43,15 +44,16 @@
 
 namespace Reflect
 {
-	#define REFLECT_MAJOR 1
-	#define REFLECT_MINOR 5
-	#define REFLECT_PATCH 3
+	#define REFLECT_MAJOR 2
+	#define REFLECT_MINOR 0
+	#define REFLECT_PATCH 0
 
 	constexpr const char* RefectStructKey = "REFLECT_STRUCT";
 	constexpr const char* RefectClassKey = "REFLECT_CLASS";
 	constexpr const char* RefectEnumKey = "REFLECT_ENUM";
 	constexpr const char* ReflectGeneratedBodykey = "REFLECT_GENERATED_BODY";
 	constexpr const char* PropertyKey = "REFLECT_PROPERTY";
+	constexpr const char* MetaKey = "REFLECT_META";
 	constexpr const char* ReflectFileGeneratePrefix = ".reflect";
 	constexpr const char* ReflectFileHeaderGuard = "_reflect";
 }
