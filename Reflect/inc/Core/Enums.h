@@ -77,17 +77,21 @@ namespace Reflect
 	{
 	public:
 		using ConstantType = int64_t;
-		
-		using LoadFuncType = ConstantType(*)(const void*);
-		using StoreFuncType = void(*)(void*, ConstantType);
 
-		REFLECT_CONSTEXPR Enum(const std::string_view& name, const std::string_view& value_type_name, std::vector<std::string> const& strProperties, const std::vector<Reflect::EnumConstant>& values, const std::map<std::string_view, ConstantType>& string_to_enum, const std::map<ConstantType, std::string_view>& enum_to_string, const LoadFuncType& load, const StoreFuncType& store)
+		using ValuesContainerType			= std::vector<Reflect::EnumConstant>;
+		using StringToConstantContainerType	= std::map<std::string_view, ValuesContainerType::const_iterator>;
+		using ValueToConstantContainerType	= std::map<ConstantType, ValuesContainerType::const_iterator>;
+		
+		using LoadFuncType	= ConstantType(*)(const void*);
+		using StoreFuncType	= void(*)(void*, ConstantType);
+
+		REFLECT_CONSTEXPR Enum(const std::string_view& name, const std::string_view& value_type_name, std::vector<std::string>&& strProperties, std::vector<Reflect::EnumConstant>&& values, const LoadFuncType& load, const StoreFuncType& store)
 			: Name(name)
 			, ValueTypeName(value_type_name)
-			, StrProperties(strProperties)
-			, Values(values)
-			, StringToEnum(string_to_enum)
-			, EnumToString(enum_to_string)
+			, StrProperties(std::move(strProperties))
+			, Values(std::move(values))
+			, StringToConstant(BuildStringToConstant(Values))
+			, ValueToConstant(BuildValueToConstant(Values))
 			, Load(load)
 			, Store(store)
 		{}
@@ -102,15 +106,20 @@ namespace Reflect
 			return Util::GetPropertyValue(StrProperties, flag, value);
 		}
 
+		const auto& GetConstant(ConstantType value) const
+		{
+			return *ValueToConstant.at(value);
+		}
+
 		bool TryParseTo(const std::string_view& str, void* ptr) const
 		{
-			const auto it = StringToEnum.find(str);
-			if (it == StringToEnum.end())
+			const auto it = StringToConstant.find(str);
+			if (it == StringToConstant.end())
 			{
 				return false;
 			}
 
-			Store(ptr, it->second);
+			Store(ptr, it->second->Value);
 			return true;
 		}
 
@@ -132,19 +141,19 @@ namespace Reflect
 			Store(ptr, Values.at(index).Value);
 		}
 
-		const auto& ToString(ConstantType v) const			{ return EnumToString.at(v); }
-		const auto& Parse(const std::string_view& v) const	{ return StringToEnum.at(v); }
+		const auto& ToString(ConstantType v) const					{ return ValueToConstant.at(v)->Name; }
+		const ConstantType& Parse(const std::string_view& v) const	{ return StringToConstant.at(v)->Value; }
 
 		template<typename T>
 		bool TryParse(const std::string_view& value, T& v)
 		{
-			const auto it = StringToEnum.find(value);
-			if (it == StringToEnum.end())
+			const auto it = StringToConstant.find(value);
+			if (it == StringToConstant.end())
 			{
 				return false;
 			}
 			
-			v = (T)it->second;
+			v = (T)it->second->Value;
 			return true;
 		}
 
@@ -160,20 +169,47 @@ namespace Reflect
 			return v;
 		}
 
-		const std::string_view							Name;
-		const std::string_view							ValueTypeName;
-		const std::vector<Reflect::EnumConstant>		Values;
-		const std::vector<std::string>					StrProperties;
+		const std::string_view					Name;
+		const std::string_view					ValueTypeName;
+		const ValuesContainerType				Values;
+		const std::vector<std::string>			StrProperties;
 
 	private:
-		const std::map<std::string_view, ConstantType>	StringToEnum;
-		const std::map<ConstantType, std::string_view>	EnumToString;
+		const StringToConstantContainerType		StringToConstant;
+		const ValueToConstantContainerType		ValueToConstant;
 
 		const LoadFuncType		Load;
 		const StoreFuncType		Store;
+
+		static StringToConstantContainerType BuildStringToConstant(const ValuesContainerType& values)
+		{
+			StringToConstantContainerType lut;
+
+			for (auto it = values.cbegin(); it != values.cend(); ++it)
+			{
+				lut.try_emplace(it->Name, it);
+			}
+
+			return lut;
+		}
+
+		static ValueToConstantContainerType BuildValueToConstant(const ValuesContainerType& values)
+		{
+			ValueToConstantContainerType lut;
+
+			for (auto it = values.cbegin(); it != values.cend(); ++it)
+			{
+				lut.try_emplace(it->Value, it);
+			}
+
+			return lut;
+		}
 	};
 
 	// This is for the benefit of 'CreateReflectMemberProp' who needs to determine whether something is an enum or a class.
+	// !!! NOTE: It's very important this doesn't have any members, or virtual methods !!!
+	// !!!       We pass these enum classes by value, like real enums.
+	// !!!       Adding members adds function call overhead, which is a very bad thing!
 	class IEnum {};
 
 	template<class T> using EnableIfIEnum = std::enable_if_t<std::is_base_of_v<IEnum, T>>;

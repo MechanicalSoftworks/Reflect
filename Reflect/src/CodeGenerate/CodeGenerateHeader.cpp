@@ -353,8 +353,13 @@ namespace Reflect
 		file << "\tstatic const auto & ToString(" << data.Name << " v) { return StaticEnum.ToString(v); }\\\n";
 		file << "\tconst auto& ToString() const { return StaticEnum.ToString(Value); }\\\n";
 
-		file << "\tauto Parse(const std::string_view& value)		{ return (ValueType)const_cast<Reflect::Enum&>(StaticEnum).Parse(value); }\\\n";
-		file << "\tauto TryParse(const std::string_view& value)	{ return const_cast<Reflect::Enum&>(StaticEnum).TryParse(value, Value); }\\\n";
+		file << "\tstatic auto Parse(const std::string_view& value)		{ return (Values)const_cast<Reflect::Enum&>(StaticEnum).Parse(value); }\\\n";
+		file << "\tstatic auto TryParse(const std::string_view& value, " << data.Name << "& v)	{ return const_cast<Reflect::Enum&>(StaticEnum).TryParse(value, v.Value); }\\\n";
+		
+		file << "\tstatic auto ContainsProperty(std::vector<std::string> const& flags)	{ return StaticEnum.ContainsProperty(flags); }\\\n";
+		file << "\tstatic auto GetPropertyValue(const std::string_view& flag, std::string_view& value)	{ return StaticEnum.GetPropertyValue(flag, value); }\\\n";
+
+		file << "\tconst auto& GetConstant() const	{ return StaticEnum.GetConstant(Value); }\\\n";
 
 		file << "\tstd::string ToBitfieldString() const {\\\n";
 		file << "\t\tstd::string s;\\\n";

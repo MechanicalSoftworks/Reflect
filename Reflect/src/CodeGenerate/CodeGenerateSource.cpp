@@ -150,20 +150,6 @@ namespace Reflect
 		}
 		file << "\t},\n";
 
-		file << "\t{\n";
-		for (const auto& c : data.Constants)
-		{
-			file << "\t\t{ \"" << c.Name << "\", Values(" << c.Value << ") },\n";
-		}
-		file << "\t},\n";
-
-		file << "\t{\n";
-		for (const auto& c : data.Constants)
-		{
-			file << "\t\t{ Values(" << c.Value << "), \"" << c.Name << "\" },\n";
-		}
-		file << "\t},\n";
-
 		file << "\t[](const void* ptr) -> Reflect::Enum::ConstantType { return ((" << data.Name << "*)ptr)->Value; },\n";
 		file << "\t[](void* ptr, Reflect::Enum::ConstantType value) -> void { ((" << data.Name << "*)ptr)->Value = (" << data.Name << "::ValueType)value; } \n";
 
