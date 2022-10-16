@@ -290,7 +290,7 @@ namespace Reflect
 		file << "\tusing SuperClass = " + data.SuperName + ";\\\n";
 		file << "\tusing ValueType = " << valueType << ";\\\n";
 		file << "\tstatic const Reflect::Enum StaticEnum;\\\n";
-		file << "\tconstexpr " << data.Name << "() : Value(0) {}\\\n";
+		file << "\tconstexpr " << data.Name << "() {}\\\n";
 		file << "\tconstexpr " << data.Name << "(Values v) : Value(v) {}\\\n";
 
 		WRITE_CLOSE();
@@ -329,18 +329,13 @@ namespace Reflect
 
 	void CodeGenerateHeader::WriteEnumMembers(const ReflectContainerData& data, std::ostream& file, const std::string& currentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
-		if (!Util::ContainsProperty(data.ContainerProps, { "ValueType" }))
-		{
-			file << "#error \"Enum " << data.Name << " is missing ValueType\"\n";
-			return;
-		}
-		
 		file << "#define " + currentFileId + "_MEMBERS \\\n";
 		WRITE_PROTECTED();
 
-		std::string_view valueType;
-		Util::GetPropertyValue(data.ContainerProps, "ValueType", valueType);
-		file << "\tValueType Value = 0;\\\n";
+		// To get a better debugging experience - define the real variable as the enum.
+		// The load()+store() methods below worry about converting to and from the ValueType.
+		// Serialisers should use that load()+store() interface.
+		file << "\tValues Value = (Values)0;\\\n";
 	
 		WRITE_CLOSE();
 	}
@@ -377,8 +372,8 @@ namespace Reflect
 
 		file << "\tstatic ValueType ParseBitfieldString(const std::string_view& values)	{ return (ValueType)StaticEnum.ParseBitfieldString(values); }\\\n";
 
-		file << "\tValueType	load() const		{ return Value; }\\\n";
-		file << "\tvoid	store(ValueType v)		{ Value = v; }\\\n";
+		file << "\tValueType	load() const	{ return Value; }\\\n";
+		file << "\tvoid	store(ValueType v)		{ Value = (Values)v; }\\\n";
 	
 		WRITE_CLOSE();
 	}

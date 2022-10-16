@@ -151,7 +151,7 @@ namespace Reflect
 		file << "\t},\n";
 
 		file << "\t[](const void* ptr) -> Reflect::Enum::ConstantType { return ((" << data.Name << "*)ptr)->Value; },\n";
-		file << "\t[](void* ptr, Reflect::Enum::ConstantType value) -> void { ((" << data.Name << "*)ptr)->Value = (" << data.Name << "::ValueType)value; } \n";
+		file << "\t[](void* ptr, Reflect::Enum::ConstantType value) -> void { ((" << data.Name << "*)ptr)->Value = (" << data.Name << "::Values)value; } \n";
 
 		file << ");\n\n";
 	}
