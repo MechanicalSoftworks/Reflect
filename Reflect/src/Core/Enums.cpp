@@ -1,10 +1,25 @@
 #include "Core/Enums.h"
 #include "Core/Util.h"
+#include "Core/Compiler.h"
 
 #include <stdexcept>
 
 namespace Reflect
 {
+	/// <summary>
+	/// Dirty way of getting the enum string value.
+	/// </summary>
+	/// <typeparam name="E"></typeparam>
+	/// <returns></returns>
+	template <typename E, E> REFLECT_DLL std::string EnumToString()
+	{
+		std::string value = FUNC_SIG;
+		int startIndex = static_cast<int>(value.find_last_of(',')) + 1;
+		int endIndex = static_cast<int>(value.find_last_of('>'));
+		value = value.substr(startIndex, endIndex - startIndex);
+		return value;
+	}
+
 	ReflectFlags StringToReflectFlags(const std::string& str)
 	{
 		if (Util::ToLower(str) == "private" || EnumToString<ReflectFlags, Private>() == str) return ReflectFlags::Private;

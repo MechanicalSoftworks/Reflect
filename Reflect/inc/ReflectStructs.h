@@ -186,14 +186,14 @@ namespace Reflect
 	};
 
 	template<typename T>
-	inline REFLECT_CONSTEXPR typename std::enable_if<!std::is_base_of_v<BaseEnumContainer, T>, ReflectMemberProp>::type 
+	inline REFLECT_CONSTEXPR typename std::enable_if<!std::is_base_of_v<IEnum, T>, ReflectMemberProp>::type 
 		CreateReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties, const ReadMemberType& read, const WriteMemberType& write)
 	{
 		return ReflectMemberProp(name, type, offset, strProperties, Reflect::Util::GetStaticClass<T>(), std::is_pointer_v<T>, read, write);
 	}
 
 	template<typename T>
-	inline REFLECT_CONSTEXPR typename std::enable_if<std::is_base_of_v<BaseEnumContainer, T>, ReflectMemberProp>::type 
+	inline REFLECT_CONSTEXPR typename std::enable_if<std::is_base_of_v<IEnum, T>, ReflectMemberProp>::type
 		CreateReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties, const ReadMemberType& read, const WriteMemberType& write)
 	{
 		return ReflectMemberProp(name, type, offset, strProperties, T::StaticEnum, read, write);
@@ -307,9 +307,9 @@ namespace Reflect
 		const ReflectMemberProp* const	Properties;
 		void* const						RawPointer;
 
-		bool IsValid() const { return RawPointer != nullptr; }
-		auto GetName() const { return Properties->Name; }
-		auto GetTypeName() const { return Properties->Type; }
+		bool IsValid() const			{ return RawPointer != nullptr; }
+		const auto& GetName() const		{ return Properties->Name; }
+		const auto& GetTypeName() const	{ return Properties->Type; }
 
 		template<typename T>
 		REFLECT_DLL T* ConvertToType()

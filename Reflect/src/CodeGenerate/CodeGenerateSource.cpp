@@ -125,7 +125,16 @@ namespace Reflect
 
 	void CodeGenerateSource::WriteStaticEnum(const ReflectContainerData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
-		file << "const Reflect::Enum " << data.Name << "::StaticEnum = Reflect::Enum(\"" << data.Name << "\", \n";
+		if (!Util::ContainsProperty(data.ContainerProps, { "ValueType" }))
+		{
+			file << "#error \"Enum " << data.Name << " is missing ValueType\"\n";
+			return;
+		}
+
+		std::string_view valueType;
+		Util::GetPropertyValue(data.ContainerProps, "ValueType", valueType);
+
+		file << "const Reflect::Enum " << data.Name << "::StaticEnum = Reflect::Enum(\"" << data.Name << "\", \"" << valueType << "\",\n";
 		file << "\t" << CodeGenerate::GetMemberProps(data.ContainerProps) << ", \n";
 
 		file << "\t{\n";

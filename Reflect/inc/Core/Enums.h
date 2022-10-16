@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Compiler.h"
-#include "Core.h"
 #include "Util.h"
 #include <string>
 #include <vector>
@@ -74,7 +73,7 @@ namespace Reflect
 		const std::vector<std::string>		Flags;
 	};
 
-	class Enum
+	class REFLECT_DLL Enum
 	{
 	public:
 		using ConstantType = int64_t;
@@ -82,8 +81,9 @@ namespace Reflect
 		using LoadFuncType = ConstantType(*)(const void*);
 		using StoreFuncType = void(*)(void*, ConstantType);
 
-		REFLECT_CONSTEXPR Enum(const std::string_view& name, std::vector<std::string> const& strProperties, const std::vector<Reflect::EnumConstant>& values, const std::map<std::string_view, ConstantType>& string_to_enum, const std::map<ConstantType, std::string_view>& enum_to_string, const LoadFuncType& load, const StoreFuncType& store)
+		REFLECT_CONSTEXPR Enum(const std::string_view& name, const std::string_view& value_type_name, std::vector<std::string> const& strProperties, const std::vector<Reflect::EnumConstant>& values, const std::map<std::string_view, ConstantType>& string_to_enum, const std::map<ConstantType, std::string_view>& enum_to_string, const LoadFuncType& load, const StoreFuncType& store)
 			: Name(name)
+			, ValueTypeName(value_type_name)
 			, StrProperties(strProperties)
 			, Values(values)
 			, StringToEnum(string_to_enum)
@@ -161,6 +161,7 @@ namespace Reflect
 		}
 
 		const std::string_view							Name;
+		const std::string_view							ValueTypeName;
 		const std::vector<Reflect::EnumConstant>		Values;
 		const std::vector<std::string>					StrProperties;
 
@@ -168,60 +169,15 @@ namespace Reflect
 		const std::map<std::string_view, ConstantType>	StringToEnum;
 		const std::map<ConstantType, std::string_view>	EnumToString;
 
-		const LoadFuncType&		Load;
-		const StoreFuncType&	Store;
+		const LoadFuncType		Load;
+		const StoreFuncType		Store;
 	};
 
-	// Thisis for the benefit of 'CreateReflectMemberProp' who needs to determine whether something is an enum or a class.
-	// Can't use std::is_base_of against the template class EnumContainer.
-	class BaseEnumContainer
-	{};
+	// This is for the benefit of 'CreateReflectMemberProp' who needs to determine whether something is an enum or a class.
+	class IEnum {};
 
-	template<typename TEnum, typename TValue>
-	class EnumContainer : public BaseEnumContainer
-	{
-	public:
-		using ValueType = TValue;
-
-		constexpr EnumContainer() : Value(0) {}
-		constexpr EnumContainer(TValue v) : Value(v) {}
-
-		static const auto& ToString(TEnum v)			{ return TEnum::StaticEnum.ToString(v); }
-		       const auto& ToString() const				{ return TEnum::StaticEnum.ToString(Value); }
-
-		auto Parse(const std::string_view& value)		{ return (ValueType)const_cast<Enum&>(TEnum::StaticEnum).Parse(value); }
-		auto TryParse(const std::string_view& value)	{ return const_cast<Enum&>(TEnum::StaticEnum).TryParse(value, Value); }
-
-		std::string ToBitfieldString() const
-		{
-			std::string s;
-
-			for (const auto& it : TEnum::StaticEnum.Values)
-			{
-				if (Value & it.Value)
-				{
-					s.reserve(s.length() + it.Name.length() + 1);
-
-					if (s.length())
-					{
-						s += '|';
-					}
-
-					s += it.Name;
-				}
-			}
-
-			return s;
-		}
-
-		static ValueType ParseBitfieldString(const std::string_view& values)	{ return (ValueType)TEnum::StaticEnum.ParseBitfieldString(values); }
-
-		TValue	load() const		{ return Value; }
-		void	store(TValue v)		{ Value = v; }
-
-	protected:
-		TValue Value;
-	};
+	template<class T> using EnableIfIEnum = std::enable_if_t<std::is_base_of_v<IEnum, T>>;
+	template<class T> using EnableIfNotIEnum = std::enable_if_t<!std::is_base_of_v<IEnum, T>>;
 }
 
 /// <summary>

@@ -19,6 +19,7 @@ namespace Reflect
 #define WRITE_CLOSE() file << "\n\n"
 
 #define WRITE_PUBLIC() file << "public:\\\n"
+#define WRITE_PROTECTED() file << "protected:\\\n"
 #define WRITE_PRIVATE() file << "private:\\\n"
 
 	void CodeGenerateHeader::GenerateHeader(const FileParsedData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
@@ -92,14 +93,24 @@ namespace Reflect
 
 	void CodeGenerateHeader::WriteEnumMacros(const Reflect::ReflectContainerData& reflectData, const FileParsedData& data, std::ostream& file, const std::string& CurrentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
+		if (!Util::ContainsProperty(reflectData.ContainerProps, { "ValueType" }))
+		{
+			file << "#error \"Enum " << reflectData.Name << " is missing ValueType\"\n";
+			return;
+		}
+
 		WriteStaticEnum(reflectData, file, CurrentFileId, addtionalOptions);
 		WriteEnumOperators(reflectData, file, CurrentFileId, addtionalOptions);
 		WriteEnumValues(reflectData, file, CurrentFileId, addtionalOptions);
+		WriteEnumMembers(reflectData, file, CurrentFileId, addtionalOptions);
+		WriteEnumMethods(reflectData, file, CurrentFileId, addtionalOptions);
 
 		WRITE_CURRENT_FILE_ID(data.FileName) + "_" + std::to_string(reflectData.ReflectGenerateBodyLine) + "_GENERATED_BODY \\\n";
 		file << CurrentFileId + "_STATIC_ENUM \\\n";
 		file << CurrentFileId + "_OPERATORS \\\n";
 		file << CurrentFileId + "_VALUES \\\n";
+		file << CurrentFileId + "_MEMBERS \\\n";
+		file << CurrentFileId + "_METHODS \\\n";
 	}
 
 	void CodeGenerateHeader::WriteStaticClass(const ReflectContainerData& data, std::ostream& file, const std::string& currentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)
@@ -271,13 +282,17 @@ namespace Reflect
 
 	void CodeGenerateHeader::WriteStaticEnum(const ReflectContainerData& data, std::ostream& file, const std::string& currentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
+		std::string_view valueType;
+		Util::GetPropertyValue(data.ContainerProps, "ValueType", valueType);
+
 		file << "#define " + currentFileId + "_STATIC_ENUM \\\n";
 		WRITE_PUBLIC();
 		file << "\tusing SuperClass = " + data.SuperName + ";\\\n";
-		file << "\tfriend class SuperClass;\\\n";
+		file << "\tusing ValueType = " << valueType << ";\\\n";
 		file << "\tstatic const Reflect::Enum StaticEnum;\\\n";
-		file << "\t" << data.Name << "() = default;\\\n";
-		file << "\tconstexpr " << data.Name << "(Definition v) : SuperClass(v) {};\\\n";
+		file << "\tconstexpr " << data.Name << "() : Value(0) {}\\\n";
+		file << "\tconstexpr " << data.Name << "(Definition v) : Value(v) {}\\\n";
+
 		WRITE_CLOSE();
 	}
 
@@ -309,6 +324,57 @@ namespace Reflect
 		}
 		file << "\t};\\\n";
 
+		WRITE_CLOSE();
+	}
+
+	void CodeGenerateHeader::WriteEnumMembers(const ReflectContainerData& data, std::ostream& file, const std::string& currentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)
+	{
+		if (!Util::ContainsProperty(data.ContainerProps, { "ValueType" }))
+		{
+			file << "#error \"Enum " << data.Name << " is missing ValueType\"\n";
+			return;
+		}
+		
+		file << "#define " + currentFileId + "_MEMBERS \\\n";
+		WRITE_PROTECTED();
+
+		std::string_view valueType;
+		Util::GetPropertyValue(data.ContainerProps, "ValueType", valueType);
+		file << "\tValueType Value = 0;\\\n";
+	
+		WRITE_CLOSE();
+	}
+
+	void CodeGenerateHeader::WriteEnumMethods(const ReflectContainerData& data, std::ostream& file, const std::string& currentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)
+	{
+		file << "#define " + currentFileId + "_METHODS \\\n";
+		WRITE_PUBLIC();
+
+		file << "\tstatic const auto & ToString(" << data.Name << " v) { return StaticEnum.ToString(v); }\\\n";
+		file << "\tconst auto& ToString() const { return StaticEnum.ToString(Value); }\\\n";
+
+		file << "\tauto Parse(const std::string_view& value)		{ return (ValueType)const_cast<Reflect::Enum&>(StaticEnum).Parse(value); }\\\n";
+		file << "\tauto TryParse(const std::string_view& value)	{ return const_cast<Reflect::Enum&>(StaticEnum).TryParse(value, Value); }\\\n";
+
+		file << "\tstd::string ToBitfieldString() const {\\\n";
+		file << "\t\tstd::string s;\\\n";
+		file << "\t\tfor (const auto& it : StaticEnum.Values) {\\\n";
+		file << "\t\t\tif (Value & it.Value) {\\\n";
+		file << "\t\t\t\ts.reserve(s.length() + it.Name.length() + 1);\\\n";
+		file << "\t\t\t\tif (s.length()) {\\\n";
+		file << "\t\t\t\t\ts += '|';\\\n";
+		file << "\t\t\t\t}\\\n";
+		file << "\t\t\t\ts += it.Name;\\\n";
+		file << "\t\t\t}\\\n";
+		file << "\t\t}\\\n";
+		file << "\t\treturn s;\\\n";
+		file << "\t}\\\n";
+
+		file << "\tstatic ValueType ParseBitfieldString(const std::string_view& values)	{ return (ValueType)StaticEnum.ParseBitfieldString(values); }\\\n";
+
+		file << "\tValueType	load() const		{ return Value; }\\\n";
+		file << "\tvoid	store(ValueType v)		{ Value = v; }\\\n";
+	
 		WRITE_CLOSE();
 	}
 }
