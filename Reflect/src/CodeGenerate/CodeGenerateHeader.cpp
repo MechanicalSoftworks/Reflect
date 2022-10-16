@@ -291,7 +291,7 @@ namespace Reflect
 		file << "\tusing ValueType = " << valueType << ";\\\n";
 		file << "\tstatic const Reflect::Enum StaticEnum;\\\n";
 		file << "\tconstexpr " << data.Name << "() : Value(0) {}\\\n";
-		file << "\tconstexpr " << data.Name << "(Definition v) : Value(v) {}\\\n";
+		file << "\tconstexpr " << data.Name << "(Values v) : Value(v) {}\\\n";
 
 		WRITE_CLOSE();
 	}
@@ -301,14 +301,14 @@ namespace Reflect
 		file << "#define " + currentFileId + "_OPERATORS \\\n";
 		WRITE_PUBLIC();
 		// Allow switch and comparisons.
-		file << "\tconstexpr operator Definition() const { return Definition(Value); }\\\n";
+		file << "\tconstexpr operator Values() const { return Values(Value); }\\\n";
 
 		// Prevent usage: if(value)
 		file << "\texplicit operator bool() const = delete;\\\n";
 
-		file << "\tconstexpr bool operator==(Definition rhs) const { return Value == rhs; }\\\n";
-		file << "\tconstexpr bool operator!=(Definition rhs) const { return Value != rhs; }\\\n";
-		file << "\tconstexpr auto& operator=(Definition v) { Value = v; return *this; }\\\n";
+		file << "\tconstexpr bool operator==(Values rhs) const { return Value == rhs; }\\\n";
+		file << "\tconstexpr bool operator!=(Values rhs) const { return Value != rhs; }\\\n";
+		file << "\tconstexpr auto& operator=(Values v) { Value = v; return *this; }\\\n";
 		WRITE_CLOSE();
 	}
 
@@ -317,10 +317,10 @@ namespace Reflect
 		file << "#define " + currentFileId + "_VALUES \\\n";
 		WRITE_PUBLIC();
 
-		file << "\tstatic constexpr std::array<std::pair<std::string_view, Definition>, " << data.Constants.size() << "> Names{\\\n";
+		file << "\tstatic constexpr std::array<std::pair<std::string_view, Values>, " << data.Constants.size() << "> Names{\\\n";
 		for (const auto& c : data.Constants)
 		{
-			file << "\t\tstd::pair{ \"" << c.Name << "\", Definition(" << c.Value << ") },\\\n";
+			file << "\t\tstd::pair{ \"" << c.Name << "\", Values(" << c.Value << ") },\\\n";
 		}
 		file << "\t};\\\n";
 

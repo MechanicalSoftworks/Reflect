@@ -153,14 +153,14 @@ namespace Reflect
 		file << "\t{\n";
 		for (const auto& c : data.Constants)
 		{
-			file << "\t\t{ \"" << c.Name << "\", Definition(" << c.Value << ") },\n";
+			file << "\t\t{ \"" << c.Name << "\", Values(" << c.Value << ") },\n";
 		}
 		file << "\t},\n";
 
 		file << "\t{\n";
 		for (const auto& c : data.Constants)
 		{
-			file << "\t\t{ Definition(" << c.Value << "), \"" << c.Name << "\" },\n";
+			file << "\t\t{ Values(" << c.Value << "), \"" << c.Name << "\" },\n";
 		}
 		file << "\t},\n";
 
