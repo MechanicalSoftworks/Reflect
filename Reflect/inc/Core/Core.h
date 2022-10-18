@@ -10,7 +10,11 @@
 #pragma error C++17 must be used.
 #endif
 
-#if __cplusplus >= 202110L
+#if _MSC_VER >= 1930
+#	define REFLECT_SUPPORTS_CONSTEXPR
+#endif
+
+#ifdef REFLECT_SUPPORTS_CONSTEXPR
 #	define REFLECT_CONSTEXPR constexpr
 #else
 #	define REFLECT_CONSTEXPR

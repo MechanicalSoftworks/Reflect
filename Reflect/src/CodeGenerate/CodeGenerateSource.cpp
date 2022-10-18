@@ -134,7 +134,7 @@ namespace Reflect
 		std::string_view valueType;
 		Util::GetPropertyValue(data.ContainerProps, "ValueType", valueType);
 
-		file << "const Reflect::Enum " << data.Name << "::StaticEnum = Reflect::Enum(\"" << data.Name << "\", \"" << valueType << "\",\n";
+		file << "const Reflect::Enum " << data.Name << "::StaticEnum = Reflect::Enum(\"" << data.Name << "\", Reflect::Util::GetTypeName<" << data.Name << "::ValueType>(),\n";
 		file << "\t" << CodeGenerate::GetMemberProps(data.ContainerProps) << ", \n";
 
 		file << "\t{\n";
