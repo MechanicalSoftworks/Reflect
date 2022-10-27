@@ -384,6 +384,22 @@ namespace Reflect
 				}
 			}
 
+			// Skip commented lines.
+			const std::string_view v0(fileData.Data.begin() + fileData.Cursor, fileData.Data.end());
+			if (v0.starts_with("//") || v0.starts_with("/*"))
+			{
+				// Eat everything till the next constant.
+				while (fileData.Data[fileData.Cursor] == ',' || fileData.Data[fileData.Cursor] == ';')
+				{
+					fileData.Cursor++;
+					if (fileData.Cursor >= endOfContainerCursor)
+					{
+						return;
+					}
+				}
+				continue;
+			}
+
 			// Get constant name.
 			while (std::isalnum(fileData.Data[fileData.Cursor]) || fileData.Data[fileData.Cursor] == '_' || fileData.Data[fileData.Cursor] == '$')
 			{
@@ -452,8 +468,8 @@ namespace Reflect
 				}
 			}
 
-			const std::string_view v(fileData.Data.begin() + fileData.Cursor, fileData.Data.end());
-			if (v.starts_with(MetaKey))
+			const std::string_view v1(fileData.Data.begin() + fileData.Cursor, fileData.Data.end());
+			if (v1.starts_with(MetaKey))
 			{
 				fileData.Cursor += strlen(MetaKey);
 				constantData.Flags = ReflectFlags(fileData);
