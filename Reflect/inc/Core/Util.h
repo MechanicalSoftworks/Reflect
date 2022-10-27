@@ -26,7 +26,7 @@ namespace Reflect
 			return str;
 		}
 
-		static bool GetPropertyValue(const std::vector<std::string>& properties, const std::string_view& flag, std::string_view& value)
+		static bool TryGetPropertyValue(const std::vector<std::string>& properties, const std::string_view& flag, std::string_view& value)
 		{
 			for (auto const& p : properties)
 			{

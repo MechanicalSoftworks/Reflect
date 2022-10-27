@@ -62,9 +62,11 @@ namespace Reflect
 			return Util::ContainsProperty(Flags, flags);
 		}
 
-		bool GetPropertyValue(const std::string_view& flag, std::string_view& value) const
+		std::string_view GetPropertyValue(const std::string_view& flag) const;
+
+		auto TryGetPropertyValue(const std::string_view& flag, std::string_view& value) const
 		{
-			return Util::GetPropertyValue(Flags, flag, value);
+			return Util::TryGetPropertyValue(Flags, flag, value);
 		}
 			
 		const std::string_view				Name;
@@ -101,9 +103,11 @@ namespace Reflect
 			return Util::ContainsProperty(StrProperties, flags);
 		}
 
-		bool GetPropertyValue(const std::string_view& flag, std::string_view& value) const
+		std::string_view GetPropertyValue(const std::string_view& flag) const;
+
+		bool TryGetPropertyValue(const std::string_view& flag, std::string_view& value) const
 		{
-			return Util::GetPropertyValue(StrProperties, flag, value);
+			return Util::TryGetPropertyValue(StrProperties, flag, value);
 		}
 
 		const auto& GetConstant(ConstantType value) const

@@ -42,4 +42,28 @@ namespace Reflect
 			default: throw std::runtime_error("[ReflectFuncReturnCodeToString] Missing ReflectFuncReturnCode to string conversion.");
 		}
 	}
+
+	std::string_view EnumConstant::GetPropertyValue(const std::string_view& flag) const
+	{
+		std::string_view value;
+
+		if (!Util::TryGetPropertyValue(Flags, flag, value))
+		{
+			throw std::runtime_error(std::string(Name) + " is missing property " + std::string(flag));
+		}
+
+		return value;
+	}
+
+	std::string_view Enum::GetPropertyValue(const std::string_view& flag) const
+	{
+		std::string_view value;
+
+		if (!Util::TryGetPropertyValue(StrProperties, flag, value))
+		{
+			throw std::runtime_error(std::string(Name) + " is missing property " + std::string(flag));
+		}
+
+		return value;
+	}
 }

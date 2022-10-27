@@ -413,7 +413,7 @@ namespace Reflect
 
 		bool GetPropertyValue(const std::string_view &flag, std::string_view& value) const
 		{
-			return Util::GetPropertyValue(StrProperties, flag, value);
+			return Util::TryGetPropertyValue(StrProperties, flag, value);
 		}
 
 		const char* const				Name;

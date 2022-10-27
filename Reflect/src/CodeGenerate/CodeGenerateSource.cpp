@@ -132,7 +132,7 @@ namespace Reflect
 		}
 
 		std::string_view valueType;
-		Util::GetPropertyValue(data.ContainerProps, "ValueType", valueType);
+		Util::TryGetPropertyValue(data.ContainerProps, "ValueType", valueType);
 
 		file << "const Reflect::Enum " << data.Name << "::StaticEnum = Reflect::Enum(\"" << data.Name << "\", \"" << valueType << "\",\n";
 		file << "\t" << CodeGenerate::GetMemberProps(data.ContainerProps) << ", \n";
@@ -141,7 +141,7 @@ namespace Reflect
 		for (const auto& c : data.Constants)
 		{
 			std::string_view displayLabel;
-			if (!Util::GetPropertyValue(c.Flags, "DisplayLabel", displayLabel))
+			if (!Util::TryGetPropertyValue(c.Flags, "DisplayLabel", displayLabel))
 			{
 				displayLabel = c.Name;
 			}
