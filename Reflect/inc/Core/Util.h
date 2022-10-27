@@ -9,6 +9,7 @@
 #include <atomic>
 #include <array>
 #include <memory>
+#include <set>
 
 namespace Reflect
 {
@@ -207,6 +208,11 @@ namespace Reflect
 			template <typename T>
 			struct TypeNameImpl<std::vector<T>> {
 				static REFLECT_CONSTEXPR std::string get() { return "std::vector<" + TypeNameImpl<T>::get() + ">"; }
+			};
+
+			template <typename T>
+			struct TypeNameImpl<std::set<T>> {
+				static REFLECT_CONSTEXPR std::string get() { return "std::set<" + TypeNameImpl<T>::get() + ">"; }
 			};
 
 			template <typename K, typename V>
