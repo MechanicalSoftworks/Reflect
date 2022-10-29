@@ -43,6 +43,26 @@ namespace Reflect
 		}
 	}
 
+	const std::string_view& Enum::ToString(ConstantType v) const
+	{
+		auto it = ValueToConstant.find(v);
+		if (it == ValueToConstant.end())
+		{
+			throw std::runtime_error(std::string(Name) + " has no value " + std::to_string(v));
+		}
+		return it->second->Name;
+	}
+	
+	const Enum::ConstantType& Enum::Parse(const std::string_view& v) const
+	{
+		auto it = StringToConstant.find(v);
+		if (it == StringToConstant.end())
+		{
+			throw std::runtime_error(std::string(Name) + " has no constant " + std::string(v));
+		}
+		return it->second->Value;
+	}
+
 	std::string_view EnumConstant::GetPropertyValue(const std::string_view& flag) const
 	{
 		std::string_view value;

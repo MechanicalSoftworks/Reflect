@@ -145,8 +145,8 @@ namespace Reflect
 			Store(ptr, Values.at(index).Value);
 		}
 
-		const auto& ToString(ConstantType v) const					{ return ValueToConstant.at(v)->Name; }
-		const ConstantType& Parse(const std::string_view& v) const	{ return StringToConstant.at(v)->Value; }
+		const std::string_view& ToString(ConstantType v) const;
+		const ConstantType& Parse(const std::string_view& v) const;
 
 		template<typename T>
 		bool TryParse(const std::string_view& value, T& v)
