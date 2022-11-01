@@ -443,10 +443,17 @@ namespace Reflect
 
 	struct Constructor
 	{
-		Constructor(const Class& type, IReflect* outer = nullptr, uint32_t flags = 0) : Type(type), Outer(outer), Flags(flags) {}
-		const Class& Type;
-		IReflect* const Outer;
-		const uint32_t Flags;
+		Constructor(const Class& type, IReflect* outer = nullptr, uint32_t object_flags = 0, uint32_t allocation_flags = 0)
+			: Type(type)
+			, Outer(outer)
+			, ObjectFlags(object_flags)
+			, AllocationFlags(allocation_flags)
+		{}
+
+		const Class& 		Type;
+		IReflect* const 	Outer;
+		const uint32_t		ObjectFlags;
+		const uint32_t		AllocationFlags;
 	};
 
 	struct REFLECT_DLL IReflect
