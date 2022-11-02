@@ -371,7 +371,7 @@ namespace Reflect
 		file << "\t\treturn s;\\\n";
 		file << "\t}\\\n";
 
-		file << "\tstatic ValueType ParseBitfieldString(const std::string_view& values)	{ return (ValueType)StaticEnum.ParseBitfieldString(values); }\\\n";
+		file << "\tstatic Values ParseBitfieldString(const std::string_view& values)	{ return (Values)StaticEnum.ParseBitfieldString(values); }\\\n";
 
 		file << "\tValueType	load() const	{ return Value; }\\\n";
 		file << "\tvoid	store(ValueType v)		{ Value = (Values)v; }\\\n";
