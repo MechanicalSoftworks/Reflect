@@ -309,6 +309,8 @@ namespace Reflect
 		file << "\tconstexpr bool operator==(Values rhs) const { return Value == rhs; }\\\n";
 		file << "\tconstexpr bool operator!=(Values rhs) const { return Value != rhs; }\\\n";
 		file << "\tconstexpr auto& operator=(Values v) { Value = v; return *this; }\\\n";
+		file << "\tconstexpr auto& operator|=(Values rhs) { Value = (Values)(Value | rhs); return *this; }\\\n";
+		file << "\tconstexpr auto& operator|=(const " << data.Name << "& rhs) { Value = (Values)(Value | rhs.Value); return *this; }\\\n";
 		WRITE_CLOSE();
 	}
 
