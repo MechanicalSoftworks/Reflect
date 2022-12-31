@@ -45,11 +45,14 @@ namespace Reflect
 
 	void CodeGenerateSource::WriteStaticClass(const ReflectContainerData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
+		const auto hasAllocator = !Util::ContainsProperty(data.ContainerProps, { "Abstract" });
+		const std::string_view allocatorParm = hasAllocator ? "" : "nullptr";
+
 		file << "const Reflect::Class " << data.Name << "::StaticClass = Reflect::Class(\"" << data.Name << "\", "
 			<< (data.SuperName != "Reflect::IReflect" ? (std::string("&") + data.SuperName + "::StaticClass") : std::string("nullptr")) << ", "
 			<< CodeGenerate::GetMemberProps(data.ContainerProps) << ", "
 			<< data.Members.size() << ", " << (data.Members.size() > 0 ? "__REFLECT_MEMBER_PROPS__.data()" : "nullptr") << ", "
-			<< "Reflect::ClassAllocator::Create<" << data.Name << ">()"
+			<< "Reflect::ClassAllocator::Create<" << data.Name << ">(" << allocatorParm << ")"
 			<< ");\n\n";
 	}
 

@@ -348,10 +348,18 @@ namespace Reflect
 		const DestroyType    Destroy;
 		const DeallocateType Deallocate;
 
+		operator bool() const { return Allocate && Construct && Destroy && Deallocate; }
+
 		template<typename T>
 		static ClassAllocator Create()
 		{
 			return ClassAllocator(AllocateObject<T>, ConstructObject<T>, DestroyObject<T>, DeallocateObject<T>);
+		}
+
+		template<typename T>
+		static ClassAllocator Create(std::nullptr_t)
+		{
+			return ClassAllocator(nullptr, nullptr, nullptr, nullptr);
 		}
 	};
 
