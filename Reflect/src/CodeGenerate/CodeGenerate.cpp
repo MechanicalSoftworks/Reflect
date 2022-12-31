@@ -87,17 +87,6 @@ namespace Reflect
 		return value;
 	}
 
-	std::string CodeGenerate::GetCustomSerialiser(const Reflect::ReflectMemberData& data)
-	{
-		const auto it = std::find_if(data.ContainerProps.begin(), data.ContainerProps.end(), [](const auto& p) { return p.find("CustomSerialiser=") == 0; });
-		if (it != data.ContainerProps.end())
-		{
-			return it->substr(it->find('=') + 1);
-		}
-
-		return "";
-	}
-
 	bool CodeGenerate::IsSerialised(const Reflect::ReflectMemberData& data)
 	{
 		const auto it = std::find_if(data.ContainerProps.begin(), data.ContainerProps.end(), [](const auto& p) { return p.find("Serialise") == 0; });

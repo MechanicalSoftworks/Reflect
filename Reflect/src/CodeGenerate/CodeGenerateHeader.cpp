@@ -143,18 +143,8 @@ namespace Reflect
 					continue;
 				}
 				
-				const auto customSerialiser = CodeGenerate::GetCustomSerialiser(member);
-				std::string readField, writeField;
-				if (customSerialiser.length())
-				{
-					readField = "ReadCustomField<" + customSerialiser + ", " + member.Type + ", __OFFSETOF__" + member.Name + "()>";
-					writeField = "WriteCustomFieldFromPtr<" + customSerialiser + ", " + member.Type + ">";
-				}
-				else
-				{
-					readField = "ReadField<" + member.Type + ", __OFFSETOF__" + member.Name + "()>";
-					writeField = "WriteFieldFromPtr<" + member.Type + ">";
-				}
+				const std::string readField = "ReadField<" + member.Type + ", __OFFSETOF__" + member.Name + "()>";
+				const std::string writeField = "WriteFieldFromPtr<" + member.Type + ">";
 
 				file << "\tstatic void __READ__" << member.Name << "(Reflect::IUnserialiser& u, std::istream& in, void* self) { " << readField << "(u, in, self); }\\\n";
 				file << "\tstatic void __WRITE__" << member.Name << "(Reflect::ISerialiser& s, std::ostream& out, const void* self) { " << writeField << "(s, out, self); }\\\n";

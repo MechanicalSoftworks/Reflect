@@ -29,7 +29,6 @@ namespace Reflect
 
 		static std::string GetMemberProps(const std::vector<std::string>& flags);
 
-		static std::string GetCustomSerialiser(const Reflect::ReflectMemberData& data);
 		static bool IsSerialised(const Reflect::ReflectMemberData& data);
 
 	private:
