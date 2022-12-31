@@ -451,7 +451,7 @@ namespace Reflect
 
 	struct Constructor
 	{
-		Constructor(const Class& type, IReflect* outer = nullptr, uint32_t object_flags = 0, uint32_t allocation_flags = 0)
+		Constructor(const Class& type, IReflect* outer = nullptr, uint64_t object_flags = 0, uint64_t allocation_flags = 0)
 			: Type(type)
 			, Outer(outer)
 			, ObjectFlags(object_flags)
@@ -460,8 +460,8 @@ namespace Reflect
 
 		const Class& 		Type;
 		IReflect* const 	Outer;
-		const uint32_t		ObjectFlags;
-		const uint32_t		AllocationFlags;
+		const uint64_t		ObjectFlags;
+		const uint64_t		AllocationFlags;
 	};
 
 	struct REFLECT_DLL IReflect
