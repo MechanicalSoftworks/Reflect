@@ -117,6 +117,7 @@ namespace Reflect
 	{
 		file << "#define " + currentFileId + "_STATIC_CLASS \\\n";
 		WRITE_PUBLIC();
+		file << "\tusing ThisClass = " + data.Name + ";\\\n";
 		if (data.SuperName.length())
 			file << "\tusing SuperClass = " + data.SuperName + ";\\\n";
 		file << "\tstatic const Reflect::Class StaticClass;\\\n";
@@ -287,6 +288,7 @@ namespace Reflect
 
 		file << "#define " + currentFileId + "_STATIC_ENUM \\\n";
 		WRITE_PUBLIC();
+		file << "\tusing ThisClass = " + data.Name + ";\\\n";
 		file << "\tusing SuperClass = " + data.SuperName + ";\\\n";
 		file << "\tusing ValueType = " << valueType << ";\\\n";
 		file << "\tstatic const Reflect::Enum StaticEnum;\\\n";
