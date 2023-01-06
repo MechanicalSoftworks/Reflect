@@ -31,8 +31,16 @@ namespace Reflect
 		WriteIfDifferent(headerPath, sout.str());
 		sout.str("");
 
+		// There is no source to write for now, so don't even try!
+#if 0
 		source.GenerateSource(data, sout, addtionalOptions);
 		WriteIfDifferent(sourcePath, sout.str());
+#else
+		if (std::filesystem::exists(sourcePath))
+		{
+			std::filesystem::remove(sourcePath);
+		}
+#endif
 		sout.str("");
 	}
 

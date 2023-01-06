@@ -13,8 +13,5 @@ namespace Reflect
 		~CodeGenerateSource() { }
 
 		void GenerateSource(const FileParsedData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions);
-
-	private:
-		void WriteStaticEnum(const ReflectContainerData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions);
 	};
 }

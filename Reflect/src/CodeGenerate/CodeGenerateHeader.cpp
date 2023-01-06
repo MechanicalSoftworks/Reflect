@@ -300,6 +300,12 @@ namespace Reflect
 
 	void CodeGenerateHeader::WriteStaticEnum(const ReflectContainerData& data, std::ostream& file, const std::string& currentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
+		if (!Util::ContainsProperty(data.ContainerProps, { "ValueType" }))
+		{
+			file << "#error \"Enum " << data.Name << " is missing ValueType\"\n";
+			return;
+		}
+
 		std::string_view valueType;
 		Util::TryGetPropertyValue(data.ContainerProps, "ValueType", valueType);
 
@@ -308,9 +314,33 @@ namespace Reflect
 		file << "\tusing ThisClass = " + data.Name + ";\\\n";
 		file << "\tusing SuperClass = " + data.SuperName + ";\\\n";
 		file << "\tusing ValueType = " << valueType << ";\\\n";
-		file << "\tstatic const Reflect::Enum StaticEnum;\\\n";
 		file << "\tconstexpr " << data.Name << "() {}\\\n";
 		file << "\tconstexpr " << data.Name << "(Values v) : Value(v) {}\\\n";
+
+		WRITE_PRIVATE();
+		file << "\tstatic Reflect::Enum::ConstantType __GetValue__(const void* ptr) { return ((" << data.Name << "*)ptr)->Value; } \\\n";
+		file << "\tstatic void __SetValue__(void* ptr, Reflect::Enum::ConstantType value) { ((" << data.Name << "*)ptr)->Value = (Values)value; } \\\n";
+		
+		WRITE_PUBLIC();
+		file << "\tstatic inline const Reflect::Enum StaticEnum = Reflect::Enum(\"" << data.Name << "\", Reflect::Util::GetTypeName<ValueType>(), \\\n";
+		file << "\t\t" << CodeGenerate::GetMemberProps(data.ContainerProps) << ", \\\n";
+
+		file << "\t\t{ \\\n";
+		for (const auto& c : data.Constants)
+		{
+			std::string_view displayLabel;
+			if (!Util::TryGetPropertyValue(c.Flags, "DisplayLabel", displayLabel))
+			{
+				displayLabel = c.Name;
+			}
+
+			file << "\t\t\tReflect::EnumConstant(\"" << c.Name << "\", " << c.Value << ", \"" << displayLabel << "\", " << CodeGenerate::GetMemberProps(c.Flags) << "), \\\n";
+		}
+		file << "\t\t}, \\\n";
+
+		file << "\t\t__GetValue__, __SetValue__ \\\n";
+
+		file << "\t);\\\n\n";
 
 		WRITE_CLOSE();
 	}
