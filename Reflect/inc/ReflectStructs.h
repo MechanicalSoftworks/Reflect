@@ -405,11 +405,27 @@ namespace Reflect
 				(SuperClass ? SuperClass->IsOrDescendantOf(c) : false);
 		}
 
-		REFLECT_DLL std::vector<ReflectMember> GetMembers(std::vector<std::string> const& flags, bool recursive=true) const
+		REFLECT_DLL ReflectMember GetMember(std::string_view const& memberName, IReflect* instance = nullptr) const
+		{
+			for (const auto* c = this; c != nullptr; c = c->SuperClass)
+			{
+				for (size_t i = 0; i < m_member_prop_count; i++)
+				{
+					if (m_member_props[i].Name == memberName)
+					{
+						return ReflectMember(m_member_props + i, (void*)((char*)instance + (size_t)m_member_props[i].Offset));
+					}
+				}
+			}
+
+			return ReflectMember(nullptr, nullptr);
+		}
+
+		REFLECT_DLL std::vector<ReflectMember> GetMembers(std::vector<std::string> const& flags, IReflect* instance = nullptr) const
 		{
 			std::vector<Reflect::ReflectMember> members;
 
-			GetMembersInternal(members, flags, recursive);
+			GetMembersInternal(members, flags, instance);
 			
 			return members;
 		}
@@ -430,17 +446,17 @@ namespace Reflect
 		const std::vector<std::string>	StrProperties;
 
 	private:
-		REFLECT_DLL void GetMembersInternal(std::vector<Reflect::ReflectMember>& members, std::vector<std::string> const& flags, bool recursive) const
+		REFLECT_DLL void GetMembersInternal(std::vector<Reflect::ReflectMember>& members, std::vector<std::string> const& flags, IReflect* instance) const
 		{
-			if (recursive && SuperClass)
-				SuperClass->GetMembersInternal(members, flags, recursive);
+			if (SuperClass)
+				SuperClass->GetMembersInternal(members, flags, instance);
 
 			for (size_t i = 0; i < m_member_prop_count; i++)
 			{
 				const auto& member = m_member_props[i];
 				if (member.ContainsProperty(flags))
 				{
-					members.push_back(Reflect::ReflectMember(&member, (void *)(size_t)member.Offset));
+					members.push_back(Reflect::ReflectMember(&member, (void *)((char*)instance + (size_t)member.Offset)));
 				}
 			}
 		}
@@ -475,9 +491,9 @@ namespace Reflect
 
 		// Reflection.
 		virtual ReflectFunction GetFunction(const std::string_view& functionName) const { (void)functionName; return ReflectFunction(nullptr, nullptr);};
-		virtual ReflectMember GetMember(const std::string_view& memberName) const { (void)memberName; return ReflectMember(nullptr, nullptr); };
-		virtual std::vector<ReflectMember> GetMembers(std::vector<std::string> const& flags) const { (void)flags; return {}; };
-		virtual std::vector<ReflectMember> GetMembers() const { return {}; };
+
+		auto GetMember(const std::string_view& memberName) const { return m_class->GetMember(memberName, const_cast<IReflect*>(this)); }
+		auto GetMembers(std::vector<std::string> const& flags) const { return m_class->GetMembers(flags, const_cast<IReflect*>(this)); }
 		
 		// Serialisation.
 		virtual void PostUnserialise() {}

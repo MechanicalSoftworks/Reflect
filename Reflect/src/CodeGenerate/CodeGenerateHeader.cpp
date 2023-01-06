@@ -80,7 +80,6 @@ namespace Reflect
 		WriteMemberProperties(reflectData, file, CurrentFileId, addtionalOptions);
 		WriteFunctions(reflectData, file, CurrentFileId, addtionalOptions);
 		WriteFunctionGet(reflectData, file, CurrentFileId, addtionalOptions);
-		WriteMemberGet(reflectData, file, CurrentFileId, addtionalOptions);
 
 		WRITE_CURRENT_FILE_ID(data.FileName) + "_" + std::to_string(reflectData.ReflectGenerateBodyLine) + "_GENERATED_BODY \\\n";
 		file << CurrentFileId + "_PROPERTIES_OFFSET \\\n";
@@ -88,7 +87,6 @@ namespace Reflect
 		file << CurrentFileId + "_PROPERTIES \\\n";
 		file << CurrentFileId + "_FUNCTION_DECLARE \\\n";
 		file << CurrentFileId + "_FUNCTION_GET \\\n";
-		file << CurrentFileId + "_PROPERTIES_GET \\\n";
 	}
 
 	void CodeGenerateHeader::WriteEnumMacros(const Reflect::ReflectContainerData& reflectData, const FileParsedData& data, std::ostream& file, const std::string& CurrentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)
@@ -127,8 +125,13 @@ namespace Reflect
 	void CodeGenerateHeader::WriteMemberProperties(const ReflectContainerData& data, std::ostream& file, const std::string& currentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
 		file << "#define " + currentFileId + "_PROPERTIES \\\n";
+		WRITE_PUBLIC();
+		for (const auto& member : data.Members)
+		{
+			file << "\tstatic constexpr const char* nameof_" << member.Name << " = \"" << member.Name << "\";\\\n";
+		}
+		
 		WRITE_PRIVATE();
-
 		if (data.Members.size())
 		{
 			// Write wrappers for the IO functions.
@@ -184,20 +187,6 @@ namespace Reflect
 		for (const auto& member : data.Members)
 		{
 			file << "\tstatic constexpr int __OFFSETOF__" + member.Name + "() { return offsetof(" + data.Name + ", " + member.Name + "); }; \\\n";
-		}
-		WRITE_CLOSE();
-	}
-
-	void CodeGenerateHeader::WriteMemberGet(const ReflectContainerData& data, std::ostream& file, const std::string& currentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)
-	{
-		file << "#define " + currentFileId + "_PROPERTIES_GET \\\n";
-		WRITE_PUBLIC();
-		file << "virtual Reflect::ReflectMember GetMember(const std::string_view& memberName) const override;\\\n";
-		file << "virtual std::vector<Reflect::ReflectMember> GetMembers(std::vector<std::string> const& flags) const override;\\\n";
-		file << "virtual std::vector<Reflect::ReflectMember> GetMembers() const override;\\\n";
-		for (const auto& member : data.Members)
-		{
-			file << "static constexpr const char* nameof_" << member.Name << " = \"" << member.Name << "\";\\\n";
 		}
 		WRITE_CLOSE();
 	}
