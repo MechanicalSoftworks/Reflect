@@ -18,6 +18,17 @@ namespace Reflect
 
 	namespace Util
 	{
+		// Thanks: https://tristanbrindle.com/posts/beware-copies-initializer-list
+		template <typename T, typename... Args>
+		std::vector<T> make_vector(Args&&... args)
+		{
+			std::vector<T> vec;
+			vec.reserve(sizeof...(Args));
+			using arr_t = int[];
+			(void) arr_t{0, (vec.emplace_back(std::forward<Args>(args)), 0)...};
+			return vec;
+		}
+
 		static std::string ToLower(std::string str)
 		{
 			std::transform(str.begin(), str.end(), str.begin(), [](char c)

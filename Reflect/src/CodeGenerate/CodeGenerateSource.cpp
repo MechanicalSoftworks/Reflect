@@ -32,7 +32,6 @@ namespace Reflect
 			else
 			{
 				WriteStaticClass(reflectData, file, addtionalOptions);
-				WriteFunctionGet(reflectData, file, addtionalOptions);
 			}
 		}
 
@@ -47,26 +46,63 @@ namespace Reflect
 		const auto hasAllocator = !Util::ContainsProperty(data.ContainerProps, { "Abstract" });
 		const std::string_view allocatorParm = hasAllocator ? "" : "nullptr";
 
-		file << "const Reflect::Class " << data.Name << "::StaticClass = Reflect::Class(\"" << data.Name << "\", "
-			<< (data.SuperName != "Reflect::IReflect" ? (std::string("&") + data.SuperName + "::StaticClass") : std::string("nullptr")) << ", "
-			<< CodeGenerate::GetMemberProps(data.ContainerProps) << ", "
-			<< data.Members.size() << ", " << (data.Members.size() > 0 ? "__REFLECT_MEMBER_PROPS__.data()" : "nullptr") << ", "
-			<< "Reflect::ClassAllocator::Create<" << data.Name << ">(" << allocatorParm << ")"
+		file << "const Reflect::Class " << data.Name << "::StaticClass = Reflect::Class(" << std::endl
+			<< "\t\"" << data.Name << "\", " << std::endl
+			<< "\t" << (data.SuperName != "Reflect::IReflect" ? (std::string("&") + data.SuperName + "::StaticClass") : std::string("nullptr")) << "," << std::endl
+			<< "\tReflect::ClassAllocator::Create<" << data.Name << ">(" << allocatorParm << ")," << std::endl
+			<< "\t" << CodeGenerate::GetMemberProps(data.ContainerProps) << "," << std::endl
+			<< CreateMemberInitializerList(data) << "," << std::endl
+			<< CreateFunctionInitializerList(data) << std::endl
 			<< ");\n\n";
 	}
 
-	void CodeGenerateSource::WriteFunctionGet(const ReflectContainerData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
+	std::string CodeGenerateSource::CreateMemberInitializerList(const ReflectContainerData& data)
 	{
-		file << "Reflect::ReflectFunction " + data.Name + "::GetFunction(const std::string_view &functionName) const\n{\n";
+		std::ostringstream oss;
+
+		oss << "\tReflect::Util::make_vector<Reflect::ReflectMemberProp>(\n";
+
+		for (const auto& member : data.Members)
+		{
+			const auto isLast = &member == &data.Members.back();
+			const auto eol = isLast ? "\n" : ",\n";
+
+			std::string readField, writeField;
+			if (CodeGenerate::IsSerialised(member))
+			{
+				readField = "__READ__" + member.Name;
+				writeField = "__WRITE__" + member.Name;
+			}
+			else
+			{
+				readField = writeField = "nullptr";
+			}
+
+			oss << "\t\tReflect::CreateReflectMemberProp<" + member.Type + ">(\"" + member.Name + "\", Reflect::Util::GetTypeName<" + member.Type + ">(), __OFFSETOF__" + member.Name + "(), " + CodeGenerate::GetMemberProps(member.ContainerProps) + ", " + readField + ", " + writeField + ")" + eol;
+		}
+
+		oss << "\t)";
+
+		return oss.str();
+	}
+
+	std::string CodeGenerateSource::CreateFunctionInitializerList(const ReflectContainerData& data)
+	{
+		std::ostringstream oss;
+
+		oss << "\tReflect::Util::make_vector<Reflect::ReflectMemberFunction>(\n";
+
 		for (const auto& func : data.Functions)
 		{
-			file << "\tif(functionName == \"" + func.Name + "\")\n";
-			file << "\t{\n";
-			file << "\t\treturn Reflect::ReflectFunction(const_cast<" + data.Name + "*>(this), " + data.Name + "::__REFLECT_FUNC__" + func.Name + ");\n";
-			file << "\t}\n";
+			const auto isLast = &func == &data.Functions.back();
+			const auto eol = isLast ? "\n" : ",\n";
+
+			oss << "\t\tReflect::ReflectMemberFunction(\"" + func.Name + "\", __REFLECT_FUNC__" + func.Name + ")" + eol;
 		}
-		file << "\treturn SuperClass::GetFunction(functionName);\n";
-		file << "}\n\n";
+
+		oss << "\t)";
+
+		return oss.str();
 	}
 
 	//void CodeGenerateSource::WriteFunctionBindings(const ReflectContainerData& data, std::ostream& file)

@@ -16,10 +16,9 @@ namespace Reflect
 
 	private:
 		void WriteStaticClass(const ReflectContainerData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions);
+		std::string CreateMemberInitializerList(const ReflectContainerData& data);
+		std::string CreateFunctionInitializerList(const ReflectContainerData& data);
 
-		void WriteMemberGet(const ReflectContainerData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions);
-		void WriteFunctionGet(const ReflectContainerData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions);
-	
 		void WriteStaticEnum(const ReflectContainerData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions);
 	};
 }
