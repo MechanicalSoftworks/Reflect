@@ -20,7 +20,7 @@ namespace Reflect
 	{
 		// Thanks: https://tristanbrindle.com/posts/beware-copies-initializer-list
 		template <typename T, typename... Args>
-		std::vector<T> make_vector(Args&&... args)
+		REFLECT_CONSTEXPR std::vector<T> make_vector(Args&&... args)
 		{
 			std::vector<T> vec;
 			vec.reserve(sizeof...(Args));
@@ -29,7 +29,7 @@ namespace Reflect
 			return vec;
 		}
 
-		static std::string ToLower(std::string str)
+		REFLECT_CONSTEXPR static std::string ToLower(std::string str)
 		{
 			std::transform(str.begin(), str.end(), str.begin(), [](char c)
 			{
@@ -38,7 +38,7 @@ namespace Reflect
 			return str;
 		}
 
-		static bool TryGetPropertyValue(const std::vector<std::string>& properties, const std::string_view& flag, std::string_view& value)
+		REFLECT_CONSTEXPR static bool TryGetPropertyValue(const std::vector<std::string>& properties, const std::string_view& flag, std::string_view& value)
 		{
 			for (auto const& p : properties)
 			{
@@ -60,7 +60,7 @@ namespace Reflect
 			return false;
 		}
 
-		static bool ContainsProperty(const std::vector<std::string>& properties, std::vector<std::string> const& flags)
+		static REFLECT_CONSTEXPR bool ContainsProperty(const std::vector<std::string>& properties, std::vector<std::string> const& flags)
 		{
 			for (auto const& flag : flags)
 			{

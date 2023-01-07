@@ -255,7 +255,7 @@ namespace Reflect
 
 	struct ReflectFunction
 	{
-		ReflectFunction(void* objectPtr, FunctionPtr func)
+		REFLECT_CONSTEXPR ReflectFunction(void* objectPtr, FunctionPtr func)
 			: m_objectPtr(objectPtr)
 			, m_func(func)
 		{ }
@@ -279,7 +279,7 @@ namespace Reflect
 			return ReflectReturnCode::INVALID_FUNCTION_POINTER;
 		}
 
-		REFLECT_DLL bool IsValid() const
+		REFLECT_DLL REFLECT_CONSTEXPR bool IsValid() const
 		{
 			return m_objectPtr != nullptr;
 		}
@@ -311,7 +311,7 @@ namespace Reflect
 
 	struct ReflectMember
 	{
-		ReflectMember(const ReflectMemberProp *prop, void* memberPtr)
+		REFLECT_CONSTEXPR ReflectMember(const ReflectMemberProp *prop, void* memberPtr)
 			: Properties(prop)
 			, RawPointer(memberPtr)
 		{}
@@ -347,7 +347,7 @@ namespace Reflect
 		template<typename T> static void DestroyObject(IReflect* obj) { ((T*)obj)->~T(); }
 		template<typename T> static void DeallocateObject(IReflect* obj) { std::allocator<T> a; return a.deallocate((T*)obj, 1); }
 
-		ClassAllocator(const AllocateType& allocate, const ConstructType& construct, const DestroyType& destroy, const DeallocateType& deallocate)
+		REFLECT_CONSTEXPR ClassAllocator(const AllocateType& allocate, const ConstructType& construct, const DestroyType& destroy, const DeallocateType& deallocate)
 			: Allocate(allocate)
 			, Construct(construct)
 			, Destroy(destroy)
@@ -363,11 +363,12 @@ namespace Reflect
 		operator bool() const { return Allocate && Construct && Destroy && Deallocate; }
 
 		template<typename T>
-		static ClassAllocator Create()
+		static REFLECT_CONSTEXPR ClassAllocator Create()
 		{
 			return ClassAllocator(AllocateObject<T>, ConstructObject<T>, DestroyObject<T>, DeallocateObject<T>);
 		}
 
+		// !!! For some reason, Visual Studio 2022 has compile errors when this is made constexpr, but only for templated classes !!!
 		template<typename T>
 		static ClassAllocator Create(std::nullptr_t)
 		{
@@ -378,7 +379,7 @@ namespace Reflect
 	class Class
 	{
 	public:
-		Class(const std::string &name, const Class *super, const ClassAllocator& allocator, std::vector<std::string> const& strProperties, std::vector<ReflectMemberProp>&& props, std::vector<ReflectMemberFunction>&& funcs)
+		REFLECT_CONSTEXPR Class(const std::string &name, const Class *super, const ClassAllocator& allocator, std::vector<std::string> const& strProperties, std::vector<ReflectMemberProp>&& props, std::vector<ReflectMemberFunction>&& funcs)
 			: Name(name)
 			, SuperClass(super)
 			, Allocator(allocator)
@@ -399,15 +400,15 @@ namespace Reflect
 		template<typename T> static auto LookupDescendantsOf() { return LookupDescendantsOf(T::StaticClass); }
 
 		template<typename T>
-		bool IsOrDescendantOf() const { return IsOrDescendantOf(T::StaticClass); }
-		inline bool IsOrDescendantOf(const Class& c) const 
+		REFLECT_CONSTEXPR bool IsOrDescendantOf() const { return IsOrDescendantOf(T::StaticClass); }
+		REFLECT_CONSTEXPR inline bool IsOrDescendantOf(const Class& c) const
 		{
 			return 
 				this == &c || 
 				(SuperClass ? SuperClass->IsOrDescendantOf(c) : false);
 		}
 
-		REFLECT_DLL auto GetMember(std::string_view const& memberName, IReflect* instance = nullptr) const
+		REFLECT_DLL REFLECT_CONSTEXPR auto GetMember(std::string_view const& memberName, IReflect* instance = nullptr) const
 		{
 			for (const auto* c = this; c != nullptr; c = c->SuperClass)
 			{
@@ -423,7 +424,7 @@ namespace Reflect
 			return ReflectMember(nullptr, nullptr);
 		}
 
-		REFLECT_DLL auto GetFunction(std::string_view const& funcName, IReflect* instance = nullptr) const
+		REFLECT_DLL REFLECT_CONSTEXPR auto GetFunction(std::string_view const& funcName, IReflect* instance = nullptr) const
 		{
 			for (const auto* c = this; c != nullptr; c = c->SuperClass)
 			{
@@ -439,7 +440,7 @@ namespace Reflect
 			return ReflectFunction(nullptr, nullptr);
 		}
 
-		REFLECT_DLL auto GetMembers(std::vector<std::string> const& flags, IReflect* instance = nullptr) const
+		REFLECT_DLL REFLECT_CONSTEXPR auto GetMembers(std::vector<std::string> const& flags, IReflect* instance = nullptr) const
 		{
 			std::vector<Reflect::ReflectMember> members;
 
@@ -448,12 +449,12 @@ namespace Reflect
 			return members;
 		}
 
-		bool ContainsProperty(std::vector<std::string> const& flags) const
+		REFLECT_CONSTEXPR bool ContainsProperty(std::vector<std::string> const& flags) const
 		{
 			return Util::ContainsProperty(StrProperties, flags);
 		}
 
-		bool GetPropertyValue(const std::string_view &flag, std::string_view& value) const
+		REFLECT_CONSTEXPR bool GetPropertyValue(const std::string_view &flag, std::string_view& value) const
 		{
 			return Util::TryGetPropertyValue(StrProperties, flag, value);
 		}
@@ -464,7 +465,7 @@ namespace Reflect
 		const std::vector<std::string>	StrProperties;
 
 	private:
-		REFLECT_DLL void GetMembersInternal(std::vector<Reflect::ReflectMember>& members, std::vector<std::string> const& flags, IReflect* instance) const
+		REFLECT_DLL REFLECT_CONSTEXPR void GetMembersInternal(std::vector<Reflect::ReflectMember>& members, std::vector<std::string> const& flags, IReflect* instance) const
 		{
 			if (SuperClass)
 				SuperClass->GetMembersInternal(members, flags, instance);
