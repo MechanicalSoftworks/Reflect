@@ -87,7 +87,7 @@ namespace Reflect
 		using LoadFuncType	= ConstantType(*)(const void*);
 		using StoreFuncType	= void(*)(void*, ConstantType);
 
-		REFLECT_CONSTEXPR Enum(const std::string_view& name, const std::string& value_type_name, std::vector<std::string>&& strProperties, std::vector<Reflect::EnumConstant>&& values, const LoadFuncType& load, const StoreFuncType& store)
+		Enum(const std::string_view& name, const std::string& value_type_name, std::vector<std::string>&& strProperties, std::vector<Reflect::EnumConstant>&& values, const LoadFuncType& load, const StoreFuncType& store)
 			: Name(name)
 			, ValueTypeName(value_type_name)
 			, StrProperties(std::move(strProperties))
