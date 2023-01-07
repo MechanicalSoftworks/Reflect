@@ -121,19 +121,7 @@ namespace Reflect
 				template <std::size_t...Idxs>
 				constexpr auto substring_as_array(std::string_view str, std::index_sequence<Idxs...>)
 				{
-					return std::array{ str[Idxs]..., '\n' };
-				}
-
-				constexpr auto type_name_start(std::string_view type)
-				{
-					// MSVC specifies "class std::string", whereas GCC specifies "std::string".
-					// Strip off "class" and "struct" for MSVC to make them the same.
-#if defined(_MSC_VER)
-					if (type.starts_with("enum ")) return 5;
-					if (type.starts_with("class ")) return 6;
-					if (type.starts_with("struct ")) return 7;
-#endif
-					return 0;
+					return std::array{ str[Idxs]... };
 				}
 
 				template <typename T>
@@ -155,8 +143,7 @@ namespace Reflect
 # error Unsupported compiler
 #endif
 
-					constexpr auto prefix_offset = function.find(prefix) + prefix.size();
-					constexpr auto start = prefix_offset + type_name_start(function.substr(prefix_offset));
+					constexpr auto start = function.find(prefix) + prefix.size();
 					constexpr auto end = function.rfind(suffix);
 
 					static_assert(start < end);
@@ -169,6 +156,42 @@ namespace Reflect
 				struct type_name_holder {
 					static inline constexpr auto value = type_name_array<T>();
 				};
+
+				template <size_t N>
+				struct fixed_string {
+					constexpr std::string_view view() const { return { data, size }; }
+					char data[N];
+					size_t size;
+				};
+
+				// MSVC specifies "class std::string", whereas GCC specifies "std::string".
+				// Strip off "class ", "struct " and "enum " for MSVC to make them the same.
+				template <size_t N>
+				constexpr auto clean_expression(const std::array<char, N>& expr) {
+					fixed_string<N> result = {};
+
+					int src_idx = 0;
+					int dst_idx = 0;
+					while (src_idx < N) {
+						if (expr[src_idx] == ' ') {
+							++src_idx;
+						}
+						if (src_idx < N - 5 && expr[src_idx] == 'c' && expr[src_idx + 1] == 'l' && expr[src_idx + 2] == 'a' && expr[src_idx + 3] == 's' && expr[src_idx + 4] == 's' && expr[src_idx + 5] == ' ') {
+							src_idx += 6;
+						}
+						else if (src_idx < N - 6 && expr[src_idx] == 's' && expr[src_idx + 1] == 't' && expr[src_idx + 2] == 'r' && expr[src_idx + 3] == 'u' && expr[src_idx + 4] == 'c' && expr[src_idx + 5] == 't' && expr[src_idx + 6] == ' ') {
+							src_idx += 7;
+						}
+						else if (src_idx < N - 4 && expr[src_idx] == 'e' && expr[src_idx + 1] == 'n' && expr[src_idx + 2] == 'u' && expr[src_idx + 3] == 'm' && expr[src_idx + 4] == ' ') {
+							src_idx += 5;
+						}
+						else {
+							result.data[dst_idx++] = expr[src_idx++];
+						}
+					}
+					result.size = dst_idx;
+					return result;
+				}
 			}
 
 			//
@@ -178,12 +201,19 @@ namespace Reflect
 			REFLECT_CONSTEXPR auto type_name() -> std::string
 			{
 				constexpr auto& value = impl::type_name_holder<T>::value;
-				return std::string{ value.data(), value.size() - 1 };	// -1 to strip off the '\n' appended in 'substring_as_array'.
+				return std::string{ value.data(), value.size() };
+			}
+
+			template <typename T>
+			REFLECT_CONSTEXPR auto clean_type_name() -> std::string
+			{
+				constexpr auto& arr = impl::type_name_holder<T>::value;
+				return std::string(impl::clean_expression(arr).view());
 			}
 
 			template <typename T>
 			struct TypeNameImpl {
-				static REFLECT_CONSTEXPR std::string get() { return type_name<T>(); }
+				static REFLECT_CONSTEXPR std::string get() { return clean_type_name<T>(); }
 			};
 
 			template <>

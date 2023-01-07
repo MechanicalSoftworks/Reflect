@@ -121,7 +121,7 @@ namespace Reflect
 		const std::string_view allocatorParm = hasAllocator ? "" : "nullptr";
 
 		file << "\tstatic inline const Reflect::Class StaticClass = Reflect::Class( \\\n"
-			<< "\t\t\"" << data.Name << "\", \\\n"
+			<< "\t\tReflect::Util::GetTypeName<ThisClass>(), \\\n"
 			<< "\t\t" << (data.SuperName != "Reflect::IReflect" ? (std::string("&") + data.SuperName + "::StaticClass") : std::string("nullptr")) << ", \\\n"
 			<< "\t\tReflect::ClassAllocator::Create<" << data.Name << ">(" << allocatorParm << "), \\\n"
 			<< "\t\t" << CodeGenerate::GetMemberProps(data.ContainerProps) << ", \\\n"
