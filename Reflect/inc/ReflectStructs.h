@@ -378,7 +378,7 @@ namespace Reflect
 	class Class
 	{
 	public:
-		Class(const char *name, const Class *super, const ClassAllocator& allocator, std::vector<std::string> const& strProperties, std::vector<ReflectMemberProp>&& props, std::vector<ReflectMemberFunction>&& funcs)
+		Class(const std::string &name, const Class *super, const ClassAllocator& allocator, std::vector<std::string> const& strProperties, std::vector<ReflectMemberProp>&& props, std::vector<ReflectMemberFunction>&& funcs)
 			: Name(name)
 			, SuperClass(super)
 			, Allocator(allocator)
@@ -386,23 +386,13 @@ namespace Reflect
 			, MemberProperties(std::move(props))
 			, MemberFunctions(std::move(funcs))
 		{
-			Register(*this);
 		}
-
-		~Class()
-		{
-			Unregister(*this);
-		}
-
-		// Makes the type usable by Allocator.
-		REFLECT_DLL static void Register(Class& c);
-		REFLECT_DLL static void Unregister(Class& c);
 
 		// Map a type name to a different type.
 		REFLECT_DLL static void RegisterOverride(const char *name, const Class& c);
 
 		// Reflect!
-		REFLECT_DLL static Class* Lookup(const std::string_view &name);
+		REFLECT_DLL static const Class* Lookup(const std::string_view &name);
 		REFLECT_DLL static std::vector<std::reference_wrapper<Class>> LookupWhere(const std::function<bool(const Class&)>& pred);
 
 		REFLECT_DLL static std::vector<std::reference_wrapper<Class>> LookupDescendantsOf(const Class& c);
@@ -468,7 +458,7 @@ namespace Reflect
 			return Util::TryGetPropertyValue(StrProperties, flag, value);
 		}
 
-		const char* const				Name;
+		const std::string				Name;
 		const Class* const				SuperClass;
 		const ClassAllocator			Allocator;
 		const std::vector<std::string>	StrProperties;
@@ -490,6 +480,16 @@ namespace Reflect
 
 		const std::vector<ReflectMemberProp>		MemberProperties;
 		const std::vector<ReflectMemberFunction>	MemberFunctions;
+	};
+
+	class REFLECT_DLL LinkClass
+	{
+	public:
+		LinkClass(const Class& c);
+		~LinkClass();
+
+	private:
+		const Class& m_class;
 	};
 
 	struct Constructor

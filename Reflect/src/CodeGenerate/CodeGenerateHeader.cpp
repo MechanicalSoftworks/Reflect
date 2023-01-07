@@ -129,6 +129,9 @@ namespace Reflect
 			<< CreateFunctionInitializerList(data) << " \\\n"
 			<< "\t); \\\n";
 
+		WRITE_PRIVATE();
+		file << "\tstatic inline const Reflect::LinkClass Linker = StaticClass; \\\n";
+
 		WRITE_CLOSE();
 	}
 

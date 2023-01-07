@@ -1,6 +1,7 @@
 #include "ReflectStructs.h"
 
 #include <map>
+#include <iostream>
 
 namespace Reflect
 {
@@ -14,14 +15,28 @@ namespace Reflect
 	static int s_class_map_counter = 0;
 	static class_map_t& s_classes = reinterpret_cast<class_map_t&> (s_class_map_buffer);
 
-	REFLECT_DLL void Class::Register(Class& c)
+	REFLECT_DLL LinkClass::LinkClass(const Class& c)
+		: m_class(c)
 	{
 		if (s_class_map_counter++ == 0)
 		{
 			new (&s_classes) class_map_t();
 		}
 
-		s_classes[c.Name] = &c;
+		if (!s_classes.try_emplace(c.Name, const_cast<Class*>(&c)).second)
+		{
+			throw std::runtime_error(std::string("Class '") + c.Name + "' is already registered");
+		}
+	}
+
+	REFLECT_DLL LinkClass::~LinkClass()
+	{
+		s_classes.erase(m_class.Name);
+
+		if (--s_class_map_counter == 0)
+		{
+			s_classes.~map();
+		}
 	}
 
 	REFLECT_DLL void Class::RegisterOverride(const char* name, const Class& c)
@@ -29,7 +44,7 @@ namespace Reflect
 		s_classes[name] = (Class *)&c;
 	}
 
-	REFLECT_DLL Class* Class::Lookup(const std::string_view& name)
+	REFLECT_DLL const Class* Class::Lookup(const std::string_view& name)
 	{
 		auto it = s_classes.find(std::string(name));
 		return it != s_classes.end() ? it->second : nullptr;
@@ -71,15 +86,5 @@ namespace Reflect
 		}
 
 		return descendants;
-	}
-
-	REFLECT_DLL void Class::Unregister(Class& c)
-	{
-		s_classes.erase(c.Name);
-
-		if (--s_class_map_counter == 0)
-		{
-			s_classes.~map();
-		}
 	}
 }
