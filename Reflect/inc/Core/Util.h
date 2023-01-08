@@ -170,19 +170,19 @@ namespace Reflect
 				constexpr auto clean_expression(const std::array<char, N>& expr) {
 					fixed_string<N> result = {};
 
-					int src_idx = 0;
-					int dst_idx = 0;
+					size_t src_idx = 0;
+					size_t dst_idx = 0;
 					while (src_idx < N) {
 						if (expr[src_idx] == ' ') {
 							++src_idx;
 						}
-						if (src_idx < N - 5 && expr[src_idx] == 'c' && expr[src_idx + 1] == 'l' && expr[src_idx + 2] == 'a' && expr[src_idx + 3] == 's' && expr[src_idx + 4] == 's' && expr[src_idx + 5] == ' ') {
+						if (expr[src_idx] == 'c' && src_idx < N - 5 && expr[src_idx + 1] == 'l' && expr[src_idx + 2] == 'a' && expr[src_idx + 3] == 's' && expr[src_idx + 4] == 's' && expr[src_idx + 5] == ' ') {
 							src_idx += 6;
 						}
-						else if (src_idx < N - 6 && expr[src_idx] == 's' && expr[src_idx + 1] == 't' && expr[src_idx + 2] == 'r' && expr[src_idx + 3] == 'u' && expr[src_idx + 4] == 'c' && expr[src_idx + 5] == 't' && expr[src_idx + 6] == ' ') {
+						else if (expr[src_idx] == 's' && src_idx < N - 6 && expr[src_idx + 1] == 't' && expr[src_idx + 2] == 'r' && expr[src_idx + 3] == 'u' && expr[src_idx + 4] == 'c' && expr[src_idx + 5] == 't' && expr[src_idx + 6] == ' ') {
 							src_idx += 7;
 						}
-						else if (src_idx < N - 4 && expr[src_idx] == 'e' && expr[src_idx + 1] == 'n' && expr[src_idx + 2] == 'u' && expr[src_idx + 3] == 'm' && expr[src_idx + 4] == ' ') {
+						else if (expr[src_idx] == 'e' && src_idx < N - 4 && expr[src_idx + 1] == 'n' && expr[src_idx + 2] == 'u' && expr[src_idx + 3] == 'm' && expr[src_idx + 4] == ' ') {
 							src_idx += 5;
 						}
 						else {
