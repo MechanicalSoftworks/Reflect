@@ -52,6 +52,8 @@ namespace Reflect
 
 		int CountNumberOfSinceTop(const FileParsedData& fileData, int cursorStart, const char& character);
 
+		void EatWhitespace(FileParsedData& fileData, int endOfContainerCursor);
+
 	private:
 		std::vector<FileParsedData> m_filesParsed;
 		std::vector<std::string> m_filesToRemove;

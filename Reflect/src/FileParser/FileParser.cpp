@@ -374,15 +374,7 @@ namespace Reflect
 			ReflectConstantData constantData = {};
 			bool hex = false;
 
-			// Eat whitespace.
-			while (std::isspace(fileData.Data[fileData.Cursor]))
-			{
-				fileData.Cursor++;
-				if (fileData.Cursor >= endOfContainerCursor)
-				{
-					return;
-				}
-			}
+			EatWhitespace(fileData, endOfContainerCursor);
 
 			// Skip commented lines.
 			const std::string_view v0(fileData.Data.begin() + fileData.Cursor, fileData.Data.end());
@@ -400,6 +392,18 @@ namespace Reflect
 				continue;
 			}
 
+			EatWhitespace(fileData, endOfContainerCursor);
+			
+			const std::string_view v1(fileData.Data.begin() + fileData.Cursor, fileData.Data.end());
+			if (v1.starts_with(MetaKey))
+			{
+				constantData.Name.clear();
+
+				fileData.Cursor += strlen(MetaKey);
+				constantData.Flags = ReflectFlags(fileData);
+				EatWhitespace(fileData, endOfContainerCursor);
+			}
+
 			// Get constant name.
 			while (std::isalnum(fileData.Data[fileData.Cursor]) || fileData.Data[fileData.Cursor] == '_' || fileData.Data[fileData.Cursor] == '$')
 			{
@@ -410,30 +414,14 @@ namespace Reflect
 				}
 			}
 
-			// Eat whitespace.
-			while (std::isspace(fileData.Data[fileData.Cursor]))
-			{
-				fileData.Cursor++;
-				if (fileData.Cursor >= endOfContainerCursor)
-				{
-					return;
-				}
-			}
+			EatWhitespace(fileData, endOfContainerCursor);
 
 			// Check for value assignment.
 			if (fileData.Data[fileData.Cursor] == '=')
 			{
 				fileData.Cursor++;
 
-				// Eat whitespace.
-				while (std::isspace(fileData.Data[fileData.Cursor])) 
-				{
-					fileData.Cursor++;
-					if (fileData.Cursor >= endOfContainerCursor)
-					{
-						return;
-					}
-				}
+				EatWhitespace(fileData, endOfContainerCursor);
 
 				// Get value.
 				std::string num;
@@ -458,22 +446,7 @@ namespace Reflect
 				value++;
 			}
 
-			// Eat whitespace.
-			while (std::isspace(fileData.Data[fileData.Cursor]))
-			{
-				fileData.Cursor++;
-				if (fileData.Cursor >= endOfContainerCursor)
-				{
-					return;
-				}
-			}
-
-			const std::string_view v1(fileData.Data.begin() + fileData.Cursor, fileData.Data.end());
-			if (v1.starts_with(MetaKey))
-			{
-				fileData.Cursor += strlen(MetaKey);
-				constantData.Flags = ReflectFlags(fileData);
-			}
+			EatWhitespace(fileData, endOfContainerCursor);
 
 			constantData.Value = value;
 			containerData.Constants.push_back(std::move(constantData));
@@ -518,14 +491,17 @@ namespace Reflect
 		std::string flag;
 		std::vector<std::string> flags;
 
+		EatWhitespace(fileData, fileData.Data.length());
+
 		if (fileData.Data[fileData.Cursor] == '(')
 		{
 			++fileData.Cursor;
 		}
 
+		EatWhitespace(fileData, fileData.Data.length());
 		while (fileData.Data[fileData.Cursor] != ')')
 		{
-			char c = fileData.Data[fileData.Cursor];
+			char c = fileData.Data[fileData.Cursor++];
 			if (c == ',')
 			{
 				if (!flag.empty())
@@ -533,15 +509,15 @@ namespace Reflect
 					flags.push_back(flag);
 				}
 				flag = "";
+				EatWhitespace(fileData, fileData.Data.length());
 			}
 			else
 			{
-				if (c != ' ' && c != '\t')
+				if (c != ' ' && c != '\t' && c != '\r' && c != '\n')
 				{
 					flag += c;
 				}
 			}
-			++fileData.Cursor;
 		}
 		++fileData.Cursor;
 		if (!flag.empty())
@@ -726,5 +702,17 @@ namespace Reflect
 			--cursorStart;
 		}
 		return count;
+	}
+
+	void FileParser::EatWhitespace(FileParsedData& fileData, int endOfContainerCursor)
+	{
+		while (std::isspace(fileData.Data[fileData.Cursor]))
+		{
+			fileData.Cursor++;
+			if (fileData.Cursor >= endOfContainerCursor)
+			{
+				return;
+			}
+		}
 	}
 }
