@@ -126,7 +126,8 @@ namespace Reflect
 			<< "\t\tReflect::ClassAllocator::Create<" << data.Name << ">(" << allocatorParm << "), \\\n"
 			<< "\t\t" << CodeGenerate::GetMemberProps(data.ContainerProps) << ", \\\n"
 			<< CreateMemberInitializerList(data) << ", \\\n"
-			<< CreateFunctionInitializerList(data) << " \\\n"
+			<< CreateFunctionInitializerList(data) << ", \\\n"
+			<< CreateInterfaceList(data) << " \\\n"
 			<< "\t); \\\n";
 
 		WRITE_PRIVATE();
@@ -290,6 +291,30 @@ namespace Reflect
 				const auto eol = isLast ? "\\\n" : ", \\\n";
 
 				oss << "\t\t\tReflect::ReflectMemberFunction(\"" + func.Name + "\", __REFLECT_FUNC__" + func.Name + ")" + eol;
+			}
+			oss << "\t\t)";
+		}
+		else
+		{
+			oss << "\t\t{}";
+		}
+
+		return oss.str();
+	}
+
+	std::string CodeGenerateHeader::CreateInterfaceList(const ReflectContainerData& data)
+	{
+		std::ostringstream oss;
+
+		if (data.Interfaces.size())
+		{
+			oss << "\t\tReflect::Util::make_vector<std::string>( \\\n";
+			for (const auto& name : data.Interfaces)
+			{
+				const auto isLast = &name == &data.Interfaces.back();
+				const auto eol = isLast ? "\\\n" : ", \\\n";
+
+				oss << "\t\t\tReflect::Util::GetTypeName(\"" + name + "\")" + eol;
 			}
 			oss << "\t\t)";
 		}

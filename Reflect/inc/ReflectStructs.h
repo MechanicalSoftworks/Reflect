@@ -88,6 +88,7 @@ namespace Reflect
 		std::vector<ReflectConstantData> Constants;
 		std::vector<ReflectMemberData> Members;
 		std::vector<ReflectFunctionData> Functions;
+		std::vector<std::string> Interfaces;
 	};
 
 	struct FileParsedData
@@ -379,13 +380,14 @@ namespace Reflect
 	class Class
 	{
 	public:
-		REFLECT_CONSTEXPR Class(const std::string &name, const Class *super, const ClassAllocator& allocator, std::vector<std::string> const& strProperties, std::vector<ReflectMemberProp>&& props, std::vector<ReflectMemberFunction>&& funcs)
+		REFLECT_CONSTEXPR Class(const std::string &name, const Class *super, const ClassAllocator& allocator, std::vector<std::string> const& strProperties, std::vector<ReflectMemberProp>&& props, std::vector<ReflectMemberFunction>&& funcs, std::vector<std::string>&& interfaces)
 			: Name(name)
 			, SuperClass(super)
 			, Allocator(allocator)
 			, StrProperties(strProperties)
 			, MemberProperties(std::move(props))
 			, MemberFunctions(std::move(funcs))
+			, Interfaces(std::move(interfaces))
 		{
 		}
 
@@ -393,7 +395,8 @@ namespace Reflect
 		REFLECT_DLL static void RegisterOverride(const char *name, const Class& c);
 
 		// Reflect!
-		REFLECT_DLL static const Class* Lookup(const std::string_view &name);
+		REFLECT_DLL static const Class* TryLookup(const std::string_view &name);
+		REFLECT_DLL static const Class& Lookup(const std::string_view &name);
 		REFLECT_DLL static std::vector<std::reference_wrapper<Class>> LookupWhere(const std::function<bool(const Class&)>& pred);
 
 		REFLECT_DLL static std::vector<std::reference_wrapper<Class>> LookupDescendantsOf(const Class& c);
@@ -449,6 +452,20 @@ namespace Reflect
 			return members;
 		}
 
+		template<typename T>
+		REFLECT_CONSTEXPR bool HasInterface() const
+		{
+			for (const auto* c = this; c != nullptr; c = c->SuperClass)
+			{
+				if (std::find(c->Interfaces.begin(), c->Interfaces.end(), Util::GetTypeName<T>()) != c->Interfaces.end())
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
 		REFLECT_CONSTEXPR bool ContainsProperty(std::vector<std::string> const& flags) const
 		{
 			return Util::ContainsProperty(StrProperties, flags);
@@ -463,6 +480,7 @@ namespace Reflect
 		const Class* const				SuperClass;
 		const ClassAllocator			Allocator;
 		const std::vector<std::string>	StrProperties;
+		const std::vector<std::string>	Interfaces;
 
 	private:
 		REFLECT_DLL REFLECT_CONSTEXPR void GetMembersInternal(std::vector<Reflect::ReflectMember>& members, std::vector<std::string> const& flags, IReflect* instance) const

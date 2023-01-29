@@ -44,10 +44,20 @@ namespace Reflect
 		s_classes[name] = (Class *)&c;
 	}
 
-	REFLECT_DLL const Class* Class::Lookup(const std::string_view& name)
+	REFLECT_DLL const Class* Class::TryLookup(const std::string_view& name)
 	{
 		auto it = s_classes.find(std::string(name));
 		return it != s_classes.end() ? it->second : nullptr;
+	}
+
+	REFLECT_DLL const Class& Class::Lookup(const std::string_view& name)
+	{
+		const auto* ptr = TryLookup(name);
+		if (!ptr)
+		{
+			throw std::runtime_error("Failed to find Class for type: " + std::string(name));
+		}
+		return *ptr;
 	}
 
 	REFLECT_DLL std::vector<std::reference_wrapper<Class>> Class::LookupWhere(const std::function<bool(const Class&)>& pred)

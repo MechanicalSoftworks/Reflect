@@ -57,7 +57,7 @@ void GetMemberWithFlags()
 
 void StaticClass()
 {
-	const auto& staticClass = *Reflect::Class::Lookup("Player");
+	const auto& staticClass = Reflect::Class::Lookup("Player");
 	auto player = (Player*)staticClass.Allocator.Allocate();
 	staticClass.Allocator.Construct(player, Reflect::Constructor(Player::StaticClass, nullptr));
 	player->Tick();

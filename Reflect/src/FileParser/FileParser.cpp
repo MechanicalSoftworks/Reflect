@@ -223,6 +223,7 @@ namespace Reflect
 		if (fileData.Data.at(fileData.Cursor) == ':')
 		{
 			bool inTemplate = false;
+			std::string visibility;
 			token.clear();
 			++fileData.Cursor;
 			while (fileData.Data.at(fileData.Cursor) != '{')
@@ -243,19 +244,28 @@ namespace Reflect
 				}
 				else if (token == "virtual" || token == "public" || token == "protected" || token == "private")
 				{
+					visibility = token;
 					token.clear();
 				}
 				else if (token.find("REFLECT_BASE()") == 0) // Use find to catch "REFLECT_BASE()," as well.
 				{
-					containerData.SuperName = "Reflect::IReflect";
-					break;
+					containerData.SuperName = Util::GetTypeName<IReflect>();
 				}
 				else if (token.length())
 				{
-					if (token.back() == ',')
+					if (token.ends_with(','))
 						token.erase(token.end() - 1);
-					containerData.SuperName = std::move(token);
-					break;
+					if (!containerData.SuperName.length())
+					{
+						containerData.SuperName = std::move(token);
+					}
+					else
+					{
+						containerData.Interfaces.emplace_back(std::move(token));
+					}
+
+					visibility.clear();
+					token.clear();
 				}
 				++fileData.Cursor;
 			}
