@@ -415,7 +415,7 @@ namespace Reflect
 		{
 			for (const auto* c = this; c != nullptr; c = c->SuperClass)
 			{
-				for (const auto& member : MemberProperties)
+				for (const auto& member : c->MemberProperties)
 				{
 					if (member.Name == memberName)
 					{
@@ -431,7 +431,7 @@ namespace Reflect
 		{
 			for (const auto* c = this; c != nullptr; c = c->SuperClass)
 			{
-				for (const auto& func : MemberFunctions)
+				for (const auto& func : c->MemberFunctions)
 				{
 					if (func.Name == funcName)
 					{
