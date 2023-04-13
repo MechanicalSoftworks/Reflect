@@ -317,15 +317,15 @@ namespace Reflect
 			// Get the type and name of the property to reflect.
 			auto [type, name, isConst] = ReflectTypeAndName(fileData, {});
 
-			char c = FindNextChar(fileData, { ' ', '\t', '=' });
-			while (c != ';' && c != '(' && c != '\n')
+			char c = FindNextChar(fileData, { ' ', '\t' });
+			while (c != ';' && c != '=' && c != '(' && c != '\n')
 			{
 				++fileData.Cursor;
-				c = FindNextChar(fileData, { ' ', '\t', '=' });
+				c = FindNextChar(fileData, { ' ', '\t' });
 			}
 
 			// Find out if the property is a function or member variable.
-			if (c == ';')
+			if (c == ';' || c == '=')
 			{
 				// Member
 				// We have found a member variable 
