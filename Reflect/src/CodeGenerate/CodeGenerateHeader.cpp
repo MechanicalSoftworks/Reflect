@@ -314,7 +314,7 @@ namespace Reflect
 				const auto isLast = &name == &data.Interfaces.back();
 				const auto eol = isLast ? "\\\n" : ", \\\n";
 
-				oss << "\t\t\tReflect::Util::GetTypeName(\"" + name + "\")" + eol;
+				oss << "\t\t\tReflect::Util::GetTypeName<" + name + ">()" + eol;
 			}
 			oss << "\t\t)";
 		}
