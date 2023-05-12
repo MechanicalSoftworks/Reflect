@@ -218,6 +218,9 @@ namespace Reflect
 
 	template<class T> using EnableIfIEnum = std::enable_if_t<std::is_base_of_v<IEnum, T>>;
 	template<class T> using EnableIfNotIEnum = std::enable_if_t<!std::is_base_of_v<IEnum, T>>;
+
+	template<typename T> concept IsIEnum = requires(T t) { requires std::is_base_of_v<IEnum, T>; };
+	template<typename T> concept IsNotIEnum = requires(T t) { requires !IsIEnum<T>; };
 }
 
 /// <summary>
