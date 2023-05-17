@@ -10,7 +10,7 @@
 #pragma error C++17 must be used.
 #endif
 
-#if _MSC_VER >= 1930
+#if _MSC_VER >= 1930 || __cpp_constexpr >= 202002L 
 #	define REFLECT_SUPPORTS_CONSTEXPR
 #endif
 
