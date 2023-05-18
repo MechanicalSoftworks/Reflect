@@ -380,7 +380,7 @@ namespace Reflect
 	class Class
 	{
 	public:
-		REFLECT_CONSTEXPR Class(const std::string &name, const Class *super, const ClassAllocator& allocator, std::vector<std::string> const& strProperties, std::vector<ReflectMemberProp>&& props, std::vector<ReflectMemberFunction>&& funcs, std::vector<std::string>&& interfaces)
+		REFLECT_CONSTEXPR Class(std::string name, const Class *super, const ClassAllocator& allocator, std::vector<std::string> const& strProperties, std::vector<ReflectMemberProp>&& props, std::vector<ReflectMemberFunction>&& funcs, std::vector<std::string>&& interfaces)
 			: Name(name)
 			, SuperClass(super)
 			, Allocator(allocator)

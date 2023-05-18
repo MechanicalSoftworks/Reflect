@@ -119,47 +119,47 @@ namespace Reflect
 			namespace impl
 			{
 				template <std::size_t...Idxs>
-				constexpr auto substring_as_array(std::string_view str, std::index_sequence<Idxs...>)
+				REFLECT_CONSTEXPR auto substring_as_array(std::string_view str, std::index_sequence<Idxs...>)
 				{
 					return std::array{ str[Idxs]... };
 				}
 
 				template <typename T>
-				constexpr auto type_name_array()
+				REFLECT_CONSTEXPR auto type_name_array()
 				{
 #if defined(__clang__)
-					constexpr auto prefix = std::string_view{ "[T = " };
-					constexpr auto suffix = std::string_view{ "]" };
-					constexpr auto function = std::string_view{ __PRETTY_FUNCTION__ };
+					REFLECT_CONSTEXPR auto prefix = std::string_view{ "[T = " };
+					REFLECT_CONSTEXPR auto suffix = std::string_view{ "]" };
+					REFLECT_CONSTEXPR auto function = std::string_view{ __PRETTY_FUNCTION__ };
 #elif defined(__GNUC__)
-					constexpr auto prefix = std::string_view{ "with T = " };
-					constexpr auto suffix = std::string_view{ "]" };
-					constexpr auto function = std::string_view{ __PRETTY_FUNCTION__ };
+					REFLECT_CONSTEXPR auto prefix = std::string_view{ "with T = " };
+					REFLECT_CONSTEXPR auto suffix = std::string_view{ "]" };
+					REFLECT_CONSTEXPR auto function = std::string_view{ __PRETTY_FUNCTION__ };
 #elif defined(_MSC_VER)
-					constexpr auto prefix = std::string_view{ "type_name_array<" };
-					constexpr auto suffix = std::string_view{ ">(void)" };
-					constexpr auto function = std::string_view{ __FUNCSIG__ };
+					REFLECT_CONSTEXPR auto prefix = std::string_view{ "type_name_array<" };
+					REFLECT_CONSTEXPR auto suffix = std::string_view{ ">(void)" };
+					REFLECT_CONSTEXPR auto function = std::string_view{ __FUNCSIG__ };
 #else
 # error Unsupported compiler
 #endif
 
-					constexpr auto start = function.find(prefix) + prefix.size();
-					constexpr auto end = function.rfind(suffix);
+					REFLECT_CONSTEXPR auto start = function.find(prefix) + prefix.size();
+					REFLECT_CONSTEXPR auto end = function.rfind(suffix);
 
 					static_assert(start < end);
 
-					constexpr auto name = function.substr(start, (end - start));
+					REFLECT_CONSTEXPR auto name = function.substr(start, (end - start));
 					return substring_as_array(name, std::make_index_sequence<name.size()>{});
 				}
 
 				template <typename T>
 				struct type_name_holder {
-					static inline constexpr auto value = type_name_array<T>();
+					static inline REFLECT_CONSTEXPR auto value = type_name_array<T>();
 				};
 
 				template <size_t N>
 				struct fixed_string {
-					constexpr std::string_view view() const { return { data, size }; }
+					REFLECT_CONSTEXPR std::string_view view() const { return { data, size }; }
 					char data[N];
 					size_t size;
 				};
@@ -167,7 +167,7 @@ namespace Reflect
 				// MSVC specifies "class std::string", whereas GCC specifies "std::string".
 				// Strip off "class ", "struct " and "enum " for MSVC to make them the same.
 				template <size_t N>
-				constexpr auto clean_expression(const std::array<char, N>& expr) {
+				REFLECT_CONSTEXPR auto clean_expression(const std::array<char, N>& expr) {
 					fixed_string<N> result = {};
 
 					size_t src_idx = 0;
@@ -200,14 +200,14 @@ namespace Reflect
 			template <typename T>
 			REFLECT_CONSTEXPR auto type_name() -> std::string
 			{
-				constexpr auto& value = impl::type_name_holder<T>::value;
+				REFLECT_CONSTEXPR auto& value = impl::type_name_holder<T>::value;
 				return std::string{ value.data(), value.size() };
 			}
 
 			template <typename T>
 			REFLECT_CONSTEXPR auto clean_type_name() -> std::string
 			{
-				constexpr auto& arr = impl::type_name_holder<T>::value;
+				REFLECT_CONSTEXPR auto& arr = impl::type_name_holder<T>::value;
 				return std::string(impl::clean_expression(arr).view());
 			}
 
@@ -304,31 +304,31 @@ namespace Reflect
 		}
 
 		//
-		// Cross platform name generator.
+		// StaticClass member accessor.
 		//
 		namespace detail
 		{
 			template<typename T>
-			inline constexpr typename std::enable_if<std::is_base_of_v<IReflect, T>, const Class *>::type GetStaticClass()
+			inline REFLECT_CONSTEXPR typename std::enable_if<std::is_base_of_v<IReflect, T>, const Class *>::type GetStaticClass()
 			{
 				return &T::StaticClass;
 			}
 
 			template<typename T>
-			inline constexpr typename std::enable_if<!std::is_pointer_v<T> && !std::is_base_of_v<IReflect, T>, const Class*>::type GetStaticClass()
+			inline REFLECT_CONSTEXPR typename std::enable_if<!std::is_pointer_v<T> && !std::is_base_of_v<IReflect, T>, const Class*>::type GetStaticClass()
 			{
 				return nullptr;
 			}
 
 			template<typename T>
-			inline constexpr typename std::enable_if<std::is_pointer_v<T>, const Class*>::type GetStaticClass()
+			inline REFLECT_CONSTEXPR typename std::enable_if<std::is_pointer_v<T>, const Class*>::type GetStaticClass()
 			{
 				return GetStaticClass<typename std::remove_pointer<T>::type>();
 			}
 		}
 
 		template<typename T>
-		constexpr const Reflect::Class* GetStaticClass()
+		REFLECT_CONSTEXPR const Reflect::Class* GetStaticClass()
 		{
 			return detail::GetStaticClass<T>();
 		}

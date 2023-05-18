@@ -40,4 +40,4 @@ file(GLOB LIB_HEADER_FILES CONFIGURE_DEPENDS ${LIB_INCLUDE_DIR}/*/*.h ${LIB_INCL
 add_subdirectory(Reflect)
 add_subdirectory(ReflectDLL)
 add_subdirectory(ReflectEXE)
-#add_subdirectory(ReflectTest)
+add_subdirectory(ReflectTest)
