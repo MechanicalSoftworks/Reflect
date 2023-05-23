@@ -22,8 +22,9 @@ namespace Reflect
 		CodeGenerateHeader header;
 		CodeGenerateSource source;
 
-		const auto headerPath = data.FilePath + "/" + data.FileName + ReflectFileGeneratePrefix + ".h";
-		const auto sourcePath = addtionalOptions.OutputCPPDir + data.SubPath + "/" + data.FileName + ReflectFileGeneratePrefix + ".cpp";
+		const auto headerPath = data.FilePath + "/" + data.FileName + ReflectFileGeneratePrefix + "." + data.FileExtension;
+		const auto sourceExtension = data.FileExtension == "h" ? "cpp" : "cxx";
+		const auto sourcePath = addtionalOptions.OutputCPPDir + data.SubPath + "/" + data.FileName + ReflectFileGeneratePrefix + "." + sourceExtension;
 
 		std::ostringstream sout;
 

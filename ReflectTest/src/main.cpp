@@ -65,136 +65,54 @@ void StaticClass()
 	staticClass.Allocator.Deallocate(player);
 }
 
-template<typename T> concept IsIReflect = requires(T t) { requires std::is_same_v<Reflect::IReflect, T>; };
-template<typename T> concept IsNotIReflect = requires(T t) { requires !IsIReflect<T>; };
-
-//
-// This version has no filter.
-//
-#if 1
-
-template<typename Callable, typename T> requires IsIReflect<T>
-void ForEachProperty(Callable&& obj, T& t) {}
-
-template<typename Callable, typename T> requires IsNotIReflect<T>
-void ForEachProperty(Callable&& obj, T& t)
+template<bool b> struct Baz;
+template<> struct Baz<false>
 {
-	// https://stackoverflow.com/a/54053084
-	std::apply(
-		[&t, &obj](auto&&... args) {
-			((obj(args.Name, args.Get(t)), ...));
-		},
-		constexpr_reflect<T>::Properties
-	);
-	ForEachProperty<Callable, typename T::SuperClass>(std::move(obj), t);
-}
-
-#endif
-
-//
-// Filter by flags.
-//
-#if 1
-
-template<typename T, typename TFlags, int I>
-struct FilterPropertiesInternal;
-
-template<typename T, typename TFlags>
-struct FilterPropertiesInternal<T, TFlags, 0>
+	static constexpr int value = 0;
+};
+template<> struct Baz<true>
 {
-	static constexpr auto call(const TFlags& flags)
-	{
-		return std::make_tuple();
-	}
+	static constexpr std::string_view value = "yes";
 };
 
-template<typename T, typename TFlags, int I>
-struct FilterPropertiesInternal
+template<Reflect::Util::StringLiteral flag>
+constexpr auto Bar()
 {
-	static constexpr auto call(const TFlags& flags)
-	{
-		constexpr auto properties = constexpr_reflect<T>::Properties;
-		constexpr auto p = std::get<I - 1>(properties);
-		if constexpr (p.HasAnyFlag(flags))
-		{
-			return std::tuple_cat(
-				std::make_tuple(p),
-				FilterPropertiesInternal<T, TFlags, I - 1>::call(flags)
-			);
-		}
-		else
-		{
-			return FilterPropertiesInternal<T, TFlags, I - 1>::call(flags);
-		}
-	}
-};
-
-template<typename T, typename TFlags>
-constexpr auto FilterProperties(const TFlags& flags)
-{
-	constexpr auto properties = constexpr_reflect<T>::Properties;
-
-	constexpr auto i = std::tuple_size<decltype(properties)>::value;
-	return FilterPropertiesInternal<T, TFlags, i>::call(flags);
+	return std::get<2>(Reflect::ReflectStatic<Player>::Properties).HasAnyFlag<flag>();
 }
 
-template<typename Callable, typename T, typename TFlags> requires IsIReflect<T>
-void ForEachProperty(Callable&& obj, T& t, const TFlags& flags) {}
-
-template<typename Callable, typename T, typename TFlags> requires IsNotIReflect<T>
-void ForEachProperty(Callable&& obj, T& t, TFlags flags)
+template<Reflect::Util::StringLiteral flag>
+auto Foo()
 {
-	constexpr auto properties = FilterProperties<T>(flags);
-
-	// https://stackoverflow.com/a/54053084
-	std::apply(
-		[&t, &obj](auto&&... args) {
-			((obj(args.Name, args.Get(t)), ...));
-		},
-		properties
-	);
-
-	ForEachProperty<Callable, typename T::SuperClass>(std::move(obj), t, flags);
+	constexpr auto x = Bar<flag>();
+	return Baz<x>::value;
 }
-#endif
-
-#if 0
-template<typename T, size_t N>
-class constexpr_string
-{
-	using ContainerType = std::array<T, N>;
-
-public:
-	constexpr constexpr_string(const ContainerType& a) : Buffer(a) {}
-
-	constexpr auto view() const { return std::string_view(Buffer.data(), N); }
-
-private:
-	const ContainerType	Buffer;
-};
-
-constexpr auto constexpr_reflect()
-{
-	constexpr std::string_view test("test");
-	return constexpr_string(
-		Reflect::Util::detail::impl::substring_as_array(test, std::make_index_sequence<test.length()>{})
-	);
-}
-#endif
 
 int main(void)
 {
 	{
 		Player p(Reflect::Constructor(Player::StaticClass, nullptr));
 
-		constexpr auto asdf = FilterProperties<Player>(std::make_tuple("Serialise"));
+		//
+		// TODO: Add support for multiple arguments here.
+		// TODO: Update the FilterProperties and ForEachProperty methods to use the templated filters.
+		//
+		auto x = Foo<"Serialise">();
+
+		constexpr auto asdf = Reflect::FilterProperties<Player, "Serialise">();
 
 		ForEachProperty(
 			[](const std::string_view& name, auto&& arg) {
 				std::cout << name << ": " << arg << std::endl;
+			},
+			p
+		);
+
+		ForEachProperty<"Serialise">(
+			[](const std::string_view& name, auto&& arg) {
+				std::cout << name << ": " << arg << std::endl;
 			}, 
-			p,
-			std::make_tuple("Serialise")
+			p
 		);
 	}
 	FuncNoReturn();

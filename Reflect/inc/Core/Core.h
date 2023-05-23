@@ -58,7 +58,7 @@ namespace Reflect
 	constexpr const char* ReflectGeneratedBodykey = "REFLECT_GENERATED_BODY";
 	constexpr const char* PropertyKey = "REFLECT_PROPERTY";
 	constexpr const char* MetaKey = "REFLECT_META";
-	constexpr const char* ReflectFileGeneratePrefix = ".reflect";
+	constexpr const char* ReflectFileGeneratePrefix = ".Reflect";
 	constexpr const char* ReflectFileHeaderGuard = "_reflect";
 }
 

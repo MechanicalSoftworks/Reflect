@@ -10,6 +10,7 @@
 #include <array>
 #include <memory>
 #include <set>
+#include <functional>
 
 namespace Reflect
 {
@@ -18,6 +19,87 @@ namespace Reflect
 
 	namespace Util
 	{
+		// https://ctrpeach.io/posts/cpp20-string-literal-template-parameters/
+		template<size_t N>
+		struct StringLiteral {
+			constexpr StringLiteral(const char(&str)[N]) {
+				std::copy_n(str, N, value);
+			}
+
+			char value[N];
+		};
+
+		template <StringLiteral... Args>
+		concept StringLiteralList = sizeof...(Args) > 0;
+
+		template <typename T, T... S, typename F>
+		constexpr void for_sequence(std::integer_sequence<T, S...>, F&& f) {
+			using unpack_t = int[];
+			(void)unpack_t {
+				(static_cast<void>(f(std::integral_constant<T, S>{})), 0)..., 0
+			};
+		}
+
+		// https://www.fluentcpp.com/2019/03/08/stl-algorithms-on-tuples/
+		template <class Tuple, class F, std::size_t... I>
+		constexpr F for_each_impl(Tuple&& t, F&& f, std::index_sequence<I...>)
+		{
+			return (void)std::initializer_list<int>{(std::forward<F>(f)(std::get<I>(std::forward<Tuple>(t))), 0)...}, f;
+		}
+
+		// https://www.fluentcpp.com/2019/03/08/stl-algorithms-on-tuples/
+		template <class Tuple, class F>
+		constexpr F for_each(Tuple&& t, F&& f)
+		{
+			return for_each_impl(std::forward<Tuple>(t), std::forward<F>(f),
+				std::make_index_sequence<std::tuple_size<std::remove_reference_t<Tuple>>::value>{});
+		}
+
+		// https://www.fluentcpp.com/2019/03/08/stl-algorithms-on-tuples/
+		template<typename Tuple, typename Predicate>
+		constexpr size_t find_if(Tuple&& tuple, Predicate pred)
+		{
+			size_t index = std::tuple_size<std::remove_reference_t<Tuple>>::value;
+			size_t currentIndex = 0;
+			bool found = false;
+			for_each(tuple, [&](auto&& value)
+				{
+					if (!found && pred(value))
+					{
+						index = currentIndex;
+						found = true;
+					}
+					++currentIndex;
+				});
+			return index;
+		}
+
+		template<typename Tuple, typename Predicate>
+		constexpr bool all_of(Tuple&& tuple, Predicate pred)
+		{
+			return find_if(tuple, std::not_fn(pred)) == std::tuple_size<std::decay_t<Tuple>>::value;
+		}
+
+		template<typename Tuple, typename Predicate>
+		constexpr bool none_of(Tuple&& tuple, Predicate pred)
+		{
+			return find_if(tuple, pred) == std::tuple_size<std::decay_t<Tuple>>::value;
+		}
+
+		template<typename Tuple, typename Predicate>
+		constexpr bool any_of(Tuple&& tuple, Predicate pred)
+		{
+			return !none_of(tuple, pred);
+		}
+
+		// https://stackoverflow.com/a/54487034
+		template<typename tuple_t>
+		constexpr auto get_array_from_tuple(tuple_t&& tuple)
+		{
+			constexpr auto get_array = [](auto&& ... x) { return std::array{ std::forward<decltype(x)>(x) ... }; };
+			return std::apply(get_array, std::forward<tuple_t>(tuple));
+		}
+
 		// Thanks: https://tristanbrindle.com/posts/beware-copies-initializer-list
 		template <typename T, typename... Args>
 		REFLECT_CONSTEXPR std::vector<T> make_vector(Args&&... args)
