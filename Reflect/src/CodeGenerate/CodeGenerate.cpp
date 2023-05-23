@@ -22,14 +22,22 @@ namespace Reflect
 		CodeGenerateHeader header;
 		CodeGenerateSource source;
 
-		const auto headerPath = data.FilePath + "/" + data.FileName + ReflectFileGeneratePrefix + "." + data.FileExtension;
 		const auto sourceExtension = data.FileExtension == "h" ? "cpp" : "cxx";
+		
+		const auto headerPath = data.FilePath + "/" + data.FileName + ReflectFileGeneratePrefix + "." + data.FileExtension;
 		const auto sourcePath = addtionalOptions.OutputCPPDir + data.SubPath + "/" + data.FileName + ReflectFileGeneratePrefix + "." + sourceExtension;
+
+		const auto staticHeaderPath = data.FilePath + "/" + data.FileName + ReflectStaticFileGeneratePrefix + "." + data.FileExtension;
+		//const auto staticSourcePath = addtionalOptions.OutputCPPDir + data.SubPath + "/" + data.FileName + ReflectFileGeneratePrefix + "." + sourceExtension;
 
 		std::ostringstream sout;
 
 		header.GenerateHeader(data, sout, addtionalOptions);
 		WriteIfDifferent(headerPath, sout.str());
+		sout.str("");
+
+		header.GenerateStaticHeader(data, sout, addtionalOptions);
+		WriteIfDifferent(staticHeaderPath, sout.str());
 		sout.str("");
 
 		// There is no source to write for now, so don't even try!

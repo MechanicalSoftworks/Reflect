@@ -2,7 +2,7 @@
 
 #include <Reflect.h>
 #include <ReflectStatic.h>
-#include "TestStrcuts.reflect.h"
+#include "TestStrcuts.Reflect.h"
 
 #define EXPORT
 
@@ -102,19 +102,4 @@ private:
 		int TimeOnline = 0;
 };
 
-template<>
-struct Reflect::ReflectStatic<Actor>
-{
-	static inline constexpr auto Properties = std::make_tuple();
-};
-
-template<>
-struct Reflect::ReflectStatic<Player>
-{
-	// TODO: Attributes as a tuple.
-	static inline constexpr auto Properties = std::make_tuple(
-		Reflect::make_static_field<std::string>("Id", Player::__OFFSETOF__Id(), std::make_tuple()),
-		Reflect::make_static_field<int>("Friends", Player::__OFFSETOF__Friends(), std::make_tuple()),
-		Reflect::make_static_field<int>("TimeOnline", Player::__OFFSETOF__TimeOnline(), std::make_tuple("Serialise"))
-	);
-};
+#include "TestStrcuts.ReflectStatic.h"

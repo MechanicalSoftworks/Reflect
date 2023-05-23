@@ -11,7 +11,7 @@
 
 namespace Reflect
 {
-	template<typename T> class ReflectStatic;
+	template<typename T> struct ReflectStatic;
 
 	struct IReflect;
 	class Class;

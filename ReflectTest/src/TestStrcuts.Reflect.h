@@ -106,6 +106,7 @@ private:\
 public:\
 	using ThisClass = S;\
 	using SuperClass = Reflect::IReflect;\
+	friend struct Reflect::ReflectStatic<S>;\
 	static inline const Reflect::Class StaticClass = Reflect::Class( \
 		Reflect::Util::GetTypeName<ThisClass>(), \
 		nullptr, \
@@ -148,6 +149,7 @@ private:\
 public:\
 	using ThisClass = Actor;\
 	using SuperClass = Reflect::IReflect;\
+	friend struct Reflect::ReflectStatic<Actor>;\
 	static inline const Reflect::Class StaticClass = Reflect::Class( \
 		Reflect::Util::GetTypeName<ThisClass>(), \
 		nullptr, \
@@ -188,6 +190,7 @@ private:\
 public:\
 	using ThisClass = Player;\
 	using SuperClass = Actor;\
+	friend struct Reflect::ReflectStatic<Player>;\
 	static inline const Reflect::Class StaticClass = Reflect::Class( \
 		Reflect::Util::GetTypeName<ThisClass>(), \
 		&Actor::StaticClass, \
