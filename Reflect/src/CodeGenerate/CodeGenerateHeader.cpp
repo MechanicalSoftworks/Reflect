@@ -78,10 +78,10 @@ namespace Reflect
 		file << "#endif //" + reflectGuard + "_h\n";
 		file << "#define " + reflectGuard + "_h\n\n";
 
+		file << "namespace Reflect {\n\n";
 		if (addtionalOptions.Namespace.length())
 		{
-			file << "namespace " << addtionalOptions.Namespace << std::endl;
-			file << "{" << std::endl;
+			file << "\tusing namespace " << addtionalOptions.Namespace << ";\n\n";
 		}
 
 		for (const auto& reflectData : data.ReflectData)
@@ -92,10 +92,7 @@ namespace Reflect
 			}
 		}
 
-		if (addtionalOptions.Namespace.length())
-		{
-			file << "}" << std::endl;
-		}
+		file << "} // namespace Reflect\n";
 	}
 
 	void CodeGenerateHeader::WriteMacros(const FileParsedData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
@@ -122,12 +119,30 @@ namespace Reflect
 
 	void CodeGenerateHeader::WriteStatic(const Reflect::ReflectContainerData& reflectData, const FileParsedData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
-		file << "template<> struct Reflect::ReflectStatic<" << reflectData.Name << "> {\n";
+		const auto qualifiedContainerType = addtionalOptions.Namespace.length()
+			? addtionalOptions.Namespace + "::" + reflectData.Name
+			: reflectData.Name;
 
-		file << "\tstatic inline constexpr auto Properties = std::make_tuple(\n";
+		file << "\ttemplate<" << reflectData.TemplateArgString << "> struct ReflectStatic<" << qualifiedContainerType;
+		if (reflectData.TemplateArgNames.size())
+		{
+			file << "<";
+			for (const auto& t : reflectData.TemplateArgNames)
+			{
+				file << t;
+				if (&t != &reflectData.TemplateArgNames.back())
+				{
+					file << ", ";
+				}
+			}
+			file << ">";
+		}
+		file << "> {\n";
+
+		file << "\t\tstatic inline constexpr auto Properties = std::make_tuple(\n";
 		for (const auto& p : reflectData.Members)
 		{
-			file << "\t\tReflect::make_static_field<" << p.Type << ">(\"" << p.Name << "\", " << reflectData.Name << "::__OFFSETOF__" << p.Name << "(), std::make_tuple(";
+			file << "\t\t\tmake_static_field<" << p.Type << ">(\"" << p.Name << "\", " << qualifiedContainerType << "::__OFFSETOF__" << p.Name << "(), std::make_tuple(";
 			for (const auto& f : p.ContainerProps)
 			{
 				file << "\"" << f << "\"";
@@ -145,9 +160,9 @@ namespace Reflect
 			}
 			file << "\n";
 		}
-		file << "\t);\n";
+		file << "\t\t);\n";
 
-		file << "};\n\n";
+		file << "\t};\n\n";
 	}
 
 	void CodeGenerateHeader::WriteClassMacros(const Reflect::ReflectContainerData& reflectData, const FileParsedData& data, std::ostream& file, const std::string& CurrentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)

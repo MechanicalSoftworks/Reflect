@@ -45,10 +45,22 @@ class C
 
 };
 
+REFLECT_CLASS(Abstract)
+template<typename T>
+class EXPORT TemplatedClass : REFLECT_BASE()
+{
+	REFLECT_GENERATED_BODY()
+
+public:
+	using SuperClass::SuperClass;
+
+	REFLECT_PROPERTY(EditorOnly, Public)
+		T Property;
+};
+
 REFLECT_CLASS()
 class EXPORT Actor : REFLECT_BASE()
 {
-	friend class Reflect::ReflectStatic<Actor>;
 	REFLECT_GENERATED_BODY()
 
 public:
@@ -63,7 +75,6 @@ public:
 REFLECT_CLASS(AllPrivate, ShowInEditorOnly, EditorOnly)
 class EXPORT Player : public Actor
 {
-	friend class Reflect::ReflectStatic<Player>;
 	REFLECT_GENERATED_BODY()
 
 public:

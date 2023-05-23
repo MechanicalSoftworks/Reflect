@@ -143,9 +143,51 @@ _TestStrcuts_Source_h_33_STATIC_CLASS \
 
 #define _TestStrcuts_Source_h_52_PROPERTIES_OFFSET \
 private:\
+	static constexpr int __OFFSETOF__Property() { return offsetof(TemplatedClass, Property); }; \
 
 
 #define _TestStrcuts_Source_h_52_STATIC_CLASS \
+public:\
+	using ThisClass = TemplatedClass;\
+	using SuperClass = Reflect::IReflect;\
+	friend struct Reflect::ReflectStatic<TemplatedClass>;\
+	static inline const Reflect::Class StaticClass = Reflect::Class( \
+		Reflect::Util::GetTypeName<ThisClass>(), \
+		nullptr, \
+		Reflect::ClassAllocator::Create<TemplatedClass>(nullptr), \
+		{"Abstract"}, \
+		Reflect::Util::make_vector<Reflect::ReflectMemberProp>( \
+			Reflect::CreateReflectMemberProp<T>("Property", Reflect::Util::GetTypeName<T>(), __OFFSETOF__Property(), {"EditorOnly", "Public"}, nullptr, nullptr)\
+		), \
+		{}, \
+		{} \
+	); \
+private:\
+	static inline const Reflect::LinkClass Linker = StaticClass; \
+
+
+#define _TestStrcuts_Source_h_52_PROPERTIES \
+public:\
+	static constexpr const char* nameof_Property = "Property";\
+private:\
+
+
+#define _TestStrcuts_Source_h_52_FUNCTION_DECLARE \
+private:\
+
+
+#define _TestStrcuts_Source_h_52_GENERATED_BODY \
+_TestStrcuts_Source_h_52_PROPERTIES_OFFSET \
+_TestStrcuts_Source_h_52_PROPERTIES \
+_TestStrcuts_Source_h_52_FUNCTION_DECLARE \
+_TestStrcuts_Source_h_52_STATIC_CLASS \
+
+
+#define _TestStrcuts_Source_h_64_PROPERTIES_OFFSET \
+private:\
+
+
+#define _TestStrcuts_Source_h_64_STATIC_CLASS \
 public:\
 	using ThisClass = Actor;\
 	using SuperClass = Reflect::IReflect;\
@@ -163,30 +205,30 @@ private:\
 	static inline const Reflect::LinkClass Linker = StaticClass; \
 
 
-#define _TestStrcuts_Source_h_52_PROPERTIES \
+#define _TestStrcuts_Source_h_64_PROPERTIES \
 public:\
 private:\
 
 
-#define _TestStrcuts_Source_h_52_FUNCTION_DECLARE \
+#define _TestStrcuts_Source_h_64_FUNCTION_DECLARE \
 private:\
 
 
-#define _TestStrcuts_Source_h_52_GENERATED_BODY \
-_TestStrcuts_Source_h_52_PROPERTIES_OFFSET \
-_TestStrcuts_Source_h_52_PROPERTIES \
-_TestStrcuts_Source_h_52_FUNCTION_DECLARE \
-_TestStrcuts_Source_h_52_STATIC_CLASS \
+#define _TestStrcuts_Source_h_64_GENERATED_BODY \
+_TestStrcuts_Source_h_64_PROPERTIES_OFFSET \
+_TestStrcuts_Source_h_64_PROPERTIES \
+_TestStrcuts_Source_h_64_FUNCTION_DECLARE \
+_TestStrcuts_Source_h_64_STATIC_CLASS \
 
 
-#define _TestStrcuts_Source_h_67_PROPERTIES_OFFSET \
+#define _TestStrcuts_Source_h_78_PROPERTIES_OFFSET \
 private:\
 	static constexpr int __OFFSETOF__Id() { return offsetof(Player, Id); }; \
 	static constexpr int __OFFSETOF__Friends() { return offsetof(Player, Friends); }; \
 	static constexpr int __OFFSETOF__TimeOnline() { return offsetof(Player, TimeOnline); }; \
 
 
-#define _TestStrcuts_Source_h_67_STATIC_CLASS \
+#define _TestStrcuts_Source_h_78_STATIC_CLASS \
 public:\
 	using ThisClass = Player;\
 	using SuperClass = Actor;\
@@ -212,7 +254,7 @@ private:\
 	static inline const Reflect::LinkClass Linker = StaticClass; \
 
 
-#define _TestStrcuts_Source_h_67_PROPERTIES \
+#define _TestStrcuts_Source_h_78_PROPERTIES \
 public:\
 	static constexpr const char* nameof_Id = "Id";\
 	static constexpr const char* nameof_Friends = "Friends";\
@@ -220,7 +262,7 @@ public:\
 private:\
 
 
-#define _TestStrcuts_Source_h_67_FUNCTION_DECLARE \
+#define _TestStrcuts_Source_h_78_FUNCTION_DECLARE \
 private:\
 	static Reflect::ReflectReturnCode __REFLECT_FUNC__GetOnlineFriendsCount(void* objectPtr, void* returnValuePtr, Reflect::FunctionPtrArgs& functionArgs)\
 	{\
@@ -243,11 +285,11 @@ private:\
 	}\
 
 
-#define _TestStrcuts_Source_h_67_GENERATED_BODY \
-_TestStrcuts_Source_h_67_PROPERTIES_OFFSET \
-_TestStrcuts_Source_h_67_PROPERTIES \
-_TestStrcuts_Source_h_67_FUNCTION_DECLARE \
-_TestStrcuts_Source_h_67_STATIC_CLASS \
+#define _TestStrcuts_Source_h_78_GENERATED_BODY \
+_TestStrcuts_Source_h_78_PROPERTIES_OFFSET \
+_TestStrcuts_Source_h_78_PROPERTIES \
+_TestStrcuts_Source_h_78_FUNCTION_DECLARE \
+_TestStrcuts_Source_h_78_STATIC_CLASS \
 
 
 #undef CURRENT_FILE_ID

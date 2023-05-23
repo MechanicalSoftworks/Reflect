@@ -83,7 +83,8 @@ namespace Reflect
 
 	struct ReflectContainerData : public ReflectTypeNameData
 	{
-		std::string Name, SuperName;
+		std::string Name, SuperName, TemplateArgString;
+		std::vector<std::string> TemplateArgNames;
 		Reflect::ReflectType ReflectType;
 		int ReflectGenerateBodyLine;
 

@@ -11,23 +11,32 @@
 #endif //C__mechsrc_terapixel_1_Dev_ThirdParty_Reflect_ReflectTest_src_TestStrcuts_h_reflect_static_h
 #define C__mechsrc_terapixel_1_Dev_ThirdParty_Reflect_ReflectTest_src_TestStrcuts_h_reflect_static_h
 
-template<> struct Reflect::ReflectStatic<S> {
-	static inline constexpr auto Properties = std::make_tuple(
-		Reflect::make_static_field<int>("Friends", S::__OFFSETOF__Friends(), std::make_tuple("EditorOnly", "Public")), 
-		Reflect::make_static_field<int>("TimeOnline", S::__OFFSETOF__TimeOnline(), std::make_tuple("Public"))
-	);
-};
+namespace Reflect {
 
-template<> struct Reflect::ReflectStatic<Actor> {
-	static inline constexpr auto Properties = std::make_tuple(
-	);
-};
+	template<> struct ReflectStatic<S> {
+		static inline constexpr auto Properties = std::make_tuple(
+			make_static_field<int>("Friends", S::__OFFSETOF__Friends(), std::make_tuple("EditorOnly", "Public")), 
+			make_static_field<int>("TimeOnline", S::__OFFSETOF__TimeOnline(), std::make_tuple("Public"))
+		);
+	};
 
-template<> struct Reflect::ReflectStatic<Player> {
-	static inline constexpr auto Properties = std::make_tuple(
-		Reflect::make_static_field<std::string>("Id", Player::__OFFSETOF__Id(), std::make_tuple("EditorOnly", "Public")), 
-		Reflect::make_static_field<int>("Friends", Player::__OFFSETOF__Friends(), std::make_tuple("EditorOnly", "Public")), 
-		Reflect::make_static_field<int>("TimeOnline", Player::__OFFSETOF__TimeOnline(), std::make_tuple("Public"))
-	);
-};
+	template<typename T> struct ReflectStatic<TemplatedClass<T>> {
+		static inline constexpr auto Properties = std::make_tuple(
+			make_static_field<T>("Property", TemplatedClass::__OFFSETOF__Property(), std::make_tuple("EditorOnly", "Public"))
+		);
+	};
 
+	template<> struct ReflectStatic<Actor> {
+		static inline constexpr auto Properties = std::make_tuple(
+		);
+	};
+
+	template<> struct ReflectStatic<Player> {
+		static inline constexpr auto Properties = std::make_tuple(
+			make_static_field<std::string>("Id", Player::__OFFSETOF__Id(), std::make_tuple("EditorOnly", "Public")), 
+			make_static_field<int>("Friends", Player::__OFFSETOF__Friends(), std::make_tuple("EditorOnly", "Public")), 
+			make_static_field<int>("TimeOnline", Player::__OFFSETOF__TimeOnline(), std::make_tuple("Public"))
+		);
+	};
+
+} // namespace Reflect
