@@ -1,19 +1,26 @@
 #pragma once
 
 #include <Reflect.h>
-#include "TestStrcuts.reflect.h"
+#include <ReflectStatic.h>
+#include "TestStrcuts.Reflect.h"
 
 #define EXPORT
 
-REFLECT_ENUM()
-enum class E : int
+REFLECT_ENUM(ValueType = int)
+class E : public Reflect::IEnum
 {
-	Value1,
-	// hello world
-	Value2,
+public:
+	enum Values
+	{
+		Value1,
+		// hello world
+		Value2,
 
-	Value3 = 10,
-	Value4
+		Value3 = 10,
+		Value4
+	};
+
+	REFLECT_GENERATED_BODY();
 };
 
 /// <summary>
@@ -38,6 +45,19 @@ class C
 
 };
 
+REFLECT_CLASS(Abstract)
+template<typename T>
+class EXPORT TemplatedClass : REFLECT_BASE()
+{
+	REFLECT_GENERATED_BODY()
+
+public:
+	using SuperClass::SuperClass;
+
+	REFLECT_PROPERTY(EditorOnly, Public)
+		T Property;
+};
+
 REFLECT_CLASS()
 class EXPORT Actor : REFLECT_BASE()
 {
@@ -60,7 +80,9 @@ class EXPORT Player : public Actor
 public:
 	Player(const Reflect::Constructor& init) 
 		: SuperClass(init)
-		, Id("PlayerExampleId") 
+		, Id("PlayerExampleId")
+		, Friends(7)
+		, TimeOnline(24)
 	{}
 
 	~Player()
@@ -82,10 +104,13 @@ private:
 		std::string GetId() const;
 
 private:
-	std::string Id;
+	REFLECT_PROPERTY(EditorOnly, Public)
+		std::string Id;
 
 	REFLECT_PROPERTY(EditorOnly, Public)
 		int Friends;
 	REFLECT_PROPERTY(Public)
 		int TimeOnline = 0;
 };
+
+#include "TestStrcuts.ReflectStatic.h"

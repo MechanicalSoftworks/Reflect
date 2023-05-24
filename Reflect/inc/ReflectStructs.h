@@ -11,6 +11,8 @@
 
 namespace Reflect
 {
+	template<typename T> struct ReflectStatic;
+
 	struct IReflect;
 	class Class;
 	struct Constructor;
@@ -81,7 +83,8 @@ namespace Reflect
 
 	struct ReflectContainerData : public ReflectTypeNameData
 	{
-		std::string Name, SuperName;
+		std::string Name, SuperName, TemplateArgString;
+		std::vector<std::string> TemplateArgNames;
 		Reflect::ReflectType ReflectType;
 		int ReflectGenerateBodyLine;
 
@@ -380,7 +383,7 @@ namespace Reflect
 	class Class
 	{
 	public:
-		REFLECT_CONSTEXPR Class(const std::string &name, const Class *super, const ClassAllocator& allocator, std::vector<std::string> const& strProperties, std::vector<ReflectMemberProp>&& props, std::vector<ReflectMemberFunction>&& funcs, std::vector<std::string>&& interfaces)
+		REFLECT_CONSTEXPR Class(std::string name, const Class *super, const ClassAllocator& allocator, std::vector<std::string> const& strProperties, std::vector<ReflectMemberProp>&& props, std::vector<ReflectMemberFunction>&& funcs, std::vector<std::string>&& interfaces)
 			: Name(name)
 			, SuperClass(super)
 			, Allocator(allocator)

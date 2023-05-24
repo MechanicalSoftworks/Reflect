@@ -53,6 +53,7 @@ namespace Reflect
 		int CountNumberOfSinceTop(const FileParsedData& fileData, int cursorStart, const char& character);
 
 		void EatWhitespace(FileParsedData& fileData, int endOfContainerCursor);
+		static std::vector<std::string> DetectTemplateArgNames(const std::string& s);
 
 	private:
 		std::vector<FileParsedData> m_filesParsed;

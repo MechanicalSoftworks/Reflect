@@ -51,7 +51,7 @@ void GetMemberWithFlags()
 	Player player(Reflect::Constructor(Player::StaticClass, nullptr));
 	auto member = player.GetMember("");
 	auto membersWithPublic = player.GetMembers({ "Public" });
-	int& friendInt = *membersWithPublic[0].ConvertToType<int>();
+	int& friendInt = *membersWithPublic[1].ConvertToType<int>();
 	friendInt = 12;
 }
 
@@ -65,8 +65,56 @@ void StaticClass()
 	staticClass.Allocator.Deallocate(player);
 }
 
+template<bool b> struct Baz;
+template<> struct Baz<false>
+{
+	static constexpr int value = 0;
+};
+template<> struct Baz<true>
+{
+	static constexpr std::string_view value = "yes";
+};
+
+template<Reflect::Util::StringLiteral flag>
+constexpr auto Bar()
+{
+	return std::get<2>(Reflect::ReflectStatic<Player>::Properties).HasAnyFlag<flag>();
+}
+
+template<Reflect::Util::StringLiteral flag>
+auto Foo()
+{
+	constexpr auto x = Bar<flag>();
+	return Baz<x>::value;
+}
+
 int main(void)
 {
+	{
+		Player p(Reflect::Constructor(Player::StaticClass, nullptr));
+
+		//
+		// TODO: Add support for multiple arguments here.
+		// TODO: Update the FilterProperties and ForEachProperty methods to use the templated filters.
+		//
+		auto x = Foo<"Serialise">();
+
+		constexpr auto asdf = Reflect::FilterProperties<Player, "Serialise">();
+
+		ForEachProperty(
+			[](const std::string_view& name, auto&& arg) {
+				std::cout << name << ": " << arg << std::endl;
+			},
+			p
+		);
+
+		ForEachProperty<"Serialise">(
+			[](const std::string_view& name, auto&& arg) {
+				std::cout << name << ": " << arg << std::endl;
+			}, 
+			p
+		);
+	}
 	FuncNoReturn();
 	FuncReturnValue();
 	FuncWithParameters();

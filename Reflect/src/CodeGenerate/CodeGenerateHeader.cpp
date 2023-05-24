@@ -51,6 +51,50 @@ namespace Reflect
 		WriteMacros(data, file, addtionalOptions);
 	}
 
+	void CodeGenerateHeader::GenerateStaticHeader(const FileParsedData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
+	{
+		REFLECT_PROFILE_FUNCTION();
+
+		file << " // This file is auto generated please don't modify.\n";
+
+		CodeGenerate::IncludeHeader("ReflectStructs.h", file);
+		CodeGenerate::IncludeHeader("Core/Core.h", file);
+		CodeGenerate::IncludeHeader("Core/Enums.h", file);
+		CodeGenerate::IncludeHeader("Core/Util.h", file);
+		CodeGenerate::IncludeHeader("ReflectStatic.h", file);
+		CodeGenerate::IncludeHeader("array", file, true);
+
+		const auto relativePath = data.FilePath + "\\" + std::string(data.FileName + "." + data.FileExtension);
+		std::string reflectGuard = relativePath + ReflectStaticFileHeaderGuard;
+		std::replace(reflectGuard.begin(), reflectGuard.end(), '/', '_');
+		std::replace(reflectGuard.begin(), reflectGuard.end(), '\\', '_');
+		std::replace(reflectGuard.begin(), reflectGuard.end(), '.', '_');
+		std::replace(reflectGuard.begin(), reflectGuard.end(), ':', '_');
+		std::replace(reflectGuard.begin(), reflectGuard.end(), '-', '_');
+
+		file << "\n";
+		file << "#ifdef " + reflectGuard + "_h\n";
+		file << "#error \"" + reflectGuard + ".h" + " already included, missing 'pragma once' in " + data.FileName + ".h\"\n";
+		file << "#endif //" + reflectGuard + "_h\n";
+		file << "#define " + reflectGuard + "_h\n\n";
+
+		file << "namespace Reflect {\n\n";
+		if (addtionalOptions.Namespace.length())
+		{
+			file << "\tusing namespace " << addtionalOptions.Namespace << ";\n\n";
+		}
+
+		for (const auto& reflectData : data.ReflectData)
+		{
+			if (reflectData.ReflectType != ReflectType::Enum)
+			{
+				WriteStatic(reflectData, data, file, addtionalOptions);
+			}
+		}
+
+		file << "} // namespace Reflect\n";
+	}
+
 	void CodeGenerateHeader::WriteMacros(const FileParsedData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
 		for (const auto& reflectData : data.ReflectData)
@@ -71,6 +115,55 @@ namespace Reflect
 
 		file << "#undef CURRENT_FILE_ID\n";
 		file << "#define CURRENT_FILE_ID " + GetCurrentFileID(addtionalOptions, data.FileName) + "\n";
+	}
+
+	void CodeGenerateHeader::WriteStatic(const Reflect::ReflectContainerData& reflectData, const FileParsedData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
+	{
+		auto qualifiedContainerType = addtionalOptions.Namespace.length()
+			? addtionalOptions.Namespace + "::" + reflectData.Name
+			: reflectData.Name;
+
+		if (reflectData.TemplateArgNames.size())
+		{
+			qualifiedContainerType += "<";
+			for (const auto& t : reflectData.TemplateArgNames)
+			{
+				qualifiedContainerType += t;
+				if (&t != &reflectData.TemplateArgNames.back())
+				{
+					qualifiedContainerType += ", ";
+				}
+			}
+			qualifiedContainerType += ">";
+		}
+
+		file << "\ttemplate<" << reflectData.TemplateArgString << "> struct ReflectStatic<" << qualifiedContainerType;
+		file << "> {\n";
+
+		file << "\t\tstatic inline constexpr auto Properties = std::make_tuple(\n";
+		for (const auto& p : reflectData.Members)
+		{
+			file << "\t\t\tmake_static_field<" << p.Type << ">(\"" << p.Name << "\", " << qualifiedContainerType << "::__OFFSETOF__" << p.Name << "(), std::make_tuple(";
+			for (const auto& f : p.ContainerProps)
+			{
+				file << "\"" << f << "\"";
+				if (&f != &p.ContainerProps.back())
+				{
+					file << ", ";
+				}
+			}
+			file << ")";
+
+			file << ")";
+			if (&p != &reflectData.Members.back())
+			{
+				file << ", ";
+			}
+			file << "\n";
+		}
+		file << "\t\t);\n";
+
+		file << "\t};\n\n";
 	}
 
 	void CodeGenerateHeader::WriteClassMacros(const Reflect::ReflectContainerData& reflectData, const FileParsedData& data, std::ostream& file, const std::string& CurrentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)
@@ -116,7 +209,8 @@ namespace Reflect
 		file << "\tusing ThisClass = " + data.Name + ";\\\n";
 		if (data.SuperName.length())
 			file << "\tusing SuperClass = " + data.SuperName + ";\\\n";
-		
+		file << "\tfriend struct Reflect::ReflectStatic<" << data.Name << ">;\\\n";
+
 		const auto hasAllocator = !Util::ContainsProperty(data.ContainerProps, { "Abstract" });
 		const std::string_view allocatorParm = hasAllocator ? "" : "nullptr";
 

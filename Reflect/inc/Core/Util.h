@@ -10,6 +10,7 @@
 #include <array>
 #include <memory>
 #include <set>
+#include <functional>
 
 namespace Reflect
 {
@@ -18,6 +19,87 @@ namespace Reflect
 
 	namespace Util
 	{
+		// https://ctrpeach.io/posts/cpp20-string-literal-template-parameters/
+		template<size_t N>
+		struct StringLiteral {
+			constexpr StringLiteral(const char(&str)[N]) {
+				std::copy_n(str, N, value);
+			}
+
+			char value[N];
+		};
+
+		template <StringLiteral... Args>
+		concept StringLiteralList = sizeof...(Args) > 0;
+
+		template <typename T, T... S, typename F>
+		constexpr void for_sequence(std::integer_sequence<T, S...>, F&& f) {
+			using unpack_t = int[];
+			(void)unpack_t {
+				(static_cast<void>(f(std::integral_constant<T, S>{})), 0)..., 0
+			};
+		}
+
+		// https://www.fluentcpp.com/2019/03/08/stl-algorithms-on-tuples/
+		template <class Tuple, class F, std::size_t... I>
+		constexpr F for_each_impl(Tuple&& t, F&& f, std::index_sequence<I...>)
+		{
+			return (void)std::initializer_list<int>{(std::forward<F>(f)(std::get<I>(std::forward<Tuple>(t))), 0)...}, f;
+		}
+
+		// https://www.fluentcpp.com/2019/03/08/stl-algorithms-on-tuples/
+		template <class Tuple, class F>
+		constexpr F for_each(Tuple&& t, F&& f)
+		{
+			return for_each_impl(std::forward<Tuple>(t), std::forward<F>(f),
+				std::make_index_sequence<std::tuple_size<std::remove_reference_t<Tuple>>::value>{});
+		}
+
+		// https://www.fluentcpp.com/2019/03/08/stl-algorithms-on-tuples/
+		template<typename Tuple, typename Predicate>
+		constexpr size_t find_if(Tuple&& tuple, Predicate pred)
+		{
+			size_t index = std::tuple_size<std::remove_reference_t<Tuple>>::value;
+			size_t currentIndex = 0;
+			bool found = false;
+			for_each(tuple, [&](auto&& value)
+				{
+					if (!found && pred(value))
+					{
+						index = currentIndex;
+						found = true;
+					}
+					++currentIndex;
+				});
+			return index;
+		}
+
+		template<typename Tuple, typename Predicate>
+		constexpr bool all_of(Tuple&& tuple, Predicate pred)
+		{
+			return find_if(tuple, std::not_fn(pred)) == std::tuple_size<std::decay_t<Tuple>>::value;
+		}
+
+		template<typename Tuple, typename Predicate>
+		constexpr bool none_of(Tuple&& tuple, Predicate pred)
+		{
+			return find_if(tuple, pred) == std::tuple_size<std::decay_t<Tuple>>::value;
+		}
+
+		template<typename Tuple, typename Predicate>
+		constexpr bool any_of(Tuple&& tuple, Predicate pred)
+		{
+			return !none_of(tuple, pred);
+		}
+
+		// https://stackoverflow.com/a/54487034
+		template<typename tuple_t>
+		constexpr auto get_array_from_tuple(tuple_t&& tuple)
+		{
+			constexpr auto get_array = [](auto&& ... x) { return std::array{ std::forward<decltype(x)>(x) ... }; };
+			return std::apply(get_array, std::forward<tuple_t>(tuple));
+		}
+
 		// Thanks: https://tristanbrindle.com/posts/beware-copies-initializer-list
 		template <typename T, typename... Args>
 		REFLECT_CONSTEXPR std::vector<T> make_vector(Args&&... args)
@@ -119,47 +201,47 @@ namespace Reflect
 			namespace impl
 			{
 				template <std::size_t...Idxs>
-				constexpr auto substring_as_array(std::string_view str, std::index_sequence<Idxs...>)
+				REFLECT_CONSTEXPR auto substring_as_array(std::string_view str, std::index_sequence<Idxs...>)
 				{
 					return std::array{ str[Idxs]... };
 				}
 
 				template <typename T>
-				constexpr auto type_name_array()
+				REFLECT_CONSTEXPR auto type_name_array()
 				{
 #if defined(__clang__)
-					constexpr auto prefix = std::string_view{ "[T = " };
-					constexpr auto suffix = std::string_view{ "]" };
-					constexpr auto function = std::string_view{ __PRETTY_FUNCTION__ };
+					REFLECT_CONSTEXPR auto prefix = std::string_view{ "[T = " };
+					REFLECT_CONSTEXPR auto suffix = std::string_view{ "]" };
+					REFLECT_CONSTEXPR auto function = std::string_view{ __PRETTY_FUNCTION__ };
 #elif defined(__GNUC__)
-					constexpr auto prefix = std::string_view{ "with T = " };
-					constexpr auto suffix = std::string_view{ "]" };
-					constexpr auto function = std::string_view{ __PRETTY_FUNCTION__ };
+					REFLECT_CONSTEXPR auto prefix = std::string_view{ "with T = " };
+					REFLECT_CONSTEXPR auto suffix = std::string_view{ "]" };
+					REFLECT_CONSTEXPR auto function = std::string_view{ __PRETTY_FUNCTION__ };
 #elif defined(_MSC_VER)
-					constexpr auto prefix = std::string_view{ "type_name_array<" };
-					constexpr auto suffix = std::string_view{ ">(void)" };
-					constexpr auto function = std::string_view{ __FUNCSIG__ };
+					REFLECT_CONSTEXPR auto prefix = std::string_view{ "type_name_array<" };
+					REFLECT_CONSTEXPR auto suffix = std::string_view{ ">(void)" };
+					REFLECT_CONSTEXPR auto function = std::string_view{ __FUNCSIG__ };
 #else
 # error Unsupported compiler
 #endif
 
-					constexpr auto start = function.find(prefix) + prefix.size();
-					constexpr auto end = function.rfind(suffix);
+					REFLECT_CONSTEXPR auto start = function.find(prefix) + prefix.size();
+					REFLECT_CONSTEXPR auto end = function.rfind(suffix);
 
 					static_assert(start < end);
 
-					constexpr auto name = function.substr(start, (end - start));
+					REFLECT_CONSTEXPR auto name = function.substr(start, (end - start));
 					return substring_as_array(name, std::make_index_sequence<name.size()>{});
 				}
 
 				template <typename T>
 				struct type_name_holder {
-					static inline constexpr auto value = type_name_array<T>();
+					static inline REFLECT_CONSTEXPR auto value = type_name_array<T>();
 				};
 
 				template <size_t N>
 				struct fixed_string {
-					constexpr std::string_view view() const { return { data, size }; }
+					REFLECT_CONSTEXPR std::string_view view() const { return { data, size }; }
 					char data[N];
 					size_t size;
 				};
@@ -167,7 +249,7 @@ namespace Reflect
 				// MSVC specifies "class std::string", whereas GCC specifies "std::string".
 				// Strip off "class ", "struct " and "enum " for MSVC to make them the same.
 				template <size_t N>
-				constexpr auto clean_expression(const std::array<char, N>& expr) {
+				REFLECT_CONSTEXPR auto clean_expression(const std::array<char, N>& expr) {
 					fixed_string<N> result = {};
 
 					size_t src_idx = 0;
@@ -200,14 +282,14 @@ namespace Reflect
 			template <typename T>
 			REFLECT_CONSTEXPR auto type_name() -> std::string
 			{
-				constexpr auto& value = impl::type_name_holder<T>::value;
+				REFLECT_CONSTEXPR auto& value = impl::type_name_holder<T>::value;
 				return std::string{ value.data(), value.size() };
 			}
 
 			template <typename T>
 			REFLECT_CONSTEXPR auto clean_type_name() -> std::string
 			{
-				constexpr auto& arr = impl::type_name_holder<T>::value;
+				REFLECT_CONSTEXPR auto& arr = impl::type_name_holder<T>::value;
 				return std::string(impl::clean_expression(arr).view());
 			}
 
@@ -304,31 +386,31 @@ namespace Reflect
 		}
 
 		//
-		// Cross platform name generator.
+		// StaticClass member accessor.
 		//
 		namespace detail
 		{
 			template<typename T>
-			inline constexpr typename std::enable_if<std::is_base_of_v<IReflect, T>, const Class *>::type GetStaticClass()
+			inline REFLECT_CONSTEXPR typename std::enable_if<std::is_base_of_v<IReflect, T>, const Class *>::type GetStaticClass()
 			{
 				return &T::StaticClass;
 			}
 
 			template<typename T>
-			inline constexpr typename std::enable_if<!std::is_pointer_v<T> && !std::is_base_of_v<IReflect, T>, const Class*>::type GetStaticClass()
+			inline REFLECT_CONSTEXPR typename std::enable_if<!std::is_pointer_v<T> && !std::is_base_of_v<IReflect, T>, const Class*>::type GetStaticClass()
 			{
 				return nullptr;
 			}
 
 			template<typename T>
-			inline constexpr typename std::enable_if<std::is_pointer_v<T>, const Class*>::type GetStaticClass()
+			inline REFLECT_CONSTEXPR typename std::enable_if<std::is_pointer_v<T>, const Class*>::type GetStaticClass()
 			{
 				return GetStaticClass<typename std::remove_pointer<T>::type>();
 			}
 		}
 
 		template<typename T>
-		constexpr const Reflect::Class* GetStaticClass()
+		REFLECT_CONSTEXPR const Reflect::Class* GetStaticClass()
 		{
 			return detail::GetStaticClass<T>();
 		}

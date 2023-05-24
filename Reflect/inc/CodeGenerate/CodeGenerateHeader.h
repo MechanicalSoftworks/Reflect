@@ -14,9 +14,11 @@ namespace Reflect
 		~CodeGenerateHeader() { }
 
 		void GenerateHeader(const FileParsedData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions);
+		void GenerateStaticHeader(const FileParsedData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions);
 
 	private:
 		void WriteMacros(const FileParsedData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions);
+		void WriteStatic(const Reflect::ReflectContainerData& reflectData, const FileParsedData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions);
 
 		void WriteClassMacros(const Reflect::ReflectContainerData& reflectData, const FileParsedData& data, std::ostream& file, const std::string& CurrentFileId, const CodeGenerateAddtionalOptions& addtionalOptions);
 		void WriteStaticClass(const ReflectContainerData& data, std::ostream& file, const std::string& currentFileId, const CodeGenerateAddtionalOptions& addtionalOptions);
