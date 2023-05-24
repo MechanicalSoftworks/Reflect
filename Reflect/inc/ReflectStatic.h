@@ -72,7 +72,7 @@ namespace Reflect
 			static constexpr auto call()
 			{
 				constexpr auto properties = Reflect::ReflectStatic<T>::Properties;
-				if constexpr (std::get<I - 1>(Reflect::ReflectStatic<T>::Properties).HasAnyFlag<flags...>())
+				if constexpr (std::get<I - 1>(Reflect::ReflectStatic<T>::Properties).template HasAnyFlag<flags...>())
 				{
 					return std::tuple_cat(
 						std::make_tuple(std::get<I - 1>(properties)),

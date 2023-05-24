@@ -119,24 +119,25 @@ namespace Reflect
 
 	void CodeGenerateHeader::WriteStatic(const Reflect::ReflectContainerData& reflectData, const FileParsedData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
-		const auto qualifiedContainerType = addtionalOptions.Namespace.length()
+		auto qualifiedContainerType = addtionalOptions.Namespace.length()
 			? addtionalOptions.Namespace + "::" + reflectData.Name
 			: reflectData.Name;
 
-		file << "\ttemplate<" << reflectData.TemplateArgString << "> struct ReflectStatic<" << qualifiedContainerType;
 		if (reflectData.TemplateArgNames.size())
 		{
-			file << "<";
+			qualifiedContainerType += "<";
 			for (const auto& t : reflectData.TemplateArgNames)
 			{
-				file << t;
+				qualifiedContainerType += t;
 				if (&t != &reflectData.TemplateArgNames.back())
 				{
-					file << ", ";
+					qualifiedContainerType += ", ";
 				}
 			}
-			file << ">";
+			qualifiedContainerType += ">";
 		}
+
+		file << "\ttemplate<" << reflectData.TemplateArgString << "> struct ReflectStatic<" << qualifiedContainerType;
 		file << "> {\n";
 
 		file << "\t\tstatic inline constexpr auto Properties = std::make_tuple(\n";

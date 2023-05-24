@@ -22,7 +22,7 @@ namespace Reflect {
 
 	template<typename T> struct ReflectStatic<TemplatedClass<T>> {
 		static inline constexpr auto Properties = std::make_tuple(
-			make_static_field<T>("Property", TemplatedClass::__OFFSETOF__Property(), std::make_tuple("EditorOnly", "Public"))
+			make_static_field<T>("Property", TemplatedClass<T>::__OFFSETOF__Property(), std::make_tuple("EditorOnly", "Public"))
 		);
 	};
 
