@@ -28,6 +28,7 @@ public:\
 			Reflect::EnumConstant("Value2", 1, "Value2", { }), \
 			Reflect::EnumConstant("Value3", 10, "Value3", { }), \
 			Reflect::EnumConstant("Value4", 11, "Value4", { }), \
+			Reflect::EnumConstant("REFLECT_GENERATED_BODY", 12, "REFLECT_GENERATED_BODY", { }), \
 		}, \
 		__GetValue__, __SetValue__ \
 	);\
@@ -47,11 +48,12 @@ public:\
 
 #define _TestStrcuts_Source_h_23_VALUES \
 public:\
-	static constexpr std::array<std::pair<std::string_view, Values>, 4> Names{\
+	static constexpr std::array<std::pair<std::string_view, Values>, 5> Names{\
 		std::pair{ "Value1", Values(0) },\
 		std::pair{ "Value2", Values(1) },\
 		std::pair{ "Value3", Values(10) },\
 		std::pair{ "Value4", Values(11) },\
+		std::pair{ "REFLECT_GENERATED_BODY", Values(12) },\
 	};\
 
 

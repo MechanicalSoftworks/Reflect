@@ -313,7 +313,7 @@ namespace Reflect
 
 	void FileParser::ReflectContainer(FileParsedData& fileData)
 	{
-		int endOfContainerCursor = FindEndOfConatiner(fileData);
+		int endOfContainerCursor = FindEndOfContainer(fileData);
 
 		// Good, we have a reflected container class/struct.
 		// First find out which it is and verify that we are inheriting from "ReflectObject".
@@ -508,14 +508,18 @@ namespace Reflect
 		}
 	}
 
-	int FileParser::FindEndOfConatiner(const FileParsedData& fileData)
+	int FileParser::FindEndOfContainer(const FileParsedData& fileData)
 	{
+		int stack = 0;
 		int cursor = fileData.Cursor;
 		char lastCharacter = '\0';
-		char c = '\0';
+		char c = fileData.Data.at(cursor);
 		while (true)
 		{
-			if (lastCharacter == '}' && c == ';')
+			if (c == '{') ++stack;
+			if (c == '}') --stack;
+
+			if (!stack && lastCharacter == '}' && c == ';')
 			{
 				break;
 			}
@@ -525,7 +529,7 @@ namespace Reflect
 				lastCharacter = c;
 			}
 			++cursor;
-			c = fileData.Data[cursor];
+			c = fileData.Data.at(cursor);
 		}
 		return cursor;
 	}

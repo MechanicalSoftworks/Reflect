@@ -38,7 +38,7 @@ namespace Reflect
 		void ReflectClassContainer(FileParsedData& fileData, ReflectContainerData& conatinerData, int endOfContainerCursor);
 		void ReflectEnumContainer(FileParsedData& fileData, ReflectContainerData& conatinerData, int endOfContainerCursor);
 
-		int FindEndOfConatiner(const FileParsedData& fileData);
+		int FindEndOfContainer(const FileParsedData& fileData);
 
 		std::vector<std::string> ReflectFlags(FileParsedData& fileData);
 		char FindNextChar(FileParsedData& fileData, const std::vector<char>& ingoreChars);
