@@ -311,6 +311,9 @@ namespace Reflect
 		};
 
 		file << "#define " + currentFileId + "_FUNCTION_DECLARE \\\n";
+		WRITE_PUBLIC();
+			file << "\tvoid Serialise(Reflect::ISerialiser &s, std::ostream& out)    { DispatchSerialise(s, out, *this); }\\\n";
+			file << "\tvoid Unserialise(Reflect::IUnserialiser& u, std::istream& in) { DispatchUnserialise(u, in, *this); }\\\n";
 		WRITE_PRIVATE();
 		for (const auto& func : data.Functions)
 		{
