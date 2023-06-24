@@ -136,4 +136,23 @@ namespace Reflect
 
 		ForEachProperty<flags...>(std::move(obj), static_cast<T::SuperClass&>(t));
 	}
+
+	template<typename T, typename TOther>
+	constexpr inline bool IsOrDescendantOf()
+	{
+		if constexpr (std::is_same<T, TOther>::value)
+		{
+			return true;
+		}
+		// <T = IReflect, TOther = IReflect> is captured above.
+		// This case prevents us from trying to lookup SuperClass on IReflect.
+		else if constexpr (std::is_same<T, IReflect>::value)
+		{
+			return false;
+		}
+		else
+		{
+			return IsOrDescendantOf<typename T::SuperClass, TOther>();
+		}
+	}
 }
