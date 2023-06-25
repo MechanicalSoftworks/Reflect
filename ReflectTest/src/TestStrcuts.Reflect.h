@@ -134,8 +134,8 @@ private:\
 
 #define _TestStrcuts_Source_h_35_FUNCTION_DECLARE \
 public:\
-	void Serialise(Reflect::ISerialiser &s, std::ostream& out) const { DispatchSerialise(s, out, *this); }\
-	void Unserialise(Reflect::IUnserialiser& u, std::istream& in)    { DispatchUnserialise(u, in, *this); }\
+	void Serialise(Reflect::ISerialiser &s, std::ostream& out) const override { DispatchSerialise(s, out, *this); }\
+	void Unserialise(Reflect::IUnserialiser& u, std::istream& in) override    { DispatchUnserialise(u, in, *this); }\
 private:\
 
 
@@ -179,8 +179,8 @@ private:\
 
 #define _TestStrcuts_Source_h_54_FUNCTION_DECLARE \
 public:\
-	void Serialise(Reflect::ISerialiser &s, std::ostream& out) const { DispatchSerialise(s, out, *this); }\
-	void Unserialise(Reflect::IUnserialiser& u, std::istream& in)    { DispatchUnserialise(u, in, *this); }\
+	void Serialise(Reflect::ISerialiser &s, std::ostream& out) const override { DispatchSerialise(s, out, *this); }\
+	void Unserialise(Reflect::IUnserialiser& u, std::istream& in) override    { DispatchUnserialise(u, in, *this); }\
 private:\
 
 
@@ -220,8 +220,8 @@ private:\
 
 #define _TestStrcuts_Source_h_66_FUNCTION_DECLARE \
 public:\
-	void Serialise(Reflect::ISerialiser &s, std::ostream& out) const { DispatchSerialise(s, out, *this); }\
-	void Unserialise(Reflect::IUnserialiser& u, std::istream& in)    { DispatchUnserialise(u, in, *this); }\
+	void Serialise(Reflect::ISerialiser &s, std::ostream& out) const override { DispatchSerialise(s, out, *this); }\
+	void Unserialise(Reflect::IUnserialiser& u, std::istream& in) override    { DispatchUnserialise(u, in, *this); }\
 private:\
 
 
@@ -275,8 +275,8 @@ private:\
 
 #define _TestStrcuts_Source_h_80_FUNCTION_DECLARE \
 public:\
-	void Serialise(Reflect::ISerialiser &s, std::ostream& out) const { DispatchSerialise(s, out, *this); }\
-	void Unserialise(Reflect::IUnserialiser& u, std::istream& in)    { DispatchUnserialise(u, in, *this); }\
+	void Serialise(Reflect::ISerialiser &s, std::ostream& out) const override { DispatchSerialise(s, out, *this); }\
+	void Unserialise(Reflect::IUnserialiser& u, std::istream& in) override    { DispatchUnserialise(u, in, *this); }\
 private:\
 	static Reflect::ReflectReturnCode __REFLECT_FUNC__GetOnlineFriendsCount(void* objectPtr, void* returnValuePtr, Reflect::FunctionPtrArgs& functionArgs)\
 	{\

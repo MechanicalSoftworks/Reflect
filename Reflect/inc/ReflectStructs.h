@@ -544,8 +544,8 @@ namespace Reflect
 		auto GetMembers(std::vector<std::string> const& flags) const	{ return m_class->GetMembers(flags, const_cast<IReflect*>(this)); }
 		
 		// Serialisation.
-		virtual void Serialise(ISerialiser& s) const {}
-		virtual void Unserialise(IUnserialiser& u) {}
+		virtual void Serialise(ISerialiser& s, std::ostream& out) const {}
+		virtual void Unserialise(IUnserialiser& u, std::istream& in) {}
 		virtual void PostUnserialise() {}
 
 		// Cleanup.
