@@ -93,26 +93,16 @@ int main(void)
 	{
 		Player p(Reflect::Constructor(Player::StaticClass, nullptr));
 
-		//
-		// TODO: Add support for multiple arguments here.
-		// TODO: Update the FilterProperties and ForEachProperty methods to use the templated filters.
-		//
-		auto x = Foo<"Serialise">();
-
-		constexpr auto asdf = Reflect::FilterProperties<Player, "Serialise">();
-
-		ForEachProperty(
+		ForEachProperty(p,
 			[](const std::string_view& name, auto&& arg) {
 				std::cout << name << ": " << arg << std::endl;
-			},
-			p
+			}
 		);
 
-		ForEachProperty<"Serialise">(
+		ForEachProperty<decltype(p), "Serialise">(p,
 			[](const std::string_view& name, auto&& arg) {
 				std::cout << name << ": " << arg << std::endl;
-			}, 
-			p
+			}
 		);
 	}
 	FuncNoReturn();

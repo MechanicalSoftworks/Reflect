@@ -5,7 +5,10 @@
 
 namespace Reflect
 {
+	template<typename T> struct ReflectStatic;
 	struct IReflect;
+
+	template<typename T> concept IsReflected = sizeof(ReflectStatic<typename std::decay<T>::type>) != 0;
 
 	template<typename F, typename TAttributes>
 	struct StaticField
@@ -22,9 +25,9 @@ namespace Reflect
 		const TAttributes	Attributes;
 
 		template<typename T>
-		auto& Get(T& t) const
+		const auto& Get(const T& t) const
 		{
-			return *reinterpret_cast<Type*>(reinterpret_cast<char*>(&t) + Offset);
+			return *reinterpret_cast<const Type*>(reinterpret_cast<const char*>(&t) + Offset);
 		}
 
 		template<Util::StringLiteral flag, Util::StringLiteral... TFlags>
@@ -54,10 +57,10 @@ namespace Reflect
 
 	namespace detail
 	{
-		template<typename T, int I, Reflect::Util::StringLiteral... flags>
+		template<typename T, int I, Util::StringLiteral... flags>
 		struct FilterProperties;
 
-		template<typename T, Reflect::Util::StringLiteral... flags>
+		template<typename T, Util::StringLiteral... flags>
 		struct FilterProperties<T, 0, flags...>
 		{
 			static constexpr auto call()
@@ -66,13 +69,13 @@ namespace Reflect
 			}
 		};
 
-		template<typename T, int I, Reflect::Util::StringLiteral... flags>
+		template<typename T, int I, Util::StringLiteral... flags>
 		struct FilterProperties
 		{
 			static constexpr auto call()
 			{
-				constexpr auto properties = Reflect::ReflectStatic<T>::Properties;
-				if constexpr (std::get<I - 1>(Reflect::ReflectStatic<T>::Properties).template HasAnyFlag<flags...>())
+				constexpr auto properties = ReflectStatic<T>::Properties;
+				if constexpr (std::get<I - 1>(ReflectStatic<T>::Properties).template HasAnyFlag<flags...>())
 				{
 					return std::tuple_cat(
 						std::make_tuple(std::get<I - 1>(properties)),
@@ -87,22 +90,25 @@ namespace Reflect
 		};
 	}
 
-	template<typename T, Reflect::Util::StringLiteral... flags>
+	template<typename T, Util::StringLiteral... flags>
+		requires IsReflected<T>
 	constexpr auto FilterProperties()
 	{
-		constexpr auto properties = Reflect::ReflectStatic<T>::Properties;
+		using TDecay = typename std::decay<T>::type;
+
+		constexpr auto properties = ReflectStatic<TDecay>::Properties;
 
 		constexpr auto property_count = std::tuple_size<decltype(properties)>::value;
-		return detail::FilterProperties<T, property_count, flags...>::call();
+		return detail::FilterProperties<TDecay, property_count, flags...>::call();
 	}
 
 	//
 	// This version has no filter.
 	//
-	void ForEachProperty(auto&& obj, IReflect& t) {}
-	void ForEachProperty(auto&& obj, auto& t)
+	template<typename T>
+	void ForEachProperty(T& t, auto&& obj)
 	{
-		using T = std::remove_reference<decltype(t)>::type;
+		using TDecay = typename std::decay<T>::type;
 		
 		// https://stackoverflow.com/a/54053084
 		std::apply(
@@ -111,21 +117,28 @@ namespace Reflect
 			},
 			ReflectStatic<T>::Properties
 		);
-		ForEachProperty(std::move(obj), static_cast<T::SuperClass&>(t));
+
+		if constexpr (!std::is_same_v<typename TDecay::SuperClass, IReflect>)
+		{
+			// This propgates constness from T to T::SuperClass;
+			using TValue = std::remove_reference_t<T>;
+			using TSuper = Util::match_const<TValue, typename TDecay::SuperClass>::type;
+
+			ForEachProperty(static_cast<TSuper&>(t), std::move(obj));
+		}
 	}
 
 	//
 	// Filter properties based on attributes.
 	//
-	template<Reflect::Util::StringLiteral... flags> requires Util::StringLiteralList<flags...>
-	void ForEachProperty(auto&& obj, Reflect::IReflect& t) {}
-	template<Reflect::Util::StringLiteral... flags> requires Util::StringLiteralList<flags...>
-	void ForEachProperty(auto&& obj, auto& t)
+	template<typename T, Util::StringLiteral... flags>
+		requires Util::StringLiteralList<flags...>&& IsReflected<T>
+	void ForEachProperty(T& t, auto&& obj)
 	{
-		using T = std::remove_reference<decltype(t)>::type;
+		using TDecay = typename std::decay<T>::type;
 
 		constexpr auto properties = FilterProperties<T, flags...>();
-		
+
 		// https://stackoverflow.com/a/54053084
 		std::apply(
 			[&t, &obj](auto&&... args) {
@@ -134,7 +147,14 @@ namespace Reflect
 			properties
 		);
 
-		ForEachProperty<flags...>(std::move(obj), static_cast<T::SuperClass&>(t));
+		if constexpr (!std::is_same_v<typename TDecay::SuperClass, IReflect>)
+		{
+			// This propgates constness from T to T::SuperClass;
+			using TValue = std::remove_reference_t<T>;
+			using TSuper = Util::match_const<TValue, typename TDecay::SuperClass>::type;
+
+			ForEachProperty<TSuper, flags...>(static_cast<TSuper&>(t), std::move(obj));
+		}
 	}
 
 	template<typename T, typename TOther>

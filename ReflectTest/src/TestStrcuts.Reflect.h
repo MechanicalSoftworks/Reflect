@@ -10,7 +10,7 @@
 #endif //C__mechsrc_terapixel_1_Dev_ThirdParty_Reflect_ReflectTest_src_TestStrcuts_h_reflect_h
 #define C__mechsrc_terapixel_1_Dev_ThirdParty_Reflect_ReflectTest_src_TestStrcuts_h_reflect_h
 
-#define _TestStrcuts_Source_h_23_STATIC_ENUM \
+#define _TestStrcuts_Source_h_25_STATIC_ENUM \
 public:\
 	using ThisClass = E;\
 	using SuperClass = Reflect::IEnum;\
@@ -35,7 +35,7 @@ public:\
 
 
 
-#define _TestStrcuts_Source_h_23_OPERATORS \
+#define _TestStrcuts_Source_h_25_OPERATORS \
 public:\
 	constexpr operator Values() const { return Values(Value); }\
 	explicit operator bool() const = delete;\
@@ -46,7 +46,7 @@ public:\
 	constexpr auto& operator|=(const E& rhs) { Value = (Values)(Value | rhs.Value); return *this; }\
 
 
-#define _TestStrcuts_Source_h_23_VALUES \
+#define _TestStrcuts_Source_h_25_VALUES \
 public:\
 	static constexpr std::array<std::pair<std::string_view, Values>, 5> Names{\
 		std::pair{ "Value1", Values(0) },\
@@ -57,12 +57,12 @@ public:\
 	};\
 
 
-#define _TestStrcuts_Source_h_23_MEMBERS \
+#define _TestStrcuts_Source_h_25_MEMBERS \
 protected:\
 	Values Value = (Values)0;\
 
 
-#define _TestStrcuts_Source_h_23_METHODS \
+#define _TestStrcuts_Source_h_25_METHODS \
 public:\
 	static const auto & ToString(E v) { return StaticEnum.ToString(v); }\
 	const auto& ToString() const { return StaticEnum.ToString(Value); }\
@@ -90,21 +90,21 @@ public:\
 	void	store(ValueType v)		{ Value = (Values)v; }\
 
 
-#define _TestStrcuts_Source_h_23_GENERATED_BODY \
-_TestStrcuts_Source_h_23_STATIC_ENUM \
-_TestStrcuts_Source_h_23_OPERATORS \
-_TestStrcuts_Source_h_23_VALUES \
-_TestStrcuts_Source_h_23_MEMBERS \
-_TestStrcuts_Source_h_23_METHODS \
+#define _TestStrcuts_Source_h_25_GENERATED_BODY \
+_TestStrcuts_Source_h_25_STATIC_ENUM \
+_TestStrcuts_Source_h_25_OPERATORS \
+_TestStrcuts_Source_h_25_VALUES \
+_TestStrcuts_Source_h_25_MEMBERS \
+_TestStrcuts_Source_h_25_METHODS \
 
 
-#define _TestStrcuts_Source_h_33_PROPERTIES_OFFSET \
+#define _TestStrcuts_Source_h_35_PROPERTIES_OFFSET \
 private:\
 	static constexpr int __OFFSETOF__Friends() { return offsetof(S, Friends); }; \
 	static constexpr int __OFFSETOF__TimeOnline() { return offsetof(S, TimeOnline); }; \
 
 
-#define _TestStrcuts_Source_h_33_STATIC_CLASS \
+#define _TestStrcuts_Source_h_35_STATIC_CLASS \
 public:\
 	using ThisClass = S;\
 	using SuperClass = Reflect::IReflect;\
@@ -125,30 +125,33 @@ private:\
 	static inline const Reflect::LinkClass Linker = StaticClass; \
 
 
-#define _TestStrcuts_Source_h_33_PROPERTIES \
+#define _TestStrcuts_Source_h_35_PROPERTIES \
 public:\
 	static constexpr const char* nameof_Friends = "Friends";\
 	static constexpr const char* nameof_TimeOnline = "TimeOnline";\
 private:\
 
 
-#define _TestStrcuts_Source_h_33_FUNCTION_DECLARE \
+#define _TestStrcuts_Source_h_35_FUNCTION_DECLARE \
+public:\
+	void Serialise(Reflect::ISerialiser &s, std::ostream& out) const { DispatchSerialise(s, out, *this); }\
+	void Unserialise(Reflect::IUnserialiser& u, std::istream& in)    { DispatchUnserialise(u, in, *this); }\
 private:\
 
 
-#define _TestStrcuts_Source_h_33_GENERATED_BODY \
-_TestStrcuts_Source_h_33_PROPERTIES_OFFSET \
-_TestStrcuts_Source_h_33_PROPERTIES \
-_TestStrcuts_Source_h_33_FUNCTION_DECLARE \
-_TestStrcuts_Source_h_33_STATIC_CLASS \
+#define _TestStrcuts_Source_h_35_GENERATED_BODY \
+_TestStrcuts_Source_h_35_PROPERTIES_OFFSET \
+_TestStrcuts_Source_h_35_PROPERTIES \
+_TestStrcuts_Source_h_35_FUNCTION_DECLARE \
+_TestStrcuts_Source_h_35_STATIC_CLASS \
 
 
-#define _TestStrcuts_Source_h_52_PROPERTIES_OFFSET \
+#define _TestStrcuts_Source_h_54_PROPERTIES_OFFSET \
 private:\
 	static constexpr int __OFFSETOF__Property() { return offsetof(TemplatedClass, Property); }; \
 
 
-#define _TestStrcuts_Source_h_52_STATIC_CLASS \
+#define _TestStrcuts_Source_h_54_STATIC_CLASS \
 public:\
 	using ThisClass = TemplatedClass;\
 	using SuperClass = Reflect::IReflect;\
@@ -168,28 +171,31 @@ private:\
 	static inline const Reflect::LinkClass Linker = StaticClass; \
 
 
-#define _TestStrcuts_Source_h_52_PROPERTIES \
+#define _TestStrcuts_Source_h_54_PROPERTIES \
 public:\
 	static constexpr const char* nameof_Property = "Property";\
 private:\
 
 
-#define _TestStrcuts_Source_h_52_FUNCTION_DECLARE \
+#define _TestStrcuts_Source_h_54_FUNCTION_DECLARE \
+public:\
+	void Serialise(Reflect::ISerialiser &s, std::ostream& out) const { DispatchSerialise(s, out, *this); }\
+	void Unserialise(Reflect::IUnserialiser& u, std::istream& in)    { DispatchUnserialise(u, in, *this); }\
 private:\
 
 
-#define _TestStrcuts_Source_h_52_GENERATED_BODY \
-_TestStrcuts_Source_h_52_PROPERTIES_OFFSET \
-_TestStrcuts_Source_h_52_PROPERTIES \
-_TestStrcuts_Source_h_52_FUNCTION_DECLARE \
-_TestStrcuts_Source_h_52_STATIC_CLASS \
+#define _TestStrcuts_Source_h_54_GENERATED_BODY \
+_TestStrcuts_Source_h_54_PROPERTIES_OFFSET \
+_TestStrcuts_Source_h_54_PROPERTIES \
+_TestStrcuts_Source_h_54_FUNCTION_DECLARE \
+_TestStrcuts_Source_h_54_STATIC_CLASS \
 
 
-#define _TestStrcuts_Source_h_64_PROPERTIES_OFFSET \
+#define _TestStrcuts_Source_h_66_PROPERTIES_OFFSET \
 private:\
 
 
-#define _TestStrcuts_Source_h_64_STATIC_CLASS \
+#define _TestStrcuts_Source_h_66_STATIC_CLASS \
 public:\
 	using ThisClass = Actor;\
 	using SuperClass = Reflect::IReflect;\
@@ -207,30 +213,33 @@ private:\
 	static inline const Reflect::LinkClass Linker = StaticClass; \
 
 
-#define _TestStrcuts_Source_h_64_PROPERTIES \
+#define _TestStrcuts_Source_h_66_PROPERTIES \
 public:\
 private:\
 
 
-#define _TestStrcuts_Source_h_64_FUNCTION_DECLARE \
+#define _TestStrcuts_Source_h_66_FUNCTION_DECLARE \
+public:\
+	void Serialise(Reflect::ISerialiser &s, std::ostream& out) const { DispatchSerialise(s, out, *this); }\
+	void Unserialise(Reflect::IUnserialiser& u, std::istream& in)    { DispatchUnserialise(u, in, *this); }\
 private:\
 
 
-#define _TestStrcuts_Source_h_64_GENERATED_BODY \
-_TestStrcuts_Source_h_64_PROPERTIES_OFFSET \
-_TestStrcuts_Source_h_64_PROPERTIES \
-_TestStrcuts_Source_h_64_FUNCTION_DECLARE \
-_TestStrcuts_Source_h_64_STATIC_CLASS \
+#define _TestStrcuts_Source_h_66_GENERATED_BODY \
+_TestStrcuts_Source_h_66_PROPERTIES_OFFSET \
+_TestStrcuts_Source_h_66_PROPERTIES \
+_TestStrcuts_Source_h_66_FUNCTION_DECLARE \
+_TestStrcuts_Source_h_66_STATIC_CLASS \
 
 
-#define _TestStrcuts_Source_h_78_PROPERTIES_OFFSET \
+#define _TestStrcuts_Source_h_80_PROPERTIES_OFFSET \
 private:\
 	static constexpr int __OFFSETOF__Id() { return offsetof(Player, Id); }; \
 	static constexpr int __OFFSETOF__Friends() { return offsetof(Player, Friends); }; \
 	static constexpr int __OFFSETOF__TimeOnline() { return offsetof(Player, TimeOnline); }; \
 
 
-#define _TestStrcuts_Source_h_78_STATIC_CLASS \
+#define _TestStrcuts_Source_h_80_STATIC_CLASS \
 public:\
 	using ThisClass = Player;\
 	using SuperClass = Actor;\
@@ -256,7 +265,7 @@ private:\
 	static inline const Reflect::LinkClass Linker = StaticClass; \
 
 
-#define _TestStrcuts_Source_h_78_PROPERTIES \
+#define _TestStrcuts_Source_h_80_PROPERTIES \
 public:\
 	static constexpr const char* nameof_Id = "Id";\
 	static constexpr const char* nameof_Friends = "Friends";\
@@ -264,7 +273,10 @@ public:\
 private:\
 
 
-#define _TestStrcuts_Source_h_78_FUNCTION_DECLARE \
+#define _TestStrcuts_Source_h_80_FUNCTION_DECLARE \
+public:\
+	void Serialise(Reflect::ISerialiser &s, std::ostream& out) const { DispatchSerialise(s, out, *this); }\
+	void Unserialise(Reflect::IUnserialiser& u, std::istream& in)    { DispatchUnserialise(u, in, *this); }\
 private:\
 	static Reflect::ReflectReturnCode __REFLECT_FUNC__GetOnlineFriendsCount(void* objectPtr, void* returnValuePtr, Reflect::FunctionPtrArgs& functionArgs)\
 	{\
@@ -287,11 +299,11 @@ private:\
 	}\
 
 
-#define _TestStrcuts_Source_h_78_GENERATED_BODY \
-_TestStrcuts_Source_h_78_PROPERTIES_OFFSET \
-_TestStrcuts_Source_h_78_PROPERTIES \
-_TestStrcuts_Source_h_78_FUNCTION_DECLARE \
-_TestStrcuts_Source_h_78_STATIC_CLASS \
+#define _TestStrcuts_Source_h_80_GENERATED_BODY \
+_TestStrcuts_Source_h_80_PROPERTIES_OFFSET \
+_TestStrcuts_Source_h_80_PROPERTIES \
+_TestStrcuts_Source_h_80_FUNCTION_DECLARE \
+_TestStrcuts_Source_h_80_STATIC_CLASS \
 
 
 #undef CURRENT_FILE_ID

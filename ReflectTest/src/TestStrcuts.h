@@ -1,8 +1,10 @@
 #pragma once
 
 #include <Reflect.h>
-#include <ReflectStatic.h>
 #include "TestStrcuts.Reflect.h"
+
+template<typename S, typename T> void DispatchSerialise(S& s, std::ostream& out, const T& obj) {}
+template<typename U, typename T> void DispatchUnserialise(U& u, std::istream& in, T& obj) {}
 
 #define EXPORT
 

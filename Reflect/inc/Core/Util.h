@@ -414,5 +414,8 @@ namespace Reflect
 		{
 			return detail::GetStaticClass<T>();
 		}
+
+		template<class T, class U> struct match_const { using type = U; };
+		template<class T, class U> struct match_const<const T, U> { using type = const U; };
 	}
 }
