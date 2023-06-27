@@ -106,14 +106,14 @@ namespace Reflect
 	// This version has no filter.
 	//
 	template<typename T>
-	void ForEachProperty(T& t, auto&& obj)
+	void ForEachProperty(T& t, auto&& fn)
 	{
 		using TDecay = typename std::decay<T>::type;
 		
 		// https://stackoverflow.com/a/54053084
 		std::apply(
-			[&t, &obj](auto&&... args) {
-				((obj(args.Name, args.Get(t)), ...));
+			[&t, &fn](auto&&... args) {
+				((fn(args, args.Get(t)), ...));
 			},
 			ReflectStatic<T>::Properties
 		);
@@ -124,7 +124,33 @@ namespace Reflect
 			using TValue = std::remove_reference_t<T>;
 			using TSuper = Util::match_const<TValue, typename TDecay::SuperClass>::type;
 
-			ForEachProperty(static_cast<TSuper&>(t), std::move(obj));
+			ForEachProperty(static_cast<TSuper&>(t), std::move(fn));
+		}
+	}
+
+	//
+	// This version has no object.
+	//
+	template<typename T>
+	void ForEachProperty(auto&& fn)
+	{
+		using TDecay = typename std::decay<T>::type;
+
+		// https://stackoverflow.com/a/54053084
+		std::apply(
+			[&fn](auto&&... args) {
+				((fn(args), ...));
+			},
+			ReflectStatic<T>::Properties
+		);
+
+		if constexpr (!std::is_same_v<typename TDecay::SuperClass, IReflect>)
+		{
+			// This propgates constness from T to T::SuperClass;
+			using TValue = std::remove_reference_t<T>;
+			using TSuper = Util::match_const<TValue, typename TDecay::SuperClass>::type;
+
+			ForEachProperty<TSuper>(std::move(fn));
 		}
 	}
 
@@ -133,7 +159,7 @@ namespace Reflect
 	//
 	template<typename T, Util::StringLiteral... flags>
 		requires Util::StringLiteralList<flags...>&& IsReflected<T>
-	void ForEachProperty(T& t, auto&& obj)
+	void ForEachProperty(T& t, auto&& fn)
 	{
 		using TDecay = typename std::decay<T>::type;
 
@@ -141,8 +167,8 @@ namespace Reflect
 
 		// https://stackoverflow.com/a/54053084
 		std::apply(
-			[&t, &obj](auto&&... args) {
-				((obj(args.Name, args.Get(t)), ...));
+			[&t, &fn](auto&&... args) {
+				((fn(args, args.Get(t)), ...));
 			},
 			properties
 		);
@@ -153,7 +179,36 @@ namespace Reflect
 			using TValue = std::remove_reference_t<T>;
 			using TSuper = Util::match_const<TValue, typename TDecay::SuperClass>::type;
 
-			ForEachProperty<TSuper, flags...>(static_cast<TSuper&>(t), std::move(obj));
+			ForEachProperty<TSuper, flags...>(static_cast<TSuper&>(t), std::move(fn));
+		}
+	}
+
+	//
+	// Filter properties based on attributes (no object).
+	//
+	template<typename T, Util::StringLiteral... flags>
+		requires Util::StringLiteralList<flags...>&& IsReflected<T>
+	void ForEachProperty(auto&& fn)
+	{
+		using TDecay = typename std::decay<T>::type;
+
+		constexpr auto properties = FilterProperties<T, flags...>();
+
+		// https://stackoverflow.com/a/54053084
+		std::apply(
+			[&fn](auto&&... args) {
+				((fn(args), ...));
+			},
+			properties
+		);
+
+		if constexpr (!std::is_same_v<typename TDecay::SuperClass, IReflect>)
+		{
+			// This propgates constness from T to T::SuperClass;
+			using TValue = std::remove_reference_t<T>;
+			using TSuper = Util::match_const<TValue, typename TDecay::SuperClass>::type;
+
+			ForEachProperty<TSuper, flags...>(std::move(fn));
 		}
 	}
 

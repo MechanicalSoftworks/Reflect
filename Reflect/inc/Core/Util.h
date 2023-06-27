@@ -298,19 +298,27 @@ namespace Reflect
 				static REFLECT_CONSTEXPR std::string get() { return clean_type_name<T>(); }
 			};
 
+			template <> struct TypeNameImpl<char> { static REFLECT_CONSTEXPR std::string get() { return "int8"; } };
+			template <> struct TypeNameImpl<unsigned char> { static REFLECT_CONSTEXPR std::string get() { return "uint8"; } };
+
+			template <> struct TypeNameImpl<short> { static REFLECT_CONSTEXPR std::string get() { return "int16"; } };
+			template <> struct TypeNameImpl<unsigned short> { static REFLECT_CONSTEXPR std::string get() { return "uint16"; } };
+
+			template <> struct TypeNameImpl<int> { static REFLECT_CONSTEXPR std::string get() { return "int32"; } };
+			template <> struct TypeNameImpl<unsigned int> { static REFLECT_CONSTEXPR std::string get() { return "uint32"; } };
+
+			template <> struct TypeNameImpl<long> { static REFLECT_CONSTEXPR std::string get() { return "int32"; } };
+			template <> struct TypeNameImpl<unsigned long> { static REFLECT_CONSTEXPR std::string get() { return "uint32"; } };
+
+			template <> struct TypeNameImpl<long long> { static REFLECT_CONSTEXPR std::string get() { return "int64"; } };
+			template <> struct TypeNameImpl<unsigned long long> { static REFLECT_CONSTEXPR std::string get() { return "uint64"; } };
+
+			template <> struct TypeNameImpl<float> { static REFLECT_CONSTEXPR std::string get() { return "float32"; } };
+			template <> struct TypeNameImpl<double> { static REFLECT_CONSTEXPR std::string get() { return "float64"; } };
+
 			template <>
 			struct TypeNameImpl<std::string> {
 				static REFLECT_CONSTEXPR std::string get() { return "std::string"; }
-			};
-
-			template <>
-			struct TypeNameImpl<long long> {
-				static REFLECT_CONSTEXPR std::string get() { return "__int64"; }
-			};
-
-			template <>
-			struct TypeNameImpl<unsigned long long> {
-				static REFLECT_CONSTEXPR std::string get() { return "unsigned __int64"; }
 			};
 
 			template <typename T>

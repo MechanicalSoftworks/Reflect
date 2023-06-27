@@ -65,43 +65,20 @@ void StaticClass()
 	staticClass.Allocator.Deallocate(player);
 }
 
-template<bool b> struct Baz;
-template<> struct Baz<false>
-{
-	static constexpr int value = 0;
-};
-template<> struct Baz<true>
-{
-	static constexpr std::string_view value = "yes";
-};
-
-template<Reflect::Util::StringLiteral flag>
-constexpr auto Bar()
-{
-	return std::get<2>(Reflect::ReflectStatic<Player>::Properties).HasAnyFlag<flag>();
-}
-
-template<Reflect::Util::StringLiteral flag>
-auto Foo()
-{
-	constexpr auto x = Bar<flag>();
-	return Baz<x>::value;
-}
-
 int main(void)
 {
 	{
 		Player p(Reflect::Constructor(Player::StaticClass, nullptr));
 
 		ForEachProperty(p,
-			[](const std::string_view& name, auto&& arg) {
-				std::cout << name << ": " << arg << std::endl;
+			[](auto&& property, auto&& arg) {
+				std::cout << property.Name << ": " << arg << std::endl;
 			}
 		);
 
 		ForEachProperty<decltype(p), "Serialise">(p,
-			[](const std::string_view& name, auto&& arg) {
-				std::cout << name << ": " << arg << std::endl;
+			[](auto&& property, auto&& arg) {
+				std::cout << property.Name << ": " << arg << std::endl;
 			}
 		);
 	}
