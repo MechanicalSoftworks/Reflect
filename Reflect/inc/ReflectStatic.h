@@ -25,9 +25,12 @@ namespace Reflect
 		const TAttributes	Attributes;
 
 		template<typename T>
-		const auto& Get(const T& t) const
+		auto& Get(T&& t) const
 		{
-			return *reinterpret_cast<const Type*>(reinterpret_cast<const char*>(&t) + Offset);
+			using TT = std::remove_reference_t<decltype(t)>;
+			using char_t = Util::match_const<TT, char>::type;
+			using type_t = Util::match_const<TT, Type>::type;
+			return *reinterpret_cast<type_t*>(reinterpret_cast<char_t*>(&t) + Offset);
 		}
 
 		template<Util::StringLiteral flag, Util::StringLiteral... TFlags>
@@ -106,14 +109,14 @@ namespace Reflect
 	// This version has no filter.
 	//
 	template<typename T>
-	void ForEachProperty(T& t, auto&& fn)
+	void ForEachProperty(T&& t, auto&& fn)
 	{
 		using TDecay = typename std::decay<T>::type;
-		
+
 		// https://stackoverflow.com/a/54053084
 		std::apply(
 			[&t, &fn](auto&&... args) {
-				((fn(args, args.Get(t)), ...));
+				((fn(args, args.Get(std::move(t))), ...));
 			},
 			ReflectStatic<T>::Properties
 		);
@@ -159,7 +162,7 @@ namespace Reflect
 	//
 	template<typename T, Util::StringLiteral... flags>
 		requires Util::StringLiteralList<flags...>&& IsReflected<T>
-	void ForEachProperty(T& t, auto&& fn)
+	void ForEachProperty(T&& t, auto&& fn)
 	{
 		using TDecay = typename std::decay<T>::type;
 
@@ -168,7 +171,7 @@ namespace Reflect
 		// https://stackoverflow.com/a/54053084
 		std::apply(
 			[&t, &fn](auto&&... args) {
-				((fn(args, args.Get(t)), ...));
+				((fn(args, args.Get(std::move(t))), ...));
 			},
 			properties
 		);
@@ -179,7 +182,7 @@ namespace Reflect
 			using TValue = std::remove_reference_t<T>;
 			using TSuper = Util::match_const<TValue, typename TDecay::SuperClass>::type;
 
-			ForEachProperty<TSuper, flags...>(static_cast<TSuper&>(t), std::move(fn));
+			ForEachProperty<TSuper, flags...>(std::move(static_cast<TSuper&>(t)), std::move(fn));
 		}
 	}
 
