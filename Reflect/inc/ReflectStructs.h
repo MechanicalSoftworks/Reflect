@@ -327,6 +327,9 @@ namespace Reflect
 		const auto& GetName() const		{ return Properties->Name; }
 		const auto& GetTypeName() const	{ return Properties->Type; }
 
+		void Read(IUnserialiser& u, std::istream& in)        { Properties->Read (u,  in, RawPointer); }
+		void Write(ISerialiser& s,  std::ostream& out) const { Properties->Write(s, out, RawPointer); }
+
 		template<typename T>
 		REFLECT_DLL T* ConvertToType()
 		{

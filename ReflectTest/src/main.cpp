@@ -76,7 +76,7 @@ int main(void)
 			}
 		);
 
-		ForEachProperty<decltype(p), "Serialise">(p,
+		ForEachProperty<decltype(p), "Serialise">(std::move(p),
 			[](auto&& property, auto&& arg) {
 				std::cout << property.Name << ": " << arg << std::endl;
 			}

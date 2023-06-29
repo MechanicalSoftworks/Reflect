@@ -118,7 +118,7 @@ namespace Reflect
 			[&t, &fn](auto&&... args) {
 				((fn(args, args.Get(std::move(t))), ...));
 			},
-			ReflectStatic<T>::Properties
+			ReflectStatic<TDecay>::Properties
 		);
 
 		if constexpr (!std::is_same_v<typename TDecay::SuperClass, IReflect>)

@@ -254,11 +254,11 @@ namespace Reflect
 					continue;
 				}
 				
-				const std::string readField = "ReadField<" + member.Type + ", __OFFSETOF__" + member.Name + "()>";
-				const std::string writeField = "WriteFieldFromPtr<" + member.Type + ">";
+				const std::string readField = "DispatchReadField<Reflect::IUnserialiser, " + member.Type + ">";
+				const std::string writeField = "DispatchWriteField<Reflect::ISerialiser, " + member.Type + ">";
 
-				file << "\tstatic void __READ__" << member.Name << "(Reflect::IUnserialiser& u, std::istream& in, void* self) { " << readField << "(u, in, self); }\\\n";
-				file << "\tstatic void __WRITE__" << member.Name << "(Reflect::ISerialiser& s, std::ostream& out, const void* self) { " << writeField << "(s, out, self); }\\\n";
+				file << "\tstatic void __READ__" << member.Name << "(Reflect::IUnserialiser& u, std::istream& in, void* field) { " << readField << "(u, in, *reinterpret_cast<" << member.Type << "*>(field)); }\\\n";
+				file << "\tstatic void __WRITE__" << member.Name << "(Reflect::ISerialiser& s, std::ostream& out, const void* field) { " << writeField << "(s, out, *(reinterpret_cast<const " << member.Type << "*>(field))); }\\\n";
 			}
 		}
 
