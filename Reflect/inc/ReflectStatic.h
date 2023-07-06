@@ -8,7 +8,16 @@ namespace Reflect
 	template<typename T> struct ReflectStatic;
 	struct IReflect;
 
-	template<typename T> concept IsReflected = sizeof(ReflectStatic<typename std::decay<T>::type>) != 0;
+	template<typename T> struct IsReflected : std::false_type {};
+
+	// NOTE: This relies on T::StaticClass instead of ReflectStatic<T>.
+	// Using ReflectStatic<T> had some race conditions where calling IsReflected<T> BEFORE ReflectStatic<T>
+	// was defined clean to IsReflected<T> erronously returning false.
+	// T::StaticClass isn't prone to those issues.
+	template<typename T> requires requires { std::decay<T>::type::StaticClass; } struct IsReflected<T> : std::true_type {};
+	template<> struct IsReflected<IReflect> : std::true_type {};
+
+	template<typename T> concept Reflected = IsReflected<T>::value;
 
 	template<typename F, typename TAttributes>
 	struct StaticField
@@ -94,7 +103,7 @@ namespace Reflect
 	}
 
 	template<typename T, Util::StringLiteral... flags>
-		requires IsReflected<T>
+		requires Reflected<T>
 	constexpr auto FilterProperties()
 	{
 		using TDecay = typename std::decay<T>::type;
@@ -161,7 +170,7 @@ namespace Reflect
 	// Filter properties based on attributes.
 	//
 	template<typename T, Util::StringLiteral... flags>
-		requires Util::StringLiteralList<flags...>&& IsReflected<T>
+		requires Util::StringLiteralList<flags...>&& Reflected<T>
 	void ForEachProperty(T&& t, auto&& fn)
 	{
 		using TDecay = typename std::decay<T>::type;
@@ -190,7 +199,7 @@ namespace Reflect
 	// Filter properties based on attributes (no object).
 	//
 	template<typename T, Util::StringLiteral... flags>
-		requires Util::StringLiteralList<flags...>&& IsReflected<T>
+		requires Util::StringLiteralList<flags...>&& Reflected<T>
 	void ForEachProperty(auto&& fn)
 	{
 		using TDecay = typename std::decay<T>::type;
@@ -216,7 +225,7 @@ namespace Reflect
 	}
 
 	template<typename T, typename TOther>
-	constexpr inline bool IsOrDescendantOf()
+	constexpr inline bool IsOrDescendantOf() requires Reflected<T>
 	{
 		if constexpr (std::is_same<T, TOther>::value)
 		{
@@ -232,5 +241,11 @@ namespace Reflect
 		{
 			return IsOrDescendantOf<typename T::SuperClass, TOther>();
 		}
+	}
+
+	template<typename T, typename TOther> requires(!Reflected<T>)
+		constexpr inline bool IsOrDescendantOf()
+	{
+		return false;
 	}
 }

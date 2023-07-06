@@ -561,6 +561,10 @@ namespace Reflect
 		// Don't mark this as 'const Class* const'! Prevents the assignment operator from working.
 		const Class* m_class;
 	};
+
+	template<> struct ReflectStatic<IReflect> {
+		static inline constexpr auto Properties = std::make_tuple();
+	};
 }
 
 #define REFLECT_BASE() public Reflect::IReflect
