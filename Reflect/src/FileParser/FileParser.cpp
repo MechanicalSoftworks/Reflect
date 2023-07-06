@@ -97,7 +97,13 @@ namespace Reflect
 
 	bool FileParser::CheckExtension(const std::string& filePath, std::vector<const char*> extensions)
 	{
-		std::string extension = filePath.substr(filePath.find_last_of('.'));
+		const auto dot = filePath.find_last_of('.');
+		if (dot == std::string::npos)
+		{
+			return false;
+		}
+
+		std::string extension = filePath.substr(dot);
 		for (auto& e : extensions)
 		{
 			if (e == extension)
