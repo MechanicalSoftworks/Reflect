@@ -32,7 +32,6 @@ namespace Reflect
 		CodeGenerate::IncludeHeader("Core/Core.h", file);
 		CodeGenerate::IncludeHeader("Core/Enums.h", file);
 		CodeGenerate::IncludeHeader("Core/Util.h", file);
-		CodeGenerate::IncludeHeader("array", file, true);
 
 		const auto relativePath = data.FilePath + "\\" + std::string(data.FileName + "." + data.FileExtension);
 		std::string reflectGuard = relativePath + ReflectFileHeaderGuard;
@@ -62,7 +61,6 @@ namespace Reflect
 		CodeGenerate::IncludeHeader("Core/Enums.h", file);
 		CodeGenerate::IncludeHeader("Core/Util.h", file);
 		CodeGenerate::IncludeHeader("ReflectStatic.h", file);
-		CodeGenerate::IncludeHeader("array", file, true);
 
 		const auto relativePath = data.FilePath + "\\" + std::string(data.FileName + "." + data.FileExtension);
 		std::string reflectGuard = relativePath + ReflectStaticFileHeaderGuard;
