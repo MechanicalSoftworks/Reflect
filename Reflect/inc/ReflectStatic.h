@@ -14,7 +14,7 @@ namespace Reflect
 	// Using ReflectStatic<T> had some race conditions where calling IsReflected<T> BEFORE ReflectStatic<T>
 	// was defined clean to IsReflected<T> erronously returning false.
 	// T::StaticClass isn't prone to those issues.
-	template<typename T> requires requires { std::decay<T>::type::StaticClass; } struct IsReflected<T> : std::true_type {};
+	template<typename T> requires requires { T::StaticClass; } struct IsReflected<T> : std::true_type {};
 	template<> struct IsReflected<IReflect> : std::true_type {};
 
 	template<typename T> concept Reflected = IsReflected<T>::value;
@@ -103,7 +103,7 @@ namespace Reflect
 	}
 
 	template<typename T, Util::StringLiteral... flags>
-		requires Reflected<T>
+		requires Reflected<std::decay_t<T>>
 	constexpr auto FilterProperties()
 	{
 		using TDecay = typename std::decay<T>::type;
@@ -170,7 +170,7 @@ namespace Reflect
 	// Filter properties based on attributes.
 	//
 	template<typename T, Util::StringLiteral... flags>
-		requires Util::StringLiteralList<flags...>&& Reflected<T>
+		requires Util::StringLiteralList<flags...>&& Reflected<std::decay_t<T>>
 	void ForEachProperty(T&& t, auto&& fn)
 	{
 		using TDecay = typename std::decay<T>::type;
@@ -199,7 +199,7 @@ namespace Reflect
 	// Filter properties based on attributes (no object).
 	//
 	template<typename T, Util::StringLiteral... flags>
-		requires Util::StringLiteralList<flags...>&& Reflected<T>
+		requires Util::StringLiteralList<flags...>&& Reflected<std::decay_t<T>>
 	void ForEachProperty(auto&& fn)
 	{
 		using TDecay = typename std::decay<T>::type;
