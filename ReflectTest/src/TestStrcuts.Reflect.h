@@ -3,7 +3,6 @@
 #include "Core/Core.h"
 #include "Core/Enums.h"
 #include "Core/Util.h"
-#include <array>
 
 #ifdef C__mechsrc_terapixel_1_Dev_ThirdParty_Reflect_ReflectTest_src_TestStrcuts_h_reflect_h
 #error "C__mechsrc_terapixel_1_Dev_ThirdParty_Reflect_ReflectTest_src_TestStrcuts_h_reflect.h already included, missing 'pragma once' in TestStrcuts.h"
@@ -121,6 +120,7 @@ public:\
 		{}, \
 		{} \
 	); \
+	const Reflect::Class& GetClass() const override { return StaticClass; }\
 private:\
 	static inline const Reflect::LinkClass Linker = StaticClass; \
 
@@ -167,6 +167,7 @@ public:\
 		{}, \
 		{} \
 	); \
+	const Reflect::Class& GetClass() const override { return StaticClass; }\
 private:\
 	static inline const Reflect::LinkClass Linker = StaticClass; \
 
@@ -209,6 +210,7 @@ public:\
 		{}, \
 		{} \
 	); \
+	const Reflect::Class& GetClass() const override { return StaticClass; }\
 private:\
 	static inline const Reflect::LinkClass Linker = StaticClass; \
 
@@ -261,6 +263,7 @@ public:\
 		), \
 		{} \
 	); \
+	const Reflect::Class& GetClass() const override { return StaticClass; }\
 private:\
 	static inline const Reflect::LinkClass Linker = StaticClass; \
 

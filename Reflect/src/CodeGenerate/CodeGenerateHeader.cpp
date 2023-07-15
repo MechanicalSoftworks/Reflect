@@ -222,6 +222,8 @@ namespace Reflect
 			<< CreateInterfaceList(data) << " \\\n"
 			<< "\t); \\\n";
 
+		file << "\tconst Reflect::Class& GetClass() const override { return StaticClass; }\\\n";
+
 		WRITE_PRIVATE();
 		file << "\tstatic inline const Reflect::LinkClass Linker = StaticClass; \\\n";
 

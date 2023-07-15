@@ -14,7 +14,7 @@ void aligned_free(void* p) noexcept { std::free(p); }
 void FuncNoReturn()
 {
 	// Get a function with no return value.
-	Player player(Reflect::Constructor(Player::StaticClass, nullptr));
+	Player player(Reflect::Constructor(nullptr));
 	auto playerGetId = player.GetFunction("PrintHelloWorld");
 	std::cout << Reflect::ReflectReturnCodeToString(playerGetId.Invoke());
 }
@@ -23,7 +23,7 @@ void FuncReturnValue()
 {
 	// Get a function with a return value std::string.
 	// The return value with be set to playerId.
-	Player player(Reflect::Constructor(Player::StaticClass, nullptr));
+	Player player(Reflect::Constructor(nullptr));
 	Reflect::ReflectFunction playerGetId = player.GetFunction("GetId");
 	std::string playerId;
 	std::cout << Reflect::ReflectReturnCodeToString(playerGetId.Invoke(&playerId)) << ", Id = " << playerId << std::endl;
@@ -33,7 +33,7 @@ void FuncWithParameters()
 {
 	// Get a function with no return value but which has a single
 	// parameter.
-	Player player(Reflect::Constructor(Player::StaticClass, nullptr));
+	Player player(Reflect::Constructor(nullptr));
 	Reflect::ReflectFunction parameterFunc = player.GetFunction("GetOnlineFriendsCount");
 	
 	// Setup the parameter to send to the function. This is order
@@ -48,7 +48,7 @@ void FuncWithParameters()
 
 void GetMemberWithFlags()
 {
-	Player player(Reflect::Constructor(Player::StaticClass, nullptr));
+	Player player(Reflect::Constructor(nullptr));
 	auto member = player.GetMember("");
 	auto membersWithPublic = player.GetMembers({ "Public" });
 	int& friendInt = *membersWithPublic[1].ConvertToType<int>();
@@ -59,7 +59,7 @@ void StaticClass()
 {
 	const auto& staticClass = Reflect::Class::Lookup("Player");
 	auto player = (Player*)staticClass.Allocator.Allocate();
-	staticClass.Allocator.Construct(player, Reflect::Constructor(Player::StaticClass, nullptr));
+	staticClass.Allocator.Construct(player, Reflect::Constructor(nullptr));
 	player->Tick();
 	staticClass.Allocator.Destroy(player);
 	staticClass.Allocator.Deallocate(player);
@@ -68,7 +68,7 @@ void StaticClass()
 int main(void)
 {
 	{
-		Player p(Reflect::Constructor(Player::StaticClass, nullptr));
+		Player p(Reflect::Constructor(nullptr));
 
 		ForEachProperty(p,
 			[](auto&& property, auto&& arg) {

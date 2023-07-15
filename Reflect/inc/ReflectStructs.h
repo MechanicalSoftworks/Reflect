@@ -519,14 +519,12 @@ namespace Reflect
 
 	struct Constructor
 	{
-		Constructor(const Class& type, IReflect* outer = nullptr, uint64_t object_flags = 0, uint64_t allocation_flags = 0)
-			: Type(type)
-			, Outer(outer)
+		Constructor(IReflect* outer = nullptr, uint64_t object_flags = 0, uint64_t allocation_flags = 0)
+			: Outer(outer)
 			, ObjectFlags(object_flags)
 			, AllocationFlags(allocation_flags)
 		{}
 
-		const Class& 		Type;
 		IReflect* const 	Outer;
 		const uint64_t		ObjectFlags;
 		const uint64_t		AllocationFlags;
@@ -535,16 +533,16 @@ namespace Reflect
 	struct REFLECT_DLL IReflect
 	{
 		// Initialisation.
-		IReflect(const Constructor& init) : m_class(&init.Type) {}
+		IReflect(const Constructor& init) {}
 		virtual ~IReflect() {}
 		
 		// Misc.
-		const auto& GetClass() const { return *m_class; }
+		virtual const Class& GetClass() const = 0;
 
 		// Reflection.
-		auto GetFunction(const std::string_view& functionName) const	{ return m_class->GetFunction(functionName, const_cast<IReflect*>(this)); }
-		auto GetMember(const std::string_view& memberName) const		{ return m_class->GetMember(memberName, const_cast<IReflect*>(this)); }
-		auto GetMembers(std::vector<std::string> const& flags) const	{ return m_class->GetMembers(flags, const_cast<IReflect*>(this)); }
+		auto GetFunction(const std::string_view& functionName) const	{ return GetClass().GetFunction(functionName, const_cast<IReflect*>(this)); }
+		auto GetMember(const std::string_view& memberName) const		{ return GetClass().GetMember(memberName, const_cast<IReflect*>(this)); }
+		auto GetMembers(std::vector<std::string> const& flags) const	{ return GetClass().GetMembers(flags, const_cast<IReflect*>(this)); }
 		
 		// Serialisation.
 		virtual void Serialise(ISerialiser& s, std::ostream& out) const {}
@@ -556,10 +554,6 @@ namespace Reflect
 																	// We don't want to block the job thread waiting for a destruction.
 		virtual bool IsDisposeComplete() noexcept { return true; }	// Whether the threaded resources are freed.
 		virtual void Finalise() noexcept {}							// Final cleanup of internal resources.
-
-	private:
-		// Don't mark this as 'const Class* const'! Prevents the assignment operator from working.
-		const Class* m_class;
 	};
 
 	template<> struct ReflectStatic<IReflect> {
