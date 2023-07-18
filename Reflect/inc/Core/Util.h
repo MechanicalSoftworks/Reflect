@@ -28,12 +28,6 @@ namespace Reflect
 				std::copy_n(str, N, value);
 			}
 
-			template<size_t N1>
-			constexpr StringLiteral(const char(&str)[N1], size_t n)
-			{
-				std::copy_n(str, n, value);
-			}
-
 			constexpr StringLiteral(std::string_view s)
 			{
 				std::copy_n(s.data(), N, value);
@@ -286,6 +280,17 @@ namespace Reflect
 					size_t size;
 				};
 
+				template <size_t N>
+				constexpr auto add_null_terminator(const fixed_string<N>& s) {
+					fixed_string<N + 1> r;
+					
+					r.size = s.size;
+					std::copy_n(s.data, s.size, r.data);
+					r.data[N] = 0;
+
+					return s;
+				}
+
 				// MSVC specifies "class std::string", whereas GCC specifies "std::string".
 				// Strip off "class ", "struct " and "enum " for MSVC to make them the same.
 				template <size_t N>
@@ -312,7 +317,7 @@ namespace Reflect
 						}
 					}
 					result.size = dst_idx;
-					return result;
+					return add_null_terminator(result);
 				}
 			}
 
@@ -320,23 +325,16 @@ namespace Reflect
 			// From https://bitwizeshift.github.io/posts/2021/03/09/getting-an-unmangled-type-name-at-compile-time/
 			//
 			template <typename T>
-			constexpr auto type_name() -> std::string
-			{
-				constexpr auto value = impl::type_name_holder<T>::value;
-				return std::string{ value.data(), value.size() };
-			}
-
-			template <typename T>
-			constexpr auto clean_type_name()
+			constexpr auto type_name()
 			{
 				constexpr auto& arr = impl::type_name_holder<T>::value;
 				constexpr auto str = impl::clean_expression(arr);
-				return StringLiteral<str.size + 1>(str.data, str.size);	// Need to include a NULL terminator.
+				return StringLiteral{ str.data };
 			}
 
 			template <typename T>
 			struct TypeNameImpl {
-				static constexpr inline auto value = clean_type_name<T>();
+				static constexpr inline auto value = type_name<T>();
 			};
 
 			template <> struct TypeNameImpl<bool>               { static constexpr inline auto value = StringLiteral{ "bool" }; };
