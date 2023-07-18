@@ -120,7 +120,7 @@ namespace Reflect
 	struct ReflectMemberProp
 	{
 	public:
-		REFLECT_CONSTEXPR ReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties, const Class* staticClass, bool isPointer, const ReadMemberType& read, const WriteMemberType& write)
+		constexpr ReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties, const Class* staticClass, bool isPointer, const ReadMemberType& read, const WriteMemberType& write)
 			: Name(name)
 			, Type(type)
 			, StaticClass(staticClass)
@@ -131,7 +131,7 @@ namespace Reflect
 			, Write(write)
 		{}
 
-		REFLECT_CONSTEXPR ReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties, const Enum& staticEnum, const ReadMemberType& read, const WriteMemberType& write)
+		constexpr ReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties, const Enum& staticEnum, const ReadMemberType& read, const WriteMemberType& write)
 			: Name(name)
 			, Type(type)
 			, StaticEnum(&staticEnum)
@@ -141,7 +141,7 @@ namespace Reflect
 			, Write(write)
 		{ }
 
-		REFLECT_CONSTEXPR bool ContainsProperty(std::vector<std::string> const& flags) const
+		constexpr bool ContainsProperty(std::vector<std::string> const& flags) const
 		{
 			for (auto const& flag : flags)
 			{
@@ -156,7 +156,7 @@ namespace Reflect
 			return false;
 		}
 
-		REFLECT_CONSTEXPR bool GetPropertyValue(const std::string_view &flag, std::string& value) const
+		constexpr bool GetPropertyValue(const std::string_view &flag, std::string& value) const
 		{
 			for (auto const& p : StrProperties)
 			{
@@ -190,14 +190,14 @@ namespace Reflect
 	};
 
 	template<typename T>
-	inline REFLECT_CONSTEXPR typename std::enable_if<!std::is_base_of_v<IEnum, T>, ReflectMemberProp>::type 
+	inline constexpr typename std::enable_if<!std::is_base_of_v<IEnum, T>, ReflectMemberProp>::type 
 		CreateReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties, const ReadMemberType& read, const WriteMemberType& write)
 	{
 		return ReflectMemberProp(name, type, offset, strProperties, Reflect::Util::GetStaticClass<T>(), std::is_pointer_v<T>, read, write);
 	}
 
 	template<typename T>
-	inline REFLECT_CONSTEXPR typename std::enable_if<std::is_base_of_v<IEnum, T>, ReflectMemberProp>::type
+	inline constexpr typename std::enable_if<std::is_base_of_v<IEnum, T>, ReflectMemberProp>::type
 		CreateReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties, const ReadMemberType& read, const WriteMemberType& write)
 	{
 		return ReflectMemberProp(name, type, offset, strProperties, T::StaticEnum, read, write);
@@ -248,7 +248,7 @@ namespace Reflect
 	struct ReflectMemberFunction
 	{
 	public:
-		REFLECT_CONSTEXPR ReflectMemberFunction(const char* name, const FunctionPtr& function)
+		constexpr ReflectMemberFunction(const char* name, const FunctionPtr& function)
 			: Name(name)
 			, Function(function)
 		{}
@@ -259,7 +259,7 @@ namespace Reflect
 
 	struct ReflectFunction
 	{
-		REFLECT_CONSTEXPR ReflectFunction(void* objectPtr, FunctionPtr func)
+		constexpr ReflectFunction(void* objectPtr, FunctionPtr func)
 			: m_objectPtr(objectPtr)
 			, m_func(func)
 		{ }
@@ -283,7 +283,7 @@ namespace Reflect
 			return ReflectReturnCode::INVALID_FUNCTION_POINTER;
 		}
 
-		REFLECT_DLL REFLECT_CONSTEXPR bool IsValid() const
+		REFLECT_DLL constexpr bool IsValid() const
 		{
 			return m_objectPtr != nullptr;
 		}
@@ -315,7 +315,7 @@ namespace Reflect
 
 	struct ReflectMember
 	{
-		REFLECT_CONSTEXPR ReflectMember(const ReflectMemberProp *prop, void* memberPtr)
+		constexpr ReflectMember(const ReflectMemberProp *prop, void* memberPtr)
 			: Properties(prop)
 			, RawPointer(memberPtr)
 		{}
@@ -354,7 +354,7 @@ namespace Reflect
 		template<typename T> static void DestroyObject(IReflect* obj) { ((T*)obj)->~T(); }
 		template<typename T> static void DeallocateObject(IReflect* obj) { std::allocator<T> a; return a.deallocate((T*)obj, 1); }
 
-		REFLECT_CONSTEXPR ClassAllocator(const AllocateType& allocate, const ConstructType& construct, const DestroyType& destroy, const DeallocateType& deallocate)
+		constexpr ClassAllocator(const AllocateType& allocate, const ConstructType& construct, const DestroyType& destroy, const DeallocateType& deallocate)
 			: Allocate(allocate)
 			, Construct(construct)
 			, Destroy(destroy)
@@ -370,7 +370,7 @@ namespace Reflect
 		operator bool() const { return Allocate && Construct && Destroy && Deallocate; }
 
 		template<typename T>
-		static REFLECT_CONSTEXPR ClassAllocator Create()
+		static constexpr ClassAllocator Create()
 		{
 			return ClassAllocator(AllocateObject<T>, ConstructObject<T>, DestroyObject<T>, DeallocateObject<T>);
 		}
@@ -386,7 +386,7 @@ namespace Reflect
 	class Class
 	{
 	public:
-		REFLECT_CONSTEXPR Class(std::string name, const Class *super, const ClassAllocator& allocator, std::vector<std::string> const& strProperties, std::vector<ReflectMemberProp>&& props, std::vector<ReflectMemberFunction>&& funcs, std::vector<std::string>&& interfaces)
+		constexpr Class(std::string name, const Class *super, const ClassAllocator& allocator, std::vector<std::string> const& strProperties, std::vector<ReflectMemberProp>&& props, std::vector<ReflectMemberFunction>&& funcs, std::vector<std::string>&& interfaces)
 			: Name(name)
 			, SuperClass(super)
 			, Allocator(allocator)
@@ -409,15 +409,15 @@ namespace Reflect
 		template<typename T> static auto LookupDescendantsOf() { return LookupDescendantsOf(T::StaticClass); }
 
 		template<typename T>
-		REFLECT_CONSTEXPR bool IsOrDescendantOf() const { return IsOrDescendantOf(T::StaticClass); }
-		REFLECT_CONSTEXPR inline bool IsOrDescendantOf(const Class& c) const
+		constexpr bool IsOrDescendantOf() const { return IsOrDescendantOf(T::StaticClass); }
+		constexpr inline bool IsOrDescendantOf(const Class& c) const
 		{
 			return 
 				this == &c || 
 				(SuperClass ? SuperClass->IsOrDescendantOf(c) : false);
 		}
 
-		REFLECT_DLL REFLECT_CONSTEXPR auto GetMember(std::string_view const& memberName, IReflect* instance = nullptr) const
+		REFLECT_DLL constexpr auto GetMember(std::string_view const& memberName, IReflect* instance = nullptr) const
 		{
 			for (const auto* c = this; c != nullptr; c = c->SuperClass)
 			{
@@ -433,7 +433,7 @@ namespace Reflect
 			return ReflectMember(nullptr, nullptr);
 		}
 
-		REFLECT_DLL REFLECT_CONSTEXPR auto GetFunction(std::string_view const& funcName, IReflect* instance = nullptr) const
+		REFLECT_DLL constexpr auto GetFunction(std::string_view const& funcName, IReflect* instance = nullptr) const
 		{
 			for (const auto* c = this; c != nullptr; c = c->SuperClass)
 			{
@@ -449,7 +449,7 @@ namespace Reflect
 			return ReflectFunction(nullptr, nullptr);
 		}
 
-		REFLECT_DLL REFLECT_CONSTEXPR auto GetMembers(std::vector<std::string> const& flags, IReflect* instance = nullptr) const
+		REFLECT_DLL constexpr auto GetMembers(std::vector<std::string> const& flags, IReflect* instance = nullptr) const
 		{
 			std::vector<Reflect::ReflectMember> members;
 
@@ -459,7 +459,7 @@ namespace Reflect
 		}
 
 		template<typename T>
-		REFLECT_CONSTEXPR bool HasInterface() const
+		constexpr bool HasInterface() const
 		{
 			for (const auto* c = this; c != nullptr; c = c->SuperClass)
 			{
@@ -472,12 +472,12 @@ namespace Reflect
 			return false;
 		}
 
-		REFLECT_CONSTEXPR bool ContainsProperty(std::vector<std::string> const& flags) const
+		constexpr bool ContainsProperty(std::vector<std::string> const& flags) const
 		{
 			return Util::ContainsProperty(StrProperties, flags);
 		}
 
-		REFLECT_CONSTEXPR bool GetPropertyValue(const std::string_view &flag, std::string_view& value) const
+		constexpr bool GetPropertyValue(const std::string_view &flag, std::string_view& value) const
 		{
 			return Util::TryGetPropertyValue(StrProperties, flag, value);
 		}
@@ -489,7 +489,7 @@ namespace Reflect
 		const std::vector<std::string>	Interfaces;
 
 	private:
-		REFLECT_DLL REFLECT_CONSTEXPR void GetMembersInternal(std::vector<Reflect::ReflectMember>& members, std::vector<std::string> const& flags, IReflect* instance) const
+		REFLECT_DLL constexpr void GetMembersInternal(std::vector<Reflect::ReflectMember>& members, std::vector<std::string> const& flags, IReflect* instance) const
 		{
 			if (SuperClass)
 				SuperClass->GetMembersInternal(members, flags, instance);

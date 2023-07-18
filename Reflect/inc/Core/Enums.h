@@ -50,7 +50,7 @@ namespace Reflect
 
 	struct REFLECT_DLL EnumConstant
 	{
-		REFLECT_CONSTEXPR EnumConstant(const std::string_view& name, int64_t value, const std::string_view& label, const std::vector<std::string>& flags)
+		constexpr EnumConstant(const std::string_view& name, int64_t value, const std::string_view& label, const std::vector<std::string>& flags)
 			: Name(name)
 			, Value(value)
 			, DisplayLabel(label)

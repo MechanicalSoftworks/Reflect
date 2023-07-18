@@ -21,13 +21,48 @@ namespace Reflect
 	{
 		// https://ctrpeach.io/posts/cpp20-string-literal-template-parameters/
 		template<size_t N>
-		struct StringLiteral {
-			constexpr StringLiteral(const char(&str)[N]) {
+		struct StringLiteral
+		{
+			constexpr StringLiteral(const char(&str)[N])
+			{
 				std::copy_n(str, N, value);
 			}
 
+			constexpr StringLiteral(std::string_view s)
+			{
+				std::copy_n(s.data(), N, value);
+				value[N - 1] = 0;
+			}
+
+			template<size_t N0, size_t N1>
+			constexpr StringLiteral(const StringLiteral<N0>& s0, const StringLiteral<N1>& s1)
+			{
+				// Subtract NULL terminator.
+				static_assert(N0 + N1 - 1 == N);
+				std::copy_n(s0.value, N0 - 1, value);
+				std::copy_n(s1.value, N1, value + N0 - 1);
+			}
+
+			constexpr operator std::string()      const { return std::string(value); }
+			constexpr operator std::string_view() const { return std::string_view(value); }
+
+			template<size_t N1> constexpr auto operator+(const StringLiteral<N1>& rhs) { return StringLiteral<N + N1 - 1>(*this, rhs); }	// Subtract NULL terminator.
+			template<size_t N1> constexpr auto operator+(const char(&rhs)[N1])         { return *this + StringLiteral<N1>(rhs); }
+
+			template<size_t N1> constexpr auto operator==(const StringLiteral<N1>& rhs) const { return N == N1 && (std::string_view)*this == (std::string_view)rhs; }
+			template<size_t N1> constexpr auto operator!=(const StringLiteral<N1>& rhs) const { return !(*this == rhs); }
+
+			constexpr auto operator==(const std::string_view& rhs) const { return (std::string_view)*this == rhs; }
+			constexpr auto operator!=(const std::string_view& rhs) const { return (std::string_view)*this != rhs; }
+
+			template<size_t N1> constexpr auto operator==(const char(&rhs)[N1]) { return N == N1 && std::equal(value, value + N, rhs); }
+			template<size_t N1> constexpr auto operator!=(const char(&rhs)[N1]) { return !(*this == rhs); }
+		
 			char value[N];
 		};
+
+		template<size_t N>
+		std::ostream& operator<<(std::ostream& os, const StringLiteral<N>& s) { return os << s.value; }
 
 		template <StringLiteral... Args>
 		concept StringLiteralList = sizeof...(Args) > 0;
@@ -102,7 +137,7 @@ namespace Reflect
 
 		// Thanks: https://tristanbrindle.com/posts/beware-copies-initializer-list
 		template <typename T, typename... Args>
-		REFLECT_CONSTEXPR std::vector<T> make_vector(Args&&... args)
+		constexpr std::vector<T> make_vector(Args&&... args)
 		{
 			std::vector<T> vec;
 			vec.reserve(sizeof...(Args));
@@ -111,7 +146,7 @@ namespace Reflect
 			return vec;
 		}
 
-		REFLECT_CONSTEXPR static std::string ToLower(std::string str)
+		constexpr static std::string ToLower(std::string str)
 		{
 			std::transform(str.begin(), str.end(), str.begin(), [](char c)
 			{
@@ -120,7 +155,7 @@ namespace Reflect
 			return str;
 		}
 
-		REFLECT_CONSTEXPR static bool TryGetPropertyValue(const std::vector<std::string>& properties, const std::string_view& flag, std::string_view& value)
+		constexpr static bool TryGetPropertyValue(const std::vector<std::string>& properties, const std::string_view& flag, std::string_view& value)
 		{
 			for (auto const& p : properties)
 			{
@@ -142,7 +177,7 @@ namespace Reflect
 			return false;
 		}
 
-		static REFLECT_CONSTEXPR bool ContainsProperty(const std::vector<std::string>& properties, std::vector<std::string> const& flags)
+		static constexpr bool ContainsProperty(const std::vector<std::string>& properties, std::vector<std::string> const& flags)
 		{
 			for (auto const& flag : flags)
 			{
@@ -201,47 +236,47 @@ namespace Reflect
 			namespace impl
 			{
 				template <std::size_t...Idxs>
-				REFLECT_CONSTEXPR auto substring_as_array(std::string_view str, std::index_sequence<Idxs...>)
+				constexpr auto substring_as_array(std::string_view str, std::index_sequence<Idxs...>)
 				{
 					return std::array{ str[Idxs]... };
 				}
 
 				template <typename T>
-				REFLECT_CONSTEXPR auto type_name_array()
+				constexpr auto type_name_array()
 				{
 #if defined(__clang__)
-					REFLECT_CONSTEXPR auto prefix = std::string_view{ "[T = " };
-					REFLECT_CONSTEXPR auto suffix = std::string_view{ "]" };
-					REFLECT_CONSTEXPR auto function = std::string_view{ __PRETTY_FUNCTION__ };
+					constexpr auto prefix = std::string_view{ "[T = " };
+					constexpr auto suffix = std::string_view{ "]" };
+					constexpr auto function = std::string_view{ __PRETTY_FUNCTION__ };
 #elif defined(__GNUC__)
-					REFLECT_CONSTEXPR auto prefix = std::string_view{ "with T = " };
-					REFLECT_CONSTEXPR auto suffix = std::string_view{ "]" };
-					REFLECT_CONSTEXPR auto function = std::string_view{ __PRETTY_FUNCTION__ };
+					constexpr auto prefix = std::string_view{ "with T = " };
+					constexpr auto suffix = std::string_view{ "]" };
+					constexpr auto function = std::string_view{ __PRETTY_FUNCTION__ };
 #elif defined(_MSC_VER)
-					REFLECT_CONSTEXPR auto prefix = std::string_view{ "type_name_array<" };
-					REFLECT_CONSTEXPR auto suffix = std::string_view{ ">(void)" };
-					REFLECT_CONSTEXPR auto function = std::string_view{ __FUNCSIG__ };
+					constexpr auto prefix = std::string_view{ "type_name_array<" };
+					constexpr auto suffix = std::string_view{ ">(void)" };
+					constexpr auto function = std::string_view{ __FUNCSIG__ };
 #else
 # error Unsupported compiler
 #endif
 
-					REFLECT_CONSTEXPR auto start = function.find(prefix) + prefix.size();
-					REFLECT_CONSTEXPR auto end = function.rfind(suffix);
+					constexpr auto start = function.find(prefix) + prefix.size();
+					constexpr auto end = function.rfind(suffix);
 
 					static_assert(start < end);
 
-					REFLECT_CONSTEXPR auto name = function.substr(start, (end - start));
+					constexpr auto name = function.substr(start, (end - start));
 					return substring_as_array(name, std::make_index_sequence<name.size()>{});
 				}
 
 				template <typename T>
 				struct type_name_holder {
-					static inline REFLECT_CONSTEXPR auto value = type_name_array<T>();
+					static inline constexpr auto value = type_name_array<T>();
 				};
 
 				template <size_t N>
 				struct fixed_string {
-					REFLECT_CONSTEXPR std::string_view view() const { return { data, size }; }
+					constexpr std::string_view view() const { return { data, size }; }
 					char data[N];
 					size_t size;
 				};
@@ -249,7 +284,7 @@ namespace Reflect
 				// MSVC specifies "class std::string", whereas GCC specifies "std::string".
 				// Strip off "class ", "struct " and "enum " for MSVC to make them the same.
 				template <size_t N>
-				REFLECT_CONSTEXPR auto clean_expression(const std::array<char, N>& expr) {
+				constexpr auto clean_expression(const std::array<char, N>& expr) {
 					fixed_string<N> result = {};
 
 					size_t src_idx = 0;
@@ -280,96 +315,82 @@ namespace Reflect
 			// From https://bitwizeshift.github.io/posts/2021/03/09/getting-an-unmangled-type-name-at-compile-time/
 			//
 			template <typename T>
-			REFLECT_CONSTEXPR auto type_name() -> std::string
+			constexpr auto type_name() -> std::string
 			{
-				REFLECT_CONSTEXPR auto& value = impl::type_name_holder<T>::value;
+				constexpr auto value = impl::type_name_holder<T>::value;
 				return std::string{ value.data(), value.size() };
 			}
 
 			template <typename T>
-			REFLECT_CONSTEXPR auto clean_type_name() -> std::string
+			constexpr auto clean_type_name()
 			{
-				REFLECT_CONSTEXPR auto& arr = impl::type_name_holder<T>::value;
-				return std::string(impl::clean_expression(arr).view());
+				constexpr auto& arr = impl::type_name_holder<T>::value;
+				constexpr auto str = impl::clean_expression(arr);
+				constexpr auto view = str.view();
+				return StringLiteral<view.size() + 1>(view);	// Need to include a NULL terminator.
 			}
 
 			template <typename T>
 			struct TypeNameImpl {
-				static REFLECT_CONSTEXPR std::string get() { return clean_type_name<T>(); }
+				static constexpr inline auto value = clean_type_name<T>();
 			};
 
-			template <> struct TypeNameImpl<char> { static REFLECT_CONSTEXPR std::string get() { return "int8"; } };
-			template <> struct TypeNameImpl<unsigned char> { static REFLECT_CONSTEXPR std::string get() { return "uint8"; } };
+			template <> struct TypeNameImpl<bool>               { static constexpr inline auto value = StringLiteral{ "bool" }; };
+			
+			template <> struct TypeNameImpl<char>               { static constexpr inline auto value = StringLiteral{ "int8" }; };
+			template <> struct TypeNameImpl<unsigned char>      { static constexpr inline auto value = StringLiteral{ "uint8" }; };
 
-			template <> struct TypeNameImpl<short> { static REFLECT_CONSTEXPR std::string get() { return "int16"; } };
-			template <> struct TypeNameImpl<unsigned short> { static REFLECT_CONSTEXPR std::string get() { return "uint16"; } };
+			template <> struct TypeNameImpl<short>              { static constexpr inline auto value = StringLiteral{ "int16" }; };
+			template <> struct TypeNameImpl<unsigned short>     { static constexpr inline auto value = StringLiteral{ "uint16" }; };
 
-			template <> struct TypeNameImpl<int> { static REFLECT_CONSTEXPR std::string get() { return "int32"; } };
-			template <> struct TypeNameImpl<unsigned int> { static REFLECT_CONSTEXPR std::string get() { return "uint32"; } };
+			template <> struct TypeNameImpl<int>                { static constexpr inline auto value = StringLiteral{ "int32" }; };
+			template <> struct TypeNameImpl<unsigned int>       { static constexpr inline auto value = StringLiteral{ "uint32" }; };
 
-			template <> struct TypeNameImpl<long> { static REFLECT_CONSTEXPR std::string get() { return "int32"; } };
-			template <> struct TypeNameImpl<unsigned long> { static REFLECT_CONSTEXPR std::string get() { return "uint32"; } };
+			template <> struct TypeNameImpl<long>               { static constexpr inline auto value = StringLiteral{ "int32" }; };
+			template <> struct TypeNameImpl<unsigned long>      { static constexpr inline auto value = StringLiteral{ "uint32" }; };
 
-			template <> struct TypeNameImpl<long long> { static REFLECT_CONSTEXPR std::string get() { return "int64"; } };
-			template <> struct TypeNameImpl<unsigned long long> { static REFLECT_CONSTEXPR std::string get() { return "uint64"; } };
+			template <> struct TypeNameImpl<long long>          { static constexpr inline auto value = StringLiteral{ "int64" }; };
+			template <> struct TypeNameImpl<unsigned long long> { static constexpr inline auto value = StringLiteral{ "uint64" }; };
 
-			template <> struct TypeNameImpl<float> { static REFLECT_CONSTEXPR std::string get() { return "float32"; } };
-			template <> struct TypeNameImpl<double> { static REFLECT_CONSTEXPR std::string get() { return "float64"; } };
+			template <> struct TypeNameImpl<float>              { static constexpr inline auto value = StringLiteral{ "float32" }; };
+			template <> struct TypeNameImpl<double>             { static constexpr inline auto value = StringLiteral{ "float64" }; };
 
 			template <>
-			struct TypeNameImpl<std::string> {
-				static REFLECT_CONSTEXPR std::string get() { return "std::string"; }
-			};
+			struct TypeNameImpl<std::string>                    { static constexpr inline auto value = StringLiteral{ "std::string" }; };
 
 			template <typename T>
-			struct TypeNameImpl<std::unique_ptr<T>> {
-				static REFLECT_CONSTEXPR std::string get() { return "std::unique_ptr<" + TypeNameImpl<T>::get() + ">"; }
-			};
+			struct TypeNameImpl<std::unique_ptr<T>>             { static constexpr inline auto value = StringLiteral{ "std::unique_ptr<" } + TypeNameImpl<T>::value + ">"; };
 
 			template <typename T>
-			struct TypeNameImpl<std::shared_ptr<T>> {
-				static REFLECT_CONSTEXPR std::string get() { return "std::shared_ptr<" + TypeNameImpl<T>::get() + ">"; }
-			};
+			struct TypeNameImpl<std::shared_ptr<T>>             { static constexpr inline auto value = StringLiteral{ "std::shared_ptr<" } + TypeNameImpl<T>::value + ">"; };
 
 			template <typename T>
-			struct TypeNameImpl<std::weak_ptr<T>> {
-				static REFLECT_CONSTEXPR std::string get() { return "std::weak_ptr<" + TypeNameImpl<T>::get() + ">"; }
-			};
+			struct TypeNameImpl<std::weak_ptr<T>>               { static constexpr inline auto value = StringLiteral{ "std::weak_ptr<" }   + TypeNameImpl<T>::value + ">"; };
 
 			template <typename T>
-			struct TypeNameImpl<std::vector<T>> {
-				static REFLECT_CONSTEXPR std::string get() { return "std::vector<" + TypeNameImpl<T>::get() + ">"; }
-			};
+			struct TypeNameImpl<std::vector<T>>                 { static constexpr inline auto value = StringLiteral{ "std::vector<" }     + TypeNameImpl<T>::value + ">"; };
 
 			template <typename T>
-			struct TypeNameImpl<std::set<T>> {
-				static REFLECT_CONSTEXPR std::string get() { return "std::set<" + TypeNameImpl<T>::get() + ">"; }
-			};
+			struct TypeNameImpl<std::set<T>>                    { static constexpr inline auto value = StringLiteral{ "std::set<" }        + TypeNameImpl<T>::value + ">"; };
 
 			template <typename K, typename V>
-			struct TypeNameImpl<std::map<K, V>> {
-				static REFLECT_CONSTEXPR std::string get() { return "std::map<" + TypeNameImpl<K>::get() + "," + TypeNameImpl<V>::get() + ">"; }
-			};
+			struct TypeNameImpl<std::map<K, V>>                 { static constexpr inline auto value = StringLiteral{ "std::map<" }        + TypeNameImpl<K>::value + "," + TypeNameImpl<V>::value + ">"; };
 
 			template <typename T>
-			struct TypeNameImpl<T*> {
-				static REFLECT_CONSTEXPR std::string get() { return TypeNameImpl<T>::get() + "*"; }
-			};
+			struct TypeNameImpl<std::atomic<T>>                 { static constexpr inline auto value = StringLiteral{ "std::atomic<" }     + TypeNameImpl<T>::value + ">"; };
 
 			template <typename T>
-			struct TypeNameImpl<std::atomic<T>> {
-				static REFLECT_CONSTEXPR std::string get() { return "std::atomic<" + TypeNameImpl<T>::get() + ">"; }
-			};
+			struct TypeNameImpl<T*>                             { static constexpr inline auto value = TypeNameImpl<T>::value + "*"; };
 		}
 
 		template<typename T>
-		REFLECT_CONSTEXPR std::string GetTypeName()
+		constexpr auto GetTypeName()
 		{
-			return detail::TypeNameImpl<T>::get();
+			return detail::TypeNameImpl<T>::value;
 		}
 
 		template<typename T>
-		REFLECT_CONSTEXPR std::string GetTypeName(const T& type)
+		constexpr auto GetTypeName(const T& type)
 		{
 			return GetTypeName<T>();
 		}
@@ -399,26 +420,26 @@ namespace Reflect
 		namespace detail
 		{
 			template<typename T>
-			inline REFLECT_CONSTEXPR typename std::enable_if<std::is_base_of_v<IReflect, T>, const Class *>::type GetStaticClass()
+			inline constexpr typename std::enable_if<std::is_base_of_v<IReflect, T>, const Class *>::type GetStaticClass()
 			{
 				return &T::StaticClass;
 			}
 
 			template<typename T>
-			inline REFLECT_CONSTEXPR typename std::enable_if<!std::is_pointer_v<T> && !std::is_base_of_v<IReflect, T>, const Class*>::type GetStaticClass()
+			inline constexpr typename std::enable_if<!std::is_pointer_v<T> && !std::is_base_of_v<IReflect, T>, const Class*>::type GetStaticClass()
 			{
 				return nullptr;
 			}
 
 			template<typename T>
-			inline REFLECT_CONSTEXPR typename std::enable_if<std::is_pointer_v<T>, const Class*>::type GetStaticClass()
+			inline constexpr typename std::enable_if<std::is_pointer_v<T>, const Class*>::type GetStaticClass()
 			{
 				return GetStaticClass<typename std::remove_pointer<T>::type>();
 			}
 		}
 
 		template<typename T>
-		REFLECT_CONSTEXPR const Reflect::Class* GetStaticClass()
+		constexpr const Reflect::Class* GetStaticClass()
 		{
 			return detail::GetStaticClass<T>();
 		}

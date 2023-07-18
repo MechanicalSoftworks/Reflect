@@ -67,6 +67,11 @@ void StaticClass()
 
 int main(void)
 {
+	static_assert(Reflect::Util::GetTypeName<Actor>() == "Actor");
+	static_assert(Reflect::Util::GetTypeName<bool>() == "bool");
+	static_assert(Reflect::Util::GetTypeName<int>() == "int32");
+	static_assert(Reflect::Util::GetTypeName<std::vector<int>>() == "std::vector<int32>");
+
 	{
 		Player p(Reflect::Constructor(nullptr));
 

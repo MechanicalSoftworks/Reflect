@@ -1,23 +1,13 @@
 #pragma once
 
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
-#define CPP_17 1
+#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 202002L) || __cplusplus >= 202002L)
+#define CPP_20 1
 #else
-#define CPP_17 0
+#define CPP_20 0
 #endif
 
-#if CPP_17  == 0
-#pragma error C++17 must be used.
-#endif
-
-#if _MSC_VER >= 1930 || __cpp_constexpr >= 202002L 
-#	define REFLECT_SUPPORTS_CONSTEXPR
-#endif
-
-#ifdef REFLECT_SUPPORTS_CONSTEXPR
-#	define REFLECT_CONSTEXPR constexpr
-#else
-#	define REFLECT_CONSTEXPR
+#if CPP_20  == 0
+#pragma error C++20 must be used.
 #endif
 
 #ifdef _MSC_VER
