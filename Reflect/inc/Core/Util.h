@@ -280,15 +280,15 @@ namespace Reflect
 					size_t size;
 				};
 
-				template <size_t N>
-				constexpr auto add_null_terminator(const fixed_string<N>& s) {
-					fixed_string<N + 1> r;
+				template <fixed_string s>
+				constexpr auto add_null_terminator() {
+					fixed_string<s.size + 1> r;
 					
 					r.size = s.size;
 					std::copy_n(s.data, s.size, r.data);
-					r.data[N] = 0;
+					r.data[s.size] = 0;
 
-					return s;
+					return r;
 				}
 
 				// MSVC specifies "class std::string", whereas GCC specifies "std::string".
@@ -317,7 +317,7 @@ namespace Reflect
 						}
 					}
 					result.size = dst_idx;
-					return add_null_terminator(result);
+					return result;
 				}
 			}
 
@@ -328,7 +328,8 @@ namespace Reflect
 			constexpr auto type_name()
 			{
 				constexpr auto& arr = impl::type_name_holder<T>::value;
-				constexpr auto str = impl::clean_expression(arr);
+				constexpr auto c = impl::clean_expression(arr);
+				constexpr auto str = impl::add_null_terminator<c>();
 				return StringLiteral{ str.data };
 			}
 
