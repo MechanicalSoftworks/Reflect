@@ -28,6 +28,12 @@ namespace Reflect
 				std::copy_n(str, N, value);
 			}
 
+			template<size_t N1>
+			constexpr StringLiteral(const char(&str)[N1], size_t n)
+			{
+				std::copy_n(str, n, value);
+			}
+
 			constexpr StringLiteral(std::string_view s)
 			{
 				std::copy_n(s.data(), N, value);
@@ -276,7 +282,6 @@ namespace Reflect
 
 				template <size_t N>
 				struct fixed_string {
-					constexpr std::string_view view() const { return { data, size }; }
 					char data[N];
 					size_t size;
 				};
@@ -326,8 +331,7 @@ namespace Reflect
 			{
 				constexpr auto& arr = impl::type_name_holder<T>::value;
 				constexpr auto str = impl::clean_expression(arr);
-				constexpr auto view = str.view();
-				return StringLiteral<view.size() + 1>(view);	// Need to include a NULL terminator.
+				return StringLiteral<str.size + 1>(str.data, str.size);	// Need to include a NULL terminator.
 			}
 
 			template <typename T>
