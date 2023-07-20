@@ -123,6 +123,7 @@ public:\
 	const Reflect::Class& GetClass() const override { return StaticClass; }\
 private:\
 	static inline const Reflect::LinkClass Linker = StaticClass; \
+	const Reflect::LinkClass& GetLinkClass() const override { return Linker; }\
 
 
 #define _TestStrcuts_Source_h_35_PROPERTIES \
@@ -170,6 +171,7 @@ public:\
 	const Reflect::Class& GetClass() const override { return StaticClass; }\
 private:\
 	static inline const Reflect::LinkClass Linker = StaticClass; \
+	const Reflect::LinkClass& GetLinkClass() const override { return Linker; }\
 
 
 #define _TestStrcuts_Source_h_54_PROPERTIES \
@@ -213,6 +215,7 @@ public:\
 	const Reflect::Class& GetClass() const override { return StaticClass; }\
 private:\
 	static inline const Reflect::LinkClass Linker = StaticClass; \
+	const Reflect::LinkClass& GetLinkClass() const override { return Linker; }\
 
 
 #define _TestStrcuts_Source_h_66_PROPERTIES \
@@ -266,6 +269,7 @@ public:\
 	const Reflect::Class& GetClass() const override { return StaticClass; }\
 private:\
 	static inline const Reflect::LinkClass Linker = StaticClass; \
+	const Reflect::LinkClass& GetLinkClass() const override { return Linker; }\
 
 
 #define _TestStrcuts_Source_h_80_PROPERTIES \

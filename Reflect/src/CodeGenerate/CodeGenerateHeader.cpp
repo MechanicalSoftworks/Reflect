@@ -90,7 +90,7 @@ namespace Reflect
 			}
 		}
 
-		file << "} // namespace Reflect\n";
+		file << "} // namespace Reflect\n\n";
 	}
 
 	void CodeGenerateHeader::WriteMacros(const FileParsedData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
@@ -226,6 +226,7 @@ namespace Reflect
 
 		WRITE_PRIVATE();
 		file << "\tstatic inline const Reflect::LinkClass Linker = StaticClass; \\\n";
+		file << "\tconst Reflect::LinkClass& GetLinkClass() const override { return Linker; }\\\n";
 
 		WRITE_CLOSE();
 	}

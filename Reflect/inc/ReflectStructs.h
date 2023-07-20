@@ -554,6 +554,15 @@ namespace Reflect
 																	// We don't want to block the job thread waiting for a destruction.
 		virtual bool IsDisposeComplete() noexcept { return true; }	// Whether the threaded resources are freed.
 		virtual void Finalise() noexcept {}							// Final cleanup of internal resources.
+
+	private:
+		// This is to enable a dirty hack. GCC follows the C++ standard that says "static variables of template classes will only
+		// be initialised when they're referenced". MSVC doesn't follow this and (rather helpfully) always initialises them!
+		//
+		// The desired behaviour for the LinkClass is that it's always initialised, even when it's not referenced.
+		// The easiest way I found to do that is to return a reference to it via a virtual method (below).
+		// GCC will never know this method is uncallable, and will now initialise the Linker member of every reflected class.
+		virtual const LinkClass& GetLinkClass() const = 0;
 	};
 
 	template<> struct ReflectStatic<IReflect> {
