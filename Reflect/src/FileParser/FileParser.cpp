@@ -698,6 +698,14 @@ namespace Reflect
 			++fileData.Cursor;
 		}
 
+		// HACK: Scoop up whole name of "operator()". It's skipped above because the loop is (rightfully) programmed to end at the first parenthesis.
+		// operator() is an awkward case that's easier to detect at the end.
+		if (name == "operator" && std::string_view(fileData.Data.begin() + fileData.Cursor, fileData.Data.begin() + fileData.Cursor + 2) == "()")
+		{
+			name += "()";
+			fileData.Cursor += 2;
+		}
+
 		return std::make_tuple<std::string, std::string>(type.c_str(), name.c_str(), isConst);
 	}
 
