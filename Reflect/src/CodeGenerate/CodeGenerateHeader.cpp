@@ -318,7 +318,7 @@ namespace Reflect
 		WRITE_PRIVATE();
 		for (const auto& func : data.Functions)
 		{
-			file << "\tstatic Reflect::ReflectReturnCode __REFLECT_FUNC__" + func.Name + "(void* objectPtr, void* returnValuePtr, Reflect::FunctionPtrArgs& functionArgs)\\\n";
+			file << "\tstatic Reflect::ReflectReturnCode __REFLECT_FUNC__" + CleanFunctionName(func.Name) + "(void* objectPtr, void* returnValuePtr, Reflect::FunctionPtrArgs& functionArgs)\\\n";
 			file << "\t{\\\n";
 			int functionArgIndex = 0;
 			for (const auto& arg : func.Parameters)
@@ -388,7 +388,7 @@ namespace Reflect
 				const auto isLast = &func == &data.Functions.back();
 				const auto eol = isLast ? "\\\n" : ", \\\n";
 
-				oss << "\t\t\tReflect::ReflectMemberFunction(\"" + func.Name + "\", __REFLECT_FUNC__" + func.Name + ")" + eol;
+				oss << "\t\t\tReflect::ReflectMemberFunction(\"" + func.Name + "\", __REFLECT_FUNC__" + CleanFunctionName(func.Name) + ")" + eol;
 			}
 			oss << "\t\t)";
 		}
@@ -422,6 +422,16 @@ namespace Reflect
 		}
 
 		return oss.str();
+	}
+
+	std::string CodeGenerateHeader::CleanFunctionName(const std::string_view& name)
+	{
+		std::string clean = (std::string)name;
+
+		// I don't see a need to support others, for now...
+		clean = Util::replace_all(clean, "()", "_FUNCTOR");
+
+		return clean;
 	}
 
 	void CodeGenerateHeader::WriteStaticEnum(const ReflectContainerData& data, std::ostream& file, const std::string& currentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)

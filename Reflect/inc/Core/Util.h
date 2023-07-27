@@ -449,5 +449,26 @@ namespace Reflect
 
 		template<class T, class U> struct match_const { using type = U; };
 		template<class T, class U> struct match_const<const T, U> { using type = const U; };
+
+		[[nodiscard]] static std::string replace_all(const std::string_view& s, const std::string_view& pattern, const std::string_view& replacement)
+		{
+			std::string str(s);
+
+			// https://stackoverflow.com/a/4643526
+			size_t index = 0;
+			while (true) {
+				/* Locate the substring to replace. */
+				index = str.find(pattern, index);
+				if (index == std::string::npos) break;
+
+				/* Make the replacement. */
+				str.replace(index, pattern.length(), replacement);
+
+				/* Advance index forward so the next iteration doesn't pick it up as well. */
+				index += replacement.length();
+			}
+
+			return str;
+		}
 	}
 }

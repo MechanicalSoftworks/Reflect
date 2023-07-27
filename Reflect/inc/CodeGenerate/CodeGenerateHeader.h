@@ -29,6 +29,7 @@ namespace Reflect
 		std::string CreateMemberInitializerList(const ReflectContainerData& data);
 		std::string CreateFunctionInitializerList(const ReflectContainerData& data);
 		std::string CreateInterfaceList(const ReflectContainerData& data);
+		std::string CleanFunctionName(const std::string_view& name);
 
 		void WriteEnumMacros(const Reflect::ReflectContainerData& reflectData, const FileParsedData& data, std::ostream& file, const std::string& CurrentFileId, const CodeGenerateAddtionalOptions& addtionalOptions);
 		void WriteStaticEnum(const ReflectContainerData& data, std::ostream& file, const std::string& currentFileId, const CodeGenerateAddtionalOptions& addtionalOptions);
