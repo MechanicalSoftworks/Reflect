@@ -333,7 +333,7 @@ namespace Reflect
 			}
 			else
 			{
-				file << "\t\tptr->" + func.Name + "();\\\n";
+				file << "\t\tptr->" + func.Name + "(" + populateArgs(func.Parameters) + ");\\\n";
 			}
 			file << "\t\treturn Reflect::ReflectReturnCode::SUCCESS;\\\n";
 			file << "\t}\\\n";
