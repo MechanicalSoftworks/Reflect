@@ -477,9 +477,9 @@ namespace Reflect
 			return Util::ContainsProperty(StrProperties, flags);
 		}
 
-		constexpr bool GetPropertyValue(const std::string_view &flag, std::string_view& value) const
+		constexpr auto GetPropertyValue(const std::string_view &flag) const
 		{
-			return Util::TryGetPropertyValue(StrProperties, flag, value);
+			return Util::TryGetPropertyValue(StrProperties, flag);
 		}
 
 		const std::string				Name;

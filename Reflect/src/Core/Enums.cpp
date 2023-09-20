@@ -65,25 +65,25 @@ namespace Reflect
 
 	std::string_view EnumConstant::GetPropertyValue(const std::string_view& flag) const
 	{
-		std::string_view value;
+		auto value = Util::TryGetPropertyValue(Flags, flag);
 
-		if (!Util::TryGetPropertyValue(Flags, flag, value))
+		if (!value)
 		{
 			throw std::runtime_error(std::string(Name) + " is missing property " + std::string(flag));
 		}
 
-		return value;
+		return *value;
 	}
 
 	std::string_view Enum::GetPropertyValue(const std::string_view& flag) const
 	{
-		std::string_view value;
+		auto value = Util::TryGetPropertyValue(StrProperties, flag);
 
-		if (!Util::TryGetPropertyValue(StrProperties, flag, value))
+		if (!value)
 		{
 			throw std::runtime_error(std::string(Name) + " is missing property " + std::string(flag));
 		}
 
-		return value;
+		return *value;
 	}
 }

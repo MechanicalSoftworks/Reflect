@@ -442,8 +442,7 @@ namespace Reflect
 			return;
 		}
 
-		std::string_view valueType;
-		Util::TryGetPropertyValue(data.ContainerProps, "ValueType", valueType);
+		const auto valueType = *Util::TryGetPropertyValue(data.ContainerProps, "ValueType");
 
 		file << "#define " + currentFileId + "_STATIC_ENUM \\\n";
 		WRITE_PUBLIC();
@@ -464,13 +463,13 @@ namespace Reflect
 		file << "\t\t{ \\\n";
 		for (const auto& c : data.Constants)
 		{
-			std::string_view displayLabel;
-			if (!Util::TryGetPropertyValue(c.Flags, "DisplayLabel", displayLabel))
+			auto displayLabel = Util::TryGetPropertyValue(c.Flags, "DisplayLabel");
+			if (!displayLabel)
 			{
 				displayLabel = c.Name;
 			}
 
-			file << "\t\t\tReflect::EnumConstant(\"" << c.Name << "\", " << c.Value << ", \"" << displayLabel << "\", " << CodeGenerate::GetMemberProps(c.Flags) << "), \\\n";
+			file << "\t\t\tReflect::EnumConstant(\"" << c.Name << "\", " << c.Value << ", \"" << *displayLabel << "\", " << CodeGenerate::GetMemberProps(c.Flags) << "), \\\n";
 		}
 		file << "\t\t}, \\\n";
 
@@ -536,11 +535,15 @@ namespace Reflect
 		file << "\tconst auto& ToString() const { return StaticEnum.ToString(Value); }\\\n";
 
 		file << "\tstatic auto Parse(const std::string_view& value)		{ return " << data.Name << "((Values)const_cast<Reflect::Enum&>(StaticEnum).Parse(value)); }\\\n";
-		file << "\tstatic auto TryParse(const std::string_view& value, " << data.Name << "& v)	{ return const_cast<Reflect::Enum&>(StaticEnum).TryParse(value, v.Value); }\\\n";
+		file << "\tstatic auto TryParse(const std::string_view& value) {\\\n\
+\tconst auto r = const_cast<Reflect::Enum&>(StaticEnum).TryParse<decltype(" << data.Name << "::Value)>(value);\\\n\
+\tif (r) return std::optional<" << data.Name << ">{ std::in_place, *r };\\\n\
+\treturn std::optional<" << data.Name << ">{};\\\n\
+}\\\n";
 		
 		file << "\tstatic auto ContainsProperty(std::vector<std::string> const& flags)	{ return StaticEnum.ContainsProperty(flags); }\\\n";
 		file << "\tstatic auto GetPropertyValue(const std::string_view& flag)	{ return StaticEnum.GetPropertyValue(flag); }\\\n";
-		file << "\tstatic auto TryGetPropertyValue(const std::string_view& flag, std::string_view& value)	{ return StaticEnum.TryGetPropertyValue(flag, value); }\\\n";
+		file << "\tstatic auto TryGetPropertyValue(const std::string_view& flag)	{ return StaticEnum.TryGetPropertyValue(flag); }\\\n";
 
 		file << "\tconst auto& GetConstant() const	{ return StaticEnum.GetConstant(Value); }\\\n";
 

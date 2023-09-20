@@ -11,6 +11,7 @@
 #include <memory>
 #include <set>
 #include <functional>
+#include <optional>
 
 namespace Reflect
 {
@@ -155,7 +156,7 @@ namespace Reflect
 			return str;
 		}
 
-		constexpr static bool TryGetPropertyValue(const std::vector<std::string>& properties, const std::string_view& flag, std::string_view& value)
+		constexpr static auto TryGetPropertyValue(const std::vector<std::string>& properties, const std::string_view& flag) -> std::optional<std::string_view>
 		{
 			for (auto const& p : properties)
 			{
@@ -170,11 +171,10 @@ namespace Reflect
 					continue;
 				}
 
-				value = std::string_view(p.begin() + assign + 1, p.end());
-				return true;
+				return std::optional<std::string_view>(std::in_place, p.begin() + assign + 1, p.end());
 			}
 
-			return false;
+			return {};
 		}
 
 		static constexpr bool ContainsProperty(const std::vector<std::string>& properties, std::vector<std::string> const& flags)

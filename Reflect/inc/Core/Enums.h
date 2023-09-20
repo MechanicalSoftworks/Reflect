@@ -64,9 +64,9 @@ namespace Reflect
 
 		std::string_view GetPropertyValue(const std::string_view& flag) const;
 
-		auto TryGetPropertyValue(const std::string_view& flag, std::string_view& value) const
+		auto TryGetPropertyValue(const std::string_view& flag) const
 		{
-			return Util::TryGetPropertyValue(Flags, flag, value);
+			return Util::TryGetPropertyValue(Flags, flag);
 		}
 			
 		const std::string_view				Name;
@@ -105,9 +105,9 @@ namespace Reflect
 
 		std::string_view GetPropertyValue(const std::string_view& flag) const;
 
-		bool TryGetPropertyValue(const std::string_view& flag, std::string_view& value) const
+		auto TryGetPropertyValue(const std::string_view& flag) const
 		{
-			return Util::TryGetPropertyValue(StrProperties, flag, value);
+			return Util::TryGetPropertyValue(StrProperties, flag);
 		}
 
 		const auto& GetConstant(ConstantType value) const
@@ -149,16 +149,15 @@ namespace Reflect
 		const ConstantType& Parse(const std::string_view& v) const;
 
 		template<typename T>
-		bool TryParse(const std::string_view& value, T& v)
+		auto TryParse(const std::string_view& value) -> std::optional<T>
 		{
 			const auto it = StringToConstant.find(value);
 			if (it == StringToConstant.end())
 			{
-				return false;
+				return {};
 			}
 			
-			v = (T)it->second->Value;
-			return true;
+			return std::optional<T>{ std::in_place, static_cast<T>(it->second->Value) };
 		}
 
 		uint32_t ParseBitfieldString(const std::string_view& values) const

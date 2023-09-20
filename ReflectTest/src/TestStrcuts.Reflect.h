@@ -66,10 +66,14 @@ public:\
 	static const auto & ToString(E v) { return StaticEnum.ToString(v); }\
 	const auto& ToString() const { return StaticEnum.ToString(Value); }\
 	static auto Parse(const std::string_view& value)		{ return E((Values)const_cast<Reflect::Enum&>(StaticEnum).Parse(value)); }\
-	static auto TryParse(const std::string_view& value, E& v)	{ return const_cast<Reflect::Enum&>(StaticEnum).TryParse(value, v.Value); }\
+	static auto TryParse(const std::string_view& value) {\
+	const auto r = const_cast<Reflect::Enum&>(StaticEnum).TryParse<decltype(E::Value)>(value);\
+	if (r) return std::optional<E>{ std::in_place, *r };\
+	return std::optional<E>{};\
+}\
 	static auto ContainsProperty(std::vector<std::string> const& flags)	{ return StaticEnum.ContainsProperty(flags); }\
 	static auto GetPropertyValue(const std::string_view& flag)	{ return StaticEnum.GetPropertyValue(flag); }\
-	static auto TryGetPropertyValue(const std::string_view& flag, std::string_view& value)	{ return StaticEnum.TryGetPropertyValue(flag, value); }\
+	static auto TryGetPropertyValue(const std::string_view& flag)	{ return StaticEnum.TryGetPropertyValue(flag); }\
 	const auto& GetConstant() const	{ return StaticEnum.GetConstant(Value); }\
 	std::string ToBitfieldString() const {\
 		std::string s;\
