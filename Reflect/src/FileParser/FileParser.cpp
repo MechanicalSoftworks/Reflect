@@ -50,8 +50,9 @@ namespace Reflect
 				const auto ext = f.path().filename().string().find_last_of('.');
 				data.FileName = f.path().filename().string().substr(0, ext);
 				data.FileExtension = f.path().filename().string().substr(ext + 1);
-				data.FilePath = f.path().parent_path().string();
-				data.SubPath = data.FilePath.substr(directory.length());
+				data.FileDirectory = f.path().parent_path().string();
+				data.FilePath = filePath;
+				data.SubPath = data.FileDirectory.substr(directory.length());
 				m_filesParsed.push_back(data);
 				CloseFile(file);
 			}
@@ -65,7 +66,7 @@ namespace Reflect
 		{
 			if (!ParseFile(file))
 			{
-				m_filesToRemove.push_back(file.FileName);
+				m_filesToRemove.push_back(file.FilePath);
 			}
 		}
 
@@ -73,7 +74,7 @@ namespace Reflect
 		{
 			auto itr = std::find_if(m_filesParsed.begin(), m_filesParsed.end(), [fileToRemove](FileParsedData const& data)
 			{
-				return fileToRemove == data.FileName;
+				return fileToRemove == data.FilePath;
 			});
 			assert(itr != m_filesParsed.end() && "[FileParser::ParseDirectory] Remove file to parse dose not exists.");
 			m_filesParsed.erase(itr);

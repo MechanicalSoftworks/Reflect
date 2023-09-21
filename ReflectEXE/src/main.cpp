@@ -54,10 +54,10 @@ int main(int argc, char* argv[])
 			{
 				if (!specifiedCPPDir)
 				{
-					options.OutputCPPDir = file.FilePath;
+					options.OutputCPPDir = file.FileDirectory;
 				}
 
-				options.RelativeFilePath = file.FilePath.substr(std::min(dir.length() + 1, file.FilePath.length()));
+				options.RelativeFilePath = file.FileDirectory.substr(std::min(dir.length() + 1, file.FileDirectory.length()));
 
 				codeGenerate.Reflect(file, options);
 			}

@@ -24,10 +24,10 @@ namespace Reflect
 
 		const auto sourceExtension = data.FileExtension == "h" ? "cpp" : "cxx";
 		
-		const auto headerPath = data.FilePath + "/" + data.FileName + ReflectFileGeneratePrefix + "." + data.FileExtension;
+		const auto headerPath = data.FileDirectory + "/" + data.FileName + ReflectFileGeneratePrefix + "." + data.FileExtension;
 		const auto sourcePath = addtionalOptions.OutputCPPDir + data.SubPath + "/" + data.FileName + ReflectFileGeneratePrefix + "." + sourceExtension;
 
-		const auto staticHeaderPath = data.FilePath + "/" + data.FileName + ReflectStaticFileGeneratePrefix + "." + data.FileExtension;
+		const auto staticHeaderPath = data.FileDirectory + "/" + data.FileName + ReflectStaticFileGeneratePrefix + "." + data.FileExtension;
 		//const auto staticSourcePath = addtionalOptions.OutputCPPDir + data.SubPath + "/" + data.FileName + ReflectFileGeneratePrefix + "." + sourceExtension;
 
 		std::ostringstream sout;

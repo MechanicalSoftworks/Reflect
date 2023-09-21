@@ -98,8 +98,8 @@ namespace Reflect
 	{
 		std::string Data;
 		int Cursor;
+		std::string FileDirectory;
 		std::string FilePath;
-		std::string RelativeFilePath;
 		std::string SubPath;
 		std::string FileName;
 		std::string FileExtension;
