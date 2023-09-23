@@ -44,7 +44,8 @@ struct S : REFLECT_BASE()
 
 class C
 {
-
+public:
+	void operator()() {}
 };
 
 REFLECT_CLASS(Abstract)

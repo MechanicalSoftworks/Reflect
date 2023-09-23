@@ -257,7 +257,7 @@ namespace Reflect
 					constexpr auto suffix = std::string_view{ ">(void)" };
 					constexpr auto function = std::string_view{ __FUNCSIG__ };
 #else
-# error Unsupported compiler
+#	error Unsupported compiler
 #endif
 
 					constexpr auto start = function.find(prefix) + prefix.size();
@@ -272,6 +272,58 @@ namespace Reflect
 				template <typename T>
 				struct type_name_holder {
 					static inline constexpr auto value = type_name_array<T>();
+				};
+
+				template <auto FunctionPtr>
+				constexpr auto function_name_array()
+				{
+#if defined(__clang__)
+					constexpr auto prefix = std::string_view{ "[FunctionPtr = " };
+					constexpr auto suffix = std::string_view{ "]" };
+					constexpr auto function = std::string_view{ __PRETTY_FUNCTION__ };
+#elif defined(__GNUC__)
+					constexpr auto prefix = std::string_view{ "with FunctionPtr = " };
+					constexpr auto suffix = std::string_view{ "]" };
+					constexpr auto function = std::string_view{ __PRETTY_FUNCTION__ };
+#elif defined(_MSC_VER)
+					constexpr auto prefix = std::string_view{ "function_name_array<" };
+					constexpr auto suffix = std::string_view{ ">(void)" };
+					constexpr auto function = std::string_view{ __FUNCSIG__ };
+#else
+#	error Unsupported compiler
+#endif
+
+					constexpr auto start = function.find(prefix) + prefix.size();
+					constexpr auto end = function.rfind(suffix);
+
+					static_assert(start < end);
+
+					constexpr auto name = function.substr(start, (end - start));
+
+					// Visual C++ includes the return type and parameter list.
+					// We need to strip that off to make it the same as G++.
+#if defined(_MSC_VER)
+					// Chop off everything after the parameter list.
+					constexpr auto parameter_list_start = name.rfind("(");
+
+					// Chop off everything before the name token.
+					constexpr auto is_operator = name.find("::operator ") != std::string::npos;
+					constexpr auto name_start = name.rfind(" ", is_operator 
+						// Subtract 4 from parameter_list_start because MSVC adds a space like this: "C::operator ()".
+						? parameter_list_start - 4
+						: parameter_list_start
+					) + 1;
+
+					constexpr auto actual_name = name.substr(name_start, (parameter_list_start - name_start));
+					return substring_as_array(actual_name, std::make_index_sequence<actual_name.size()>{});
+#else
+					return substring_as_array(name, std::make_index_sequence<name.size()>{});
+#endif
+				}
+
+				template <auto FunctionPtr>
+				struct function_name_holder {
+					static inline constexpr auto value = function_name_array<FunctionPtr>();
 				};
 
 				template <size_t N>
@@ -294,7 +346,34 @@ namespace Reflect
 				// MSVC specifies "class std::string", whereas GCC specifies "std::string".
 				// Strip off "class ", "struct " and "enum " for MSVC to make them the same.
 				template <size_t N>
-				constexpr auto clean_expression(const std::array<char, N>& expr) {
+				constexpr auto clean_type_name(const std::array<char, N>& expr) {
+					fixed_string<N> result = {};
+
+					size_t src_idx = 0;
+					size_t dst_idx = 0;
+					while (src_idx < N) {
+						if (expr[src_idx] == ' ') {
+							++src_idx;
+						}
+						if (expr[src_idx] == 'c' && src_idx < N - 5 && expr[src_idx + 1] == 'l' && expr[src_idx + 2] == 'a' && expr[src_idx + 3] == 's' && expr[src_idx + 4] == 's' && expr[src_idx + 5] == ' ') {
+							src_idx += 6;
+						}
+						else if (expr[src_idx] == 's' && src_idx < N - 6 && expr[src_idx + 1] == 't' && expr[src_idx + 2] == 'r' && expr[src_idx + 3] == 'u' && expr[src_idx + 4] == 'c' && expr[src_idx + 5] == 't' && expr[src_idx + 6] == ' ') {
+							src_idx += 7;
+						}
+						else if (expr[src_idx] == 'e' && src_idx < N - 4 && expr[src_idx + 1] == 'n' && expr[src_idx + 2] == 'u' && expr[src_idx + 3] == 'm' && expr[src_idx + 4] == ' ') {
+							src_idx += 5;
+						}
+						else {
+							result.data[dst_idx++] = expr[src_idx++];
+						}
+					}
+					result.size = dst_idx;
+					return result;
+				}
+
+				template <size_t N>
+				constexpr auto clean_function_name(const std::array<char, N>& expr) {
 					fixed_string<N> result = {};
 
 					size_t src_idx = 0;
@@ -328,7 +407,16 @@ namespace Reflect
 			constexpr auto type_name()
 			{
 				constexpr auto& arr = impl::type_name_holder<T>::value;
-				constexpr auto c = impl::clean_expression(arr);
+				constexpr auto c = impl::clean_type_name(arr);
+				constexpr auto str = impl::add_null_terminator<c>();
+				return StringLiteral{ str.data };
+			}
+
+			template <auto FunctionPtr>
+			constexpr auto function_name()
+			{
+				constexpr auto& arr = impl::function_name_holder<FunctionPtr>::value;
+				constexpr auto c = impl::clean_function_name(arr);
 				constexpr auto str = impl::add_null_terminator<c>();
 				return StringLiteral{ str.data };
 			}
@@ -396,6 +484,12 @@ namespace Reflect
 		constexpr auto GetTypeName(const T& type)
 		{
 			return GetTypeName<T>();
+		}
+
+		template<auto FunctionPtr>
+		constexpr auto GetFunctionName()
+		{
+			return detail::function_name<FunctionPtr>();
 		}
 
 		// Like std::find_if, but will loop around back to our initial position.

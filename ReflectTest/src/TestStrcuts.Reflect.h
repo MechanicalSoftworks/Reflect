@@ -151,12 +151,12 @@ _TestStrcuts_Source_h_35_FUNCTION_DECLARE \
 _TestStrcuts_Source_h_35_STATIC_CLASS \
 
 
-#define _TestStrcuts_Source_h_54_PROPERTIES_OFFSET \
+#define _TestStrcuts_Source_h_55_PROPERTIES_OFFSET \
 private:\
 	static constexpr int __OFFSETOF__Property() { return offsetof(TemplatedClass, Property); }; \
 
 
-#define _TestStrcuts_Source_h_54_STATIC_CLASS \
+#define _TestStrcuts_Source_h_55_STATIC_CLASS \
 public:\
 	using ThisClass = TemplatedClass;\
 	using SuperClass = Reflect::IReflect;\
@@ -178,31 +178,31 @@ private:\
 	const Reflect::LinkClass& GetLinkClass() const override { return Linker; }\
 
 
-#define _TestStrcuts_Source_h_54_PROPERTIES \
+#define _TestStrcuts_Source_h_55_PROPERTIES \
 public:\
 	static constexpr const char* nameof_Property = "Property";\
 private:\
 
 
-#define _TestStrcuts_Source_h_54_FUNCTION_DECLARE \
+#define _TestStrcuts_Source_h_55_FUNCTION_DECLARE \
 public:\
 	void Serialise(Reflect::ISerialiser &s, std::ostream& out) const override { DispatchSerialise(s, out, *this); }\
 	void Unserialise(Reflect::IUnserialiser& u, std::istream& in) override    { DispatchUnserialise(u, in, *this); }\
 private:\
 
 
-#define _TestStrcuts_Source_h_54_GENERATED_BODY \
-_TestStrcuts_Source_h_54_PROPERTIES_OFFSET \
-_TestStrcuts_Source_h_54_PROPERTIES \
-_TestStrcuts_Source_h_54_FUNCTION_DECLARE \
-_TestStrcuts_Source_h_54_STATIC_CLASS \
+#define _TestStrcuts_Source_h_55_GENERATED_BODY \
+_TestStrcuts_Source_h_55_PROPERTIES_OFFSET \
+_TestStrcuts_Source_h_55_PROPERTIES \
+_TestStrcuts_Source_h_55_FUNCTION_DECLARE \
+_TestStrcuts_Source_h_55_STATIC_CLASS \
 
 
-#define _TestStrcuts_Source_h_66_PROPERTIES_OFFSET \
+#define _TestStrcuts_Source_h_67_PROPERTIES_OFFSET \
 private:\
 
 
-#define _TestStrcuts_Source_h_66_STATIC_CLASS \
+#define _TestStrcuts_Source_h_67_STATIC_CLASS \
 public:\
 	using ThisClass = Actor;\
 	using SuperClass = Reflect::IReflect;\
@@ -222,33 +222,33 @@ private:\
 	const Reflect::LinkClass& GetLinkClass() const override { return Linker; }\
 
 
-#define _TestStrcuts_Source_h_66_PROPERTIES \
+#define _TestStrcuts_Source_h_67_PROPERTIES \
 public:\
 private:\
 
 
-#define _TestStrcuts_Source_h_66_FUNCTION_DECLARE \
+#define _TestStrcuts_Source_h_67_FUNCTION_DECLARE \
 public:\
 	void Serialise(Reflect::ISerialiser &s, std::ostream& out) const override { DispatchSerialise(s, out, *this); }\
 	void Unserialise(Reflect::IUnserialiser& u, std::istream& in) override    { DispatchUnserialise(u, in, *this); }\
 private:\
 
 
-#define _TestStrcuts_Source_h_66_GENERATED_BODY \
-_TestStrcuts_Source_h_66_PROPERTIES_OFFSET \
-_TestStrcuts_Source_h_66_PROPERTIES \
-_TestStrcuts_Source_h_66_FUNCTION_DECLARE \
-_TestStrcuts_Source_h_66_STATIC_CLASS \
+#define _TestStrcuts_Source_h_67_GENERATED_BODY \
+_TestStrcuts_Source_h_67_PROPERTIES_OFFSET \
+_TestStrcuts_Source_h_67_PROPERTIES \
+_TestStrcuts_Source_h_67_FUNCTION_DECLARE \
+_TestStrcuts_Source_h_67_STATIC_CLASS \
 
 
-#define _TestStrcuts_Source_h_80_PROPERTIES_OFFSET \
+#define _TestStrcuts_Source_h_81_PROPERTIES_OFFSET \
 private:\
 	static constexpr int __OFFSETOF__Id() { return offsetof(Player, Id); }; \
 	static constexpr int __OFFSETOF__Friends() { return offsetof(Player, Friends); }; \
 	static constexpr int __OFFSETOF__TimeOnline() { return offsetof(Player, TimeOnline); }; \
 
 
-#define _TestStrcuts_Source_h_80_STATIC_CLASS \
+#define _TestStrcuts_Source_h_81_STATIC_CLASS \
 public:\
 	using ThisClass = Player;\
 	using SuperClass = Actor;\
@@ -276,7 +276,7 @@ private:\
 	const Reflect::LinkClass& GetLinkClass() const override { return Linker; }\
 
 
-#define _TestStrcuts_Source_h_80_PROPERTIES \
+#define _TestStrcuts_Source_h_81_PROPERTIES \
 public:\
 	static constexpr const char* nameof_Id = "Id";\
 	static constexpr const char* nameof_Friends = "Friends";\
@@ -284,7 +284,7 @@ public:\
 private:\
 
 
-#define _TestStrcuts_Source_h_80_FUNCTION_DECLARE \
+#define _TestStrcuts_Source_h_81_FUNCTION_DECLARE \
 public:\
 	void Serialise(Reflect::ISerialiser &s, std::ostream& out) const override { DispatchSerialise(s, out, *this); }\
 	void Unserialise(Reflect::IUnserialiser& u, std::istream& in) override    { DispatchUnserialise(u, in, *this); }\
@@ -310,11 +310,11 @@ private:\
 	}\
 
 
-#define _TestStrcuts_Source_h_80_GENERATED_BODY \
-_TestStrcuts_Source_h_80_PROPERTIES_OFFSET \
-_TestStrcuts_Source_h_80_PROPERTIES \
-_TestStrcuts_Source_h_80_FUNCTION_DECLARE \
-_TestStrcuts_Source_h_80_STATIC_CLASS \
+#define _TestStrcuts_Source_h_81_GENERATED_BODY \
+_TestStrcuts_Source_h_81_PROPERTIES_OFFSET \
+_TestStrcuts_Source_h_81_PROPERTIES \
+_TestStrcuts_Source_h_81_FUNCTION_DECLARE \
+_TestStrcuts_Source_h_81_STATIC_CLASS \
 
 
 #undef CURRENT_FILE_ID

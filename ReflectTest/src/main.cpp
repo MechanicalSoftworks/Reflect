@@ -67,6 +67,9 @@ void StaticClass()
 
 int main(void)
 {
+	static_assert(Reflect::Util::GetFunctionName<&FuncWithParameters>() == "FuncWithParameters");
+	static_assert(Reflect::Util::GetFunctionName<&C::operator()>() == "C::operator()");
+
 	static_assert(Reflect::Util::GetTypeName<Actor>() == "Actor");
 	static_assert(Reflect::Util::GetTypeName<bool>() == "bool");
 	static_assert(Reflect::Util::GetTypeName<int>() == "int32");
