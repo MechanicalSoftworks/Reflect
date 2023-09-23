@@ -381,13 +381,20 @@ namespace Reflect
 					size_t src_idx = 0;
 					size_t dst_idx = 0;
 					while (src_idx < N) {
-						if (expr[src_idx] == '&') {
+						if (
 							// g++ leaves the '&' off for function pointers, but leaves it on for method pointers.
 							// MSVC always leaves it off.
 							// So for consistency, strip it!
+							expr[src_idx] == '&' ||
+
+							// MSVC adds a space into the operator methods like this: "C::operator ()".
+							// g++ doesn't. Strip it!
+							expr[src_idx] == ' ')
+						{
 							++src_idx;
 						}
-						else {
+						else
+						{
 							result.data[dst_idx++] = expr[src_idx++];
 						}
 					}
