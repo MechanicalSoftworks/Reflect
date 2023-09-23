@@ -47,8 +47,8 @@ namespace Reflect
 			constexpr operator std::string()      const { return std::string(value); }
 			constexpr operator std::string_view() const { return std::string_view(value); }
 
-			template<size_t N1> constexpr auto operator+(const StringLiteral<N1>& rhs) { return StringLiteral<N + N1 - 1>(*this, rhs); }	// Subtract NULL terminator.
-			template<size_t N1> constexpr auto operator+(const char(&rhs)[N1])         { return *this + StringLiteral<N1>(rhs); }
+			template<size_t N1> constexpr auto operator+(const StringLiteral<N1>& rhs) const { return StringLiteral<N + N1 - 1>(*this, rhs); }	// Subtract NULL terminator.
+			template<size_t N1> constexpr auto operator+(const char(&rhs)[N1]) const         { return *this + StringLiteral<N1>(rhs); }
 
 			template<size_t N1> constexpr auto operator==(const StringLiteral<N1>& rhs) const { return N == N1 && (std::string_view)*this == (std::string_view)rhs; }
 			template<size_t N1> constexpr auto operator!=(const StringLiteral<N1>& rhs) const { return !(*this == rhs); }
@@ -352,9 +352,11 @@ namespace Reflect
 					size_t src_idx = 0;
 					size_t dst_idx = 0;
 					while (src_idx < N) {
-						if (expr[src_idx] == ' ') {
-							++src_idx;
+						if (expr[src_idx] == ',' && src_idx < N - 1 && expr[src_idx + 1] == ' ') {
+							result.data[dst_idx++] = ',';
+							src_idx += 2;
 						}
+
 						if (expr[src_idx] == 'c' && src_idx < N - 5 && expr[src_idx + 1] == 'l' && expr[src_idx + 2] == 'a' && expr[src_idx + 3] == 's' && expr[src_idx + 4] == 's' && expr[src_idx + 5] == ' ') {
 							src_idx += 6;
 						}
@@ -381,15 +383,6 @@ namespace Reflect
 					while (src_idx < N) {
 						if (expr[src_idx] == ' ') {
 							++src_idx;
-						}
-						if (expr[src_idx] == 'c' && src_idx < N - 5 && expr[src_idx + 1] == 'l' && expr[src_idx + 2] == 'a' && expr[src_idx + 3] == 's' && expr[src_idx + 4] == 's' && expr[src_idx + 5] == ' ') {
-							src_idx += 6;
-						}
-						else if (expr[src_idx] == 's' && src_idx < N - 6 && expr[src_idx + 1] == 't' && expr[src_idx + 2] == 'r' && expr[src_idx + 3] == 'u' && expr[src_idx + 4] == 'c' && expr[src_idx + 5] == 't' && expr[src_idx + 6] == ' ') {
-							src_idx += 7;
-						}
-						else if (expr[src_idx] == 'e' && src_idx < N - 4 && expr[src_idx + 1] == 'n' && expr[src_idx + 2] == 'u' && expr[src_idx + 3] == 'm' && expr[src_idx + 4] == ' ') {
-							src_idx += 5;
 						}
 						else {
 							result.data[dst_idx++] = expr[src_idx++];
@@ -472,7 +465,47 @@ namespace Reflect
 
 			template <typename T>
 			struct TypeNameImpl<T*>                             { static constexpr inline auto value = TypeNameImpl<T>::value + "*"; };
+
+			template<typename TFirst>
+			struct CallableSignatureStringBuilder;
+
+			template<>
+			struct CallableSignatureStringBuilder<std::tuple<>>
+			{
+				static constexpr inline StringLiteral value = "";
+			};
+
+			template<typename TFirst>
+			struct CallableSignatureStringBuilder<std::tuple<TFirst>>
+			{
+				static constexpr inline StringLiteral value = TypeNameImpl<TFirst>::value;
+			};
+
+			template<typename TFirst, typename... TRest>
+			struct CallableSignatureStringBuilder<std::tuple<TFirst, TRest...>>
+			{
+				static constexpr inline StringLiteral value = TypeNameImpl<TFirst>::value + "," + CallableSignatureStringBuilder<std::tuple<TRest...>>::value;
+			};
 		}
+
+		template<typename TFunction> class callable_traits;
+
+		// specialization for functions
+		template<typename R, typename... TArgs>
+		struct callable_traits<R(TArgs...)>
+		{
+			using return_type = R;
+			using arguments = std::tuple<TArgs...>;
+		};
+
+		// specialization for methods
+		template<typename R, typename Obj, typename... TArgs>
+		struct callable_traits<R(Obj::*)(TArgs...)>
+		{
+			using return_type = R;
+			using object_type = Obj;
+			using arguments = std::tuple<TArgs...>;
+		};
 
 		template<typename T>
 		constexpr auto GetTypeName()
@@ -490,6 +523,14 @@ namespace Reflect
 		constexpr auto GetFunctionName()
 		{
 			return detail::function_name<FunctionPtr>();
+		}
+
+		template<auto FunctionPtr>
+		constexpr auto GetFunctionDeclaration()
+		{
+			using FunctionTraits = callable_traits<decltype(FunctionPtr)>;
+
+			return GetTypeName<typename FunctionTraits::return_type>() + " " + GetFunctionName<FunctionPtr>() + "(" + detail::CallableSignatureStringBuilder<typename FunctionTraits::arguments>::value + ")";
 		}
 
 		// Like std::find_if, but will loop around back to our initial position.
