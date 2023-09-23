@@ -282,7 +282,7 @@ namespace Reflect
 					constexpr auto suffix = std::string_view{ "]" };
 					constexpr auto function = std::string_view{ __PRETTY_FUNCTION__ };
 #elif defined(__GNUC__)
-					constexpr auto prefix = std::string_view{ "with FunctionPtr = " };
+					constexpr auto prefix = std::string_view{ "with auto FunctionPtr = " };
 					constexpr auto suffix = std::string_view{ "]" };
 					constexpr auto function = std::string_view{ __PRETTY_FUNCTION__ };
 #elif defined(_MSC_VER)
@@ -381,7 +381,10 @@ namespace Reflect
 					size_t src_idx = 0;
 					size_t dst_idx = 0;
 					while (src_idx < N) {
-						if (expr[src_idx] == ' ') {
+						if (expr[src_idx] == '&') {
+							// g++ leaves the '&' off for function pointers, but leaves it on for method pointers.
+							// MSVC always leaves it off.
+							// So for consistency, strip it!
 							++src_idx;
 						}
 						else {
@@ -419,6 +422,8 @@ namespace Reflect
 				static constexpr inline auto value = type_name<T>();
 			};
 
+			template <> struct TypeNameImpl<void>               { static constexpr inline auto value = StringLiteral{ "void" }; };
+			
 			template <> struct TypeNameImpl<bool>               { static constexpr inline auto value = StringLiteral{ "bool" }; };
 			
 			template <> struct TypeNameImpl<char>               { static constexpr inline auto value = StringLiteral{ "int8" }; };
@@ -492,7 +497,7 @@ namespace Reflect
 
 		// specialization for functions
 		template<typename R, typename... TArgs>
-		struct callable_traits<R(TArgs...)>
+		struct callable_traits<R(*)(TArgs...)>
 		{
 			using return_type = R;
 			using arguments = std::tuple<TArgs...>;
