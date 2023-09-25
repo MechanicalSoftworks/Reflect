@@ -68,6 +68,24 @@ namespace Reflect
 		{
 			return Util::TryGetPropertyValue(Flags, flag);
 		}
+
+		template<typename E>
+		auto GetPropertyEnum(const std::string_view& flag) const -> E
+		{
+			return E::Parse(GetPropertyValue(flag));
+		}
+
+		template<typename E>
+		auto TryParsePropertyEnum(const std::string_view& flag) const -> std::optional<E>
+		{
+			const auto str = TryGetPropertyValue(flag);
+			if (!str)
+			{
+				return {};
+			}
+
+			return E::TryParse(*str);
+		}
 			
 		const std::string_view				Name;
 		const int64_t						Value;

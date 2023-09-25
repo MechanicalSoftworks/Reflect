@@ -479,6 +479,11 @@ namespace Reflect
 
 		constexpr auto GetPropertyValue(const std::string_view &flag) const
 		{
+			return *Util::TryGetPropertyValue(StrProperties, flag);
+		}
+
+		constexpr auto TryGetPropertyValue(const std::string_view& flag) const
+		{
 			return Util::TryGetPropertyValue(StrProperties, flag);
 		}
 
