@@ -519,6 +519,14 @@ namespace Reflect
 			using arguments = std::tuple<TArgs...>;
 		};
 
+		template<typename R, typename Obj, typename... TArgs>
+		struct callable_traits<R(Obj::*)(TArgs...) const>
+		{
+			using return_type = R;
+			using object_type = const Obj;
+			using arguments = std::tuple<TArgs...>;
+		};
+
 		template<typename T>
 		constexpr auto GetTypeName()
 		{
