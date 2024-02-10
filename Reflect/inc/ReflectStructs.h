@@ -397,9 +397,6 @@ namespace Reflect
 		{
 		}
 
-		// Map a type name to a different type.
-		REFLECT_DLL static void RegisterOverride(const char *name, const Class& c);
-
 		// Reflect!
 		REFLECT_DLL static const Class* TryLookup(const std::string_view &name);
 		REFLECT_DLL static const Class& Lookup(const std::string_view &name);

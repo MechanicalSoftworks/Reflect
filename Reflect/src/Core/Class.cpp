@@ -39,11 +39,6 @@ namespace Reflect
 		}
 	}
 
-	REFLECT_DLL void Class::RegisterOverride(const char* name, const Class& c)
-	{
-		s_classes[name] = (Class *)&c;
-	}
-
 	REFLECT_DLL const Class* Class::TryLookup(const std::string_view& name)
 	{
 		auto it = s_classes.find(std::string(name));
