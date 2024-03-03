@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project (Reflect)
+project (Reflect VERSION 2.0.0)
 set(CMAKE_CXX_STANDARD 20)
 add_compile_options($<$<CXX_COMPILER_ID:MSVC>:/MP>)
 
@@ -41,3 +41,29 @@ add_subdirectory(Reflect)
 add_subdirectory(ReflectDLL)
 add_subdirectory(ReflectEXE)
 add_subdirectory(ReflectTest)
+
+#===============================================================================
+# Install
+#===============================================================================
+install(TARGETS Reflect ReflectDLL ReflectEXE
+	EXPORT ${PROJECT_NAME}Targets
+)
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    ${PROJECT_NAME}ConfigVersion.cmake
+    VERSION ${PACKAGE_VERSION}
+    COMPATIBILITY ExactVersion
+)
+
+install(EXPORT ${PROJECT_NAME}Targets
+	FILE ${PROJECT_NAME}Targets.cmake
+	NAMESPACE Reflect::
+	DESTINATION ${CMAKE_INSTALL_CMAKEDIR}/${PROJECT_NAME}
+)
+
+configure_file(${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake @ONLY)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+	"${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+	DESTINATION ${CMAKE_INSTALL_CMAKEDIR}/${PROJECT_NAME}
+)

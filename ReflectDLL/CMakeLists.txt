@@ -1,9 +1,11 @@
-add_library(ReflectDLL SHARED
+set(TARGET_NAME ReflectDLL)
+
+add_library(${TARGET_NAME} SHARED
 	${LIB_SOURCE_FILES}
 	${LIB_HEADER_FILES}
 )
 
-target_include_directories(ReflectDLL
+target_include_directories(${TARGET_NAME}
     PUBLIC
 		$<INSTALL_INTERFACE:include>
 		$<BUILD_INTERFACE:${LIB_INCLUDE_DIR}>
@@ -11,5 +13,4 @@ target_include_directories(ReflectDLL
         ${LIB_INCLUDE_DIR}
 )
 
-target_compile_definitions(ReflectDLL PRIVATE -DPLATFORM_WINDOWS -DREFLECT_DLL_EXPORT)
-install(TARGETS ReflectDLL DESTINATION ${CMAKE_INSTALL_PREFIX})
+target_compile_definitions(${TARGET_NAME} PRIVATE -DPLATFORM_WINDOWS -DREFLECT_DLL_EXPORT)

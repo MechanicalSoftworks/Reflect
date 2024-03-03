@@ -1,0 +1,7 @@
+if(NOT TARGET Reflect::Reflect)
+    include("${CMAKE_CURRENT_LIST_DIR}/ReflectTargets.cmake")
+
+    get_target_property(REFLECT_EXE Reflect::ReflectEXE LOCATION)
+
+    set(REFLECT_DLL_INTERFACE "$<TARGET_PROPERTY:Reflect::ReflectDLL,INTERFACE_INCLUDE_DIRECTORIES>")
+endif()

@@ -11,7 +11,7 @@ target_include_directories(Reflect
         ${LIB_INCLUDE_DIR}
 )
 
-install(TARGETS Reflect DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(TARGETS Reflect)
 install(DIRECTORY "${LIB_INCLUDE_DIR}/"
         DESTINATION "include"
         FILES_MATCHING

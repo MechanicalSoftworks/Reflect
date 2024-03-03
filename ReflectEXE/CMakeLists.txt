@@ -13,4 +13,4 @@ target_include_directories(ReflectEXE
 target_compile_definitions(ReflectEXE PRIVATE -DPLATFORM_WINDOWS -DREFLECT_EXE)
 target_link_libraries(ReflectEXE Reflect)
 
-install(TARGETS ReflectEXE DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(TARGETS ReflectEXE)

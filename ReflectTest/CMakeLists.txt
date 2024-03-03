@@ -15,4 +15,4 @@ target_include_directories(ReflectTest
 target_compile_definitions(ReflectTest PRIVATE -DPLATFORM_WINDOWS)
 target_link_libraries(ReflectTest Reflect)
 
-install(TARGETS ReflectTest DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(TARGETS ReflectTest)
