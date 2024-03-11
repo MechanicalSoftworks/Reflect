@@ -447,6 +447,11 @@ namespace Reflect
 			EatWhitespace(fileData, endOfContainerCursor);
 			
 			const std::string_view v1(fileData.Data.begin() + fileData.Cursor, fileData.Data.end());
+			if (v1.starts_with("};"))
+			{
+				return;
+			}
+
 			if (v1.starts_with(MetaKey))
 			{
 				constantData.Name.clear();
@@ -504,7 +509,7 @@ namespace Reflect
 			containerData.Constants.push_back(std::move(constantData));
 
 			// Move to the next token.
-			while (!std::isalnum(fileData.Data[fileData.Cursor]) && fileData.Data[fileData.Cursor] != '_' && fileData.Data[fileData.Cursor] != '$')
+			while (!std::isalnum(fileData.Data[fileData.Cursor]) && fileData.Data[fileData.Cursor] != '_' && fileData.Data[fileData.Cursor] != '$' && fileData.Data[fileData.Cursor] != '}')
 			{
 				fileData.Cursor++;
 				if (fileData.Cursor >= endOfContainerCursor)

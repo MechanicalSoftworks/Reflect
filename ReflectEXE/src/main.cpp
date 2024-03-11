@@ -52,6 +52,7 @@ int main(int argc, char* argv[])
 			parser.ParseDirectory(dir);
 			for (auto& file : parser.GetAllFileParsedData())
 			{
+				std::cout << "Reflect: " << file.FilePath << std::endl;
 				if (!specifiedCPPDir)
 				{
 					options.OutputCPPDir = file.FileDirectory;
