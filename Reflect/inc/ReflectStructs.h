@@ -190,14 +190,16 @@ namespace Reflect
 	};
 
 	template<typename T>
-	inline constexpr typename std::enable_if<!std::is_base_of_v<IEnum, T>, ReflectMemberProp>::type 
+		requires(!std::is_base_of_v<IEnum, T>)
+	inline constexpr ReflectMemberProp
 		CreateReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties, const ReadMemberType& read, const WriteMemberType& write)
 	{
 		return ReflectMemberProp(name, type, offset, strProperties, Reflect::Util::GetStaticClass<T>(), std::is_pointer_v<T>, read, write);
 	}
 
 	template<typename T>
-	inline constexpr typename std::enable_if<std::is_base_of_v<IEnum, T>, ReflectMemberProp>::type
+		requires(std::is_base_of_v<IEnum, T>)
+	inline constexpr ReflectMemberProp
 		CreateReflectMemberProp(const char* name, const std::string& type, int offset, std::vector<std::string> const& strProperties, const ReadMemberType& read, const WriteMemberType& write)
 	{
 		return ReflectMemberProp(name, type, offset, strProperties, T::StaticEnum, read, write);
@@ -331,15 +333,7 @@ namespace Reflect
 		void Write(ISerialiser& s,  std::ostream& out) const { Properties->Write(s, out, RawPointer); }
 
 		template<typename T>
-		REFLECT_DLL T* ConvertToType()
-		{
-			const auto convertType = Reflect::Util::GetTypeName<T>();
-			if (convertType != GetTypeName())
-			{
-				return nullptr;
-			}
-			return static_cast<T*>(RawPointer);
-		}
+		REFLECT_DLL T* ConvertToType();
 	};
 
 	class REFLECT_DLL ClassAllocator
@@ -498,7 +492,7 @@ namespace Reflect
 
 			for (const auto& member : MemberProperties)
 			{
-				if (member.ContainsProperty(flags))
+				if (!flags.size() || member.ContainsProperty(flags))
 				{
 					members.push_back(Reflect::ReflectMember(&member, (void *)((char*)instance + (size_t)member.Offset)));
 				}
@@ -570,6 +564,33 @@ namespace Reflect
 	template<> struct ReflectStatic<IReflect> {
 		static inline constexpr auto Properties = std::make_tuple();
 	};
+
+	template<typename T>
+	inline T* ReflectMember::ConvertToType()
+	{
+		if constexpr (std::is_base_of_v<IReflect, T>)
+		{
+			if (Properties && Properties->StaticClass && Properties->StaticClass->IsOrDescendantOf<T>())
+			{
+				return reinterpret_cast<T*>(RawPointer);
+			}
+			else
+			{
+				return nullptr;
+			}
+		}
+		else
+		{
+			if (Reflect::Util::GetTypeName<T>() == GetTypeName())
+			{
+				return reinterpret_cast<T*>(RawPointer);
+			}
+			else
+			{
+				return nullptr;
+			}
+		}
+	}
 }
 
 #define REFLECT_BASE() public Reflect::IReflect
