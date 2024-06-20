@@ -255,11 +255,9 @@ namespace std
 	namespace detail
 	{
 		// From Boost.
-		template <class T>
-		inline void hash_combine(std::size_t& seed, const T& v)
+		inline auto hash_combine(std::size_t x, std::size_t y) -> std::size_t
 		{
-			std::hash<T> hasher;
-			seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+			return x ^ (y + 0x9e3779b9 + (x << 6) + (x >> 2));
 		}
 
 		template<typename TObject, size_t I>
@@ -276,7 +274,8 @@ namespace std
 					if constexpr (!field.template HasAnyFlag<"NoHash">())
 					{
 						std::hash<decltype(field)::Type> hasher;
-						hash_combine(seed, hasher(field.Get(obj)));
+						const auto y = hasher(field.Get(obj));
+						seed = hash_combine(seed, y);
 					}
 
 					StaticFieldHasher<TObject, I + 1>{}(obj, seed);
@@ -290,8 +289,16 @@ namespace std
 	{
 		inline size_t operator()(const T& v) const
 		{
-			std::size_t x;
+			std::size_t x = 0;
+			
 			detail::StaticFieldHasher<T, 0>{}(v, x);
+
+			using TDecay = typename std::decay<T>::type;
+			if constexpr (!std::is_same_v<typename TDecay::SuperClass, Reflect::IReflect>)
+			{
+				x = detail::hash_combine(x, hash<TDecay::SuperClass>{}(v));
+			}
+
 			return x;
 		}
 	};
