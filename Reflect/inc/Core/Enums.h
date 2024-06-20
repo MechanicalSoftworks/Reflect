@@ -253,3 +253,16 @@ template <typename E, E> REFLECT_DLL std::string EnumToString()
 	value = value.substr(startIndex, endIndex - startIndex);
 	return value;
 }
+
+namespace std
+{
+	template<Reflect::IsIEnum T>
+	struct hash<T>
+	{
+		inline size_t operator()(const T& v) const
+		{
+			using ValueType = std::decay_t<T>::ValueType;
+			return std::hash<ValueType>{}(v.load());
+		}
+	};
+}

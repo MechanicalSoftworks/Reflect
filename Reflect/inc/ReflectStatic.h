@@ -249,3 +249,50 @@ namespace Reflect
 		return false;
 	}
 }
+
+namespace std
+{
+	namespace detail
+	{
+		// From Boost.
+		template <class T>
+		inline void hash_combine(std::size_t& seed, const T& v)
+		{
+			std::hash<T> hasher;
+			seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+		}
+
+		template<typename TObject, size_t I>
+		struct StaticFieldHasher
+		{
+			void operator()(const TObject& obj, std::size_t& seed)
+			{
+				constexpr auto properties = Reflect::ReflectStatic<TObject>::Properties;
+
+				if constexpr (I < std::tuple_size_v<decltype(properties)>)
+				{
+					constexpr auto field = std::get<I>(properties);
+					
+					if constexpr (!field.template HasAnyFlag<"NoHash">())
+					{
+						std::hash<decltype(field)::Type> hasher;
+						hash_combine(seed, hasher(field.Get(obj)));
+					}
+
+					StaticFieldHasher<TObject, I + 1>{}(obj, seed);
+				}
+			}
+		};
+	}
+
+	template<Reflect::Reflected T>
+	struct hash<T>
+	{
+		inline size_t operator()(const T& v) const
+		{
+			std::size_t x;
+			detail::StaticFieldHasher<T, 0>{}(v, x);
+			return x;
+		}
+	};
+}

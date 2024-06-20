@@ -534,6 +534,7 @@ namespace Reflect
 		
 		// Misc.
 		virtual const Class& GetClass() const = 0;
+		virtual std::size_t GetHashCode() const { return 0; }
 
 		// Reflection.
 		auto GetFunction(const std::string_view& functionName) const	{ return GetClass().GetFunction(functionName, const_cast<IReflect*>(this)); }

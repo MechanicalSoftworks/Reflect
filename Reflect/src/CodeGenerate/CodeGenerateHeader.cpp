@@ -43,7 +43,7 @@ namespace Reflect
 		CodeGenerate::IncludeHeader("Core/Enums.h", file);
 		CodeGenerate::IncludeHeader("Core/Util.h", file);
 
-		const auto reflectGuard = GetCurrentPathMacro(data);
+		const auto reflectGuard = GetCurrentPathMacro(data) + ReflectFileHeaderGuard;
 
 		file << "\n";
 		file << "#ifdef " + reflectGuard + "_h\n";
@@ -66,7 +66,7 @@ namespace Reflect
 		CodeGenerate::IncludeHeader("Core/Util.h", file);
 		CodeGenerate::IncludeHeader("ReflectStatic.h", file);
 
-		const auto reflectGuard = GetCurrentPathMacro(data);
+		const auto reflectGuard = GetCurrentPathMacro(data) + ReflectStaticFileHeaderGuard;
 
 		file << "\n";
 		file << "#ifdef " + reflectGuard + "_h\n";
@@ -311,6 +311,7 @@ namespace Reflect
 
 		file << "#define " + currentFileId + "_FUNCTION_DECLARE \\\n";
 		WRITE_PUBLIC();
+			file << "\tstd::size_t GetHashCode() const override { return std::hash<ThisClass>{}(*this); }\\\n";
 			file << "\tvoid Serialise(Reflect::ISerialiser &s, std::ostream& out) const override { DispatchSerialise(s, out, *this); }\\\n";
 			file << "\tvoid Unserialise(Reflect::IUnserialiser& u, std::istream& in) override    { DispatchUnserialise(u, in, *this); }\\\n";
 		WRITE_PRIVATE();
