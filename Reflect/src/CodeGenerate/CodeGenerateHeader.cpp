@@ -6,16 +6,26 @@
 
 namespace Reflect
 {
-	std::string GetCurrentFileID(const CodeGenerateAddtionalOptions& addtionalOptions, const std::string& fileName)
+	std::string GetCurrentPathMacro(const FileParsedData& data)
 	{
-		auto relative = addtionalOptions.RelativeFilePath;
-		std::replace(relative.begin(), relative.end(), '/',  '_');
-		std::replace(relative.begin(), relative.end(), '\\', '_');
+		const auto relativePath = data.FileDirectory + "\\" + std::string(data.FileName + "." + data.FileExtension);
 
-		return relative + "_" + fileName + "_Source_h";
+		std::string reflectGuard = relativePath + ReflectFileHeaderGuard;
+		std::replace(reflectGuard.begin(), reflectGuard.end(), '/', '_');
+		std::replace(reflectGuard.begin(), reflectGuard.end(), '\\', '_');
+		std::replace(reflectGuard.begin(), reflectGuard.end(), '.', '_');
+		std::replace(reflectGuard.begin(), reflectGuard.end(), ':', '_');
+		std::replace(reflectGuard.begin(), reflectGuard.end(), '-', '_');
+
+		return reflectGuard;
 	}
 
-#define WRITE_CURRENT_FILE_ID(FileName) file << "#define " + GetCurrentFileID(addtionalOptions, FileName)
+	std::string GetCurrentFileID(const FileParsedData& data)
+	{
+		return GetCurrentPathMacro(data) + "_Source_h";
+	}
+
+#define WRITE_CURRENT_FILE_ID(data) file << "#define " + GetCurrentFileID(data)
 #define WRITE_CLOSE() file << "\n\n"
 
 #define WRITE_PUBLIC() file << "public:\\\n"
@@ -97,7 +107,7 @@ namespace Reflect
 	{
 		for (const auto& reflectData : data.ReflectData)
 		{
-			const std::string CurrentFileId = GetCurrentFileID(addtionalOptions, data.FileName) + "_" + std::to_string(reflectData.ReflectGenerateBodyLine);
+			const std::string CurrentFileId = GetCurrentFileID(data) + "_" + std::to_string(reflectData.ReflectGenerateBodyLine);
 
 			if (reflectData.ReflectType == ReflectType::Enum)
 			{
@@ -112,7 +122,7 @@ namespace Reflect
 		}
 
 		file << "#undef CURRENT_FILE_ID\n";
-		file << "#define CURRENT_FILE_ID " + GetCurrentFileID(addtionalOptions, data.FileName) + "\n";
+		file << "#define CURRENT_FILE_ID " + GetCurrentFileID(data) + "\n";
 	}
 
 	void CodeGenerateHeader::WriteStatic(const Reflect::ReflectContainerData& reflectData, const FileParsedData& data, std::ostream& file, const CodeGenerateAddtionalOptions& addtionalOptions)
@@ -171,7 +181,7 @@ namespace Reflect
 		WriteMemberProperties(reflectData, file, CurrentFileId, addtionalOptions);
 		WriteFunctions(reflectData, file, CurrentFileId, addtionalOptions);
 
-		WRITE_CURRENT_FILE_ID(data.FileName) + "_" + std::to_string(reflectData.ReflectGenerateBodyLine) + "_GENERATED_BODY \\\n";
+		WRITE_CURRENT_FILE_ID(data) + "_" + std::to_string(reflectData.ReflectGenerateBodyLine) + "_GENERATED_BODY \\\n";
 		file << CurrentFileId + "_PROPERTIES_OFFSET \\\n";
 		file << CurrentFileId + "_PROPERTIES \\\n";
 		file << CurrentFileId + "_FUNCTION_DECLARE \\\n";
@@ -192,7 +202,7 @@ namespace Reflect
 		WriteEnumMembers(reflectData, file, CurrentFileId, addtionalOptions);
 		WriteEnumMethods(reflectData, file, CurrentFileId, addtionalOptions);
 
-		WRITE_CURRENT_FILE_ID(data.FileName) + "_" + std::to_string(reflectData.ReflectGenerateBodyLine) + "_GENERATED_BODY \\\n";
+		WRITE_CURRENT_FILE_ID(data) + "_" + std::to_string(reflectData.ReflectGenerateBodyLine) + "_GENERATED_BODY \\\n";
 		file << CurrentFileId + "_STATIC_ENUM \\\n";
 		file << CurrentFileId + "_OPERATORS \\\n";
 		file << CurrentFileId + "_VALUES \\\n";
