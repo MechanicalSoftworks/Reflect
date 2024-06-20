@@ -43,13 +43,7 @@ namespace Reflect
 		CodeGenerate::IncludeHeader("Core/Enums.h", file);
 		CodeGenerate::IncludeHeader("Core/Util.h", file);
 
-		const auto relativePath = data.FileDirectory + "\\" + std::string(data.FileName + "." + data.FileExtension);
-		std::string reflectGuard = relativePath + ReflectFileHeaderGuard;
-		std::replace(reflectGuard.begin(), reflectGuard.end(), '/', '_');
-		std::replace(reflectGuard.begin(), reflectGuard.end(), '\\', '_');
-		std::replace(reflectGuard.begin(), reflectGuard.end(), '.', '_');
-		std::replace(reflectGuard.begin(), reflectGuard.end(), ':', '_');
-		std::replace(reflectGuard.begin(), reflectGuard.end(), '-', '_');
+		const auto reflectGuard = GetCurrentPathMacro(data);
 
 		file << "\n";
 		file << "#ifdef " + reflectGuard + "_h\n";
@@ -72,13 +66,7 @@ namespace Reflect
 		CodeGenerate::IncludeHeader("Core/Util.h", file);
 		CodeGenerate::IncludeHeader("ReflectStatic.h", file);
 
-		const auto relativePath = data.FileDirectory + "\\" + std::string(data.FileName + "." + data.FileExtension);
-		std::string reflectGuard = relativePath + ReflectStaticFileHeaderGuard;
-		std::replace(reflectGuard.begin(), reflectGuard.end(), '/', '_');
-		std::replace(reflectGuard.begin(), reflectGuard.end(), '\\', '_');
-		std::replace(reflectGuard.begin(), reflectGuard.end(), '.', '_');
-		std::replace(reflectGuard.begin(), reflectGuard.end(), ':', '_');
-		std::replace(reflectGuard.begin(), reflectGuard.end(), '-', '_');
+		const auto reflectGuard = GetCurrentPathMacro(data);
 
 		file << "\n";
 		file << "#ifdef " + reflectGuard + "_h\n";
