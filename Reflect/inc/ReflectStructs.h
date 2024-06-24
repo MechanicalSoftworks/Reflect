@@ -317,13 +317,18 @@ namespace Reflect
 
 	struct ReflectMember
 	{
-		constexpr ReflectMember(const ReflectMemberProp *prop, void* memberPtr)
-			: Properties(prop)
-			, RawPointer(memberPtr)
+		constexpr ReflectMember() = default;
+
+		constexpr ReflectMember(const ReflectMemberProp& prop, IReflect* instance)
+			: Properties(&prop)
+			, RawPointer(instance
+				? (void*)((char*)instance + Properties->Offset)
+				: nullptr
+			)
 		{}
 
-		const ReflectMemberProp* const	Properties;
-		void* const						RawPointer;
+		const ReflectMemberProp* const	Properties = nullptr;
+		void* const						RawPointer = nullptr;
 
 		bool IsValid() const			{ return RawPointer != nullptr; }
 		const auto& GetName() const		{ return Properties->Name; }
@@ -332,8 +337,8 @@ namespace Reflect
 		void Read(IUnserialiser& u, std::istream& in)        { Properties->Read (u,  in, RawPointer); }
 		void Write(ISerialiser& s,  std::ostream& out) const { Properties->Write(s, out, RawPointer); }
 
-		template<typename T>
-		REFLECT_DLL T* ConvertToType();
+		template<typename T> REFLECT_DLL       T* ConvertToType();
+		template<typename T> REFLECT_DLL const T* ConvertToType() const;
 	};
 
 	class REFLECT_DLL ClassAllocator
@@ -416,12 +421,12 @@ namespace Reflect
 				{
 					if (member.Name == memberName)
 					{
-						return ReflectMember(&member, (void*)((char*)instance + (size_t)member.Offset));
+						return ReflectMember(member, instance);
 					}
 				}
 			}
 
-			return ReflectMember(nullptr, nullptr);
+			return ReflectMember{};
 		}
 
 		REFLECT_DLL constexpr auto GetFunction(std::string_view const& funcName, IReflect* instance = nullptr) const
@@ -484,6 +489,9 @@ namespace Reflect
 		const std::vector<std::string>	StrProperties;
 		const std::vector<std::string>	Interfaces;
 
+		const std::vector<ReflectMemberProp>		MemberProperties;
+		const std::vector<ReflectMemberFunction>	MemberFunctions;
+
 	private:
 		REFLECT_DLL constexpr void GetMembersInternal(std::vector<Reflect::ReflectMember>& members, std::vector<std::string> const& flags, IReflect* instance) const
 		{
@@ -494,13 +502,10 @@ namespace Reflect
 			{
 				if (!flags.size() || member.ContainsProperty(flags))
 				{
-					members.push_back(Reflect::ReflectMember(&member, (void *)((char*)instance + (size_t)member.Offset)));
+					members.push_back(Reflect::ReflectMember(member, instance));
 				}
 			}
 		}
-
-		const std::vector<ReflectMemberProp>		MemberProperties;
-		const std::vector<ReflectMemberFunction>	MemberFunctions;
 	};
 
 	class REFLECT_DLL LinkClass
@@ -591,6 +596,14 @@ namespace Reflect
 				return nullptr;
 			}
 		}
+	}
+
+	template<typename T>
+	inline const T* ReflectMember::ConvertToType() const
+	{
+		return const_cast<T*>(
+			const_cast<ReflectMember*>(this)->ConvertToType<T>()
+		);
 	}
 }
 
