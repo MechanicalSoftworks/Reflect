@@ -273,7 +273,7 @@ namespace std
 					
 					if constexpr (!field.template HasAnyFlag<"NoHash">())
 					{
-						std::hash<decltype(field)::Type> hasher;
+						std::hash<typename decltype(field)::Type> hasher;
 						const auto y = hasher(field.Get(obj));
 						seed = hash_combine(seed, y);
 					}
@@ -293,10 +293,10 @@ namespace std
 			
 			detail::StaticFieldHasher<T, 0>{}(v, x);
 
-			using TDecay = typename std::decay<T>::type;
+			using TDecay = typename std::decay_t<T>;
 			if constexpr (!std::is_same_v<typename TDecay::SuperClass, Reflect::IReflect>)
 			{
-				x = detail::hash_combine(x, hash<TDecay::SuperClass>{}(v));
+				x = detail::hash_combine(x, hash<typename TDecay::SuperClass>{}(v));
 			}
 
 			return x;
