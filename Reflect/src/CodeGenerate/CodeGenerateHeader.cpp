@@ -235,7 +235,7 @@ namespace Reflect
 		WRITE_PUBLIC();
 		for (const auto& member : data.Members)
 		{
-			file << "\tstatic constexpr const char* nameof_" << member.Name << " = \"" << member.Name << "\";\\\n";
+			file << "\tstatic inline constexpr const char* nameof_" << member.Name << " = \"" << member.Name << "\";\\\n";
 		}
 		
 		WRITE_PRIVATE();
