@@ -146,7 +146,10 @@ namespace Reflect
 			lastIdx = idx;
 			idx = rawData.Data.find("//", idx);
 		}
-		cleanedData.Data.append(rawData.Data, lastIdx);
+		if (lastIdx != std::string::npos)
+		{
+			cleanedData.Data.append(rawData.Data, lastIdx);
+		}
 		cleanedData.Cursor = 0;
 
 		return cleanedData;
