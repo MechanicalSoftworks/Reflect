@@ -363,14 +363,14 @@ namespace Reflect
 			auto [type, name, isConst] = ReflectTypeAndName(fileData, {});
 
 			char c = FindNextChar(fileData, { ' ', '\t' });
-			while (c != ';' && c != '=' && c != '(' && c != '\n')
+			while (c != ';' && c != '=' && c != '(' && c != '{' && c != '\n')
 			{
 				++fileData.Cursor;
 				c = FindNextChar(fileData, { ' ', '\t' });
 			}
 
 			// Find out if the property is a function or member variable.
-			if (c == ';' || c == '=')
+			if (c == ';' || c == '=' || c == '{')
 			{
 				// Member
 				// We have found a member variable 
@@ -601,10 +601,10 @@ namespace Reflect
 		return fileData.Data[fileData.Cursor];
 	}
 
-	bool FileParser::RefectCheckForEndOfLine(const FileParsedData& fileData)
+	bool FileParser::IsEndOfToken(const FileParsedData& fileData)
 	{
 		char c = fileData.Data[fileData.Cursor];
-		if (std::isspace(c) || c == '(' || c == ';')
+		if (std::isspace(c) || c == '(' || c == '{' || c == ';')
 		{
 			return true;
 		}
@@ -661,7 +661,7 @@ namespace Reflect
 				break;
 			}
 
-			if (!templateStack && (RefectCheckForEndOfLine(fileData) || (std::find(endOfLineCharacters.begin(), endOfLineCharacters.end(), c) != endOfLineCharacters.end())))
+			if (!templateStack && (IsEndOfToken(fileData) || (std::find(endOfLineCharacters.begin(), endOfLineCharacters.end(), c) != endOfLineCharacters.end())))
 			{
 				if (!typeFound)
 				{

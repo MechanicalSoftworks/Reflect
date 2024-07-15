@@ -43,7 +43,7 @@ namespace Reflect
 		std::vector<std::string> ReflectFlags(FileParsedData& fileData);
 		char FindNextChar(FileParsedData& fileData, const std::vector<char>& ingoreChars);
 
-		bool RefectCheckForEndOfLine(const FileParsedData& fileData);
+		bool IsEndOfToken(const FileParsedData& fileData);
 		bool ReflectTypeCheck(const std::string& type);
 		void ReflectGetFunctionParameters(FileParsedData& fileData);
 
