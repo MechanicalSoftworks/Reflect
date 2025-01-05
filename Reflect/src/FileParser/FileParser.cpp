@@ -764,7 +764,7 @@ namespace Reflect
 	int FileParser::CountNumberOfSinceTop(const FileParsedData& fileData, int cursorStart, const char& character)
 	{
 		int count = 0;
-		while (cursorStart > 0)
+		while (cursorStart >= 0)
 		{
 			//TODO Out of bounds checks.
 			if (fileData.Data[cursorStart] == character)
