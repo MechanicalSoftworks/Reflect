@@ -8,6 +8,7 @@
 #include <type_traits>
 #include <istream>
 #include <vector>
+#include <string_view>
 
 namespace Reflect
 {
@@ -607,7 +608,11 @@ namespace Reflect
 	}
 }
 
+#define REFLECT_STRINGIFY_(s) #s
+#define REFLECT_STRINGIFY(s) REFLECT_STRINGIFY_(s)
+
 #define REFLECT_BASE() public Reflect::IReflect
 #define REFLECT_STRUCT(...)
 #define REFLECT_CLASS(...)
 #define REFLECT_ENUM(...)
+#define REFLECT_KV(k, v)	Reflect::Util::kv<REFLECT_STRINGIFY(k), REFLECT_STRINGIFY(v)>()

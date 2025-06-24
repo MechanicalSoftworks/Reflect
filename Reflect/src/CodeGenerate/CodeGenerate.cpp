@@ -84,6 +84,21 @@ namespace Reflect
 		}
 	}
 
+	static std::string Quote(std::string_view x)
+	{
+		if (x.starts_with("REFLECT_KV"))
+		{
+			return std::string{ x };
+		}
+
+		if (x.size() >= 2 && x.front() == '"' && x.back() == '"')
+		{
+			return std::string{ x };
+		}
+
+		return std::string{ "\"" } + std::string{ x } + std::string{ "\"" };
+	}
+
 	std::string CodeGenerate::GetMemberProps(const std::vector<std::string>& flags)
 	{
 		if (flags.size() == 0)
@@ -97,10 +112,10 @@ namespace Reflect
 		{
 			if (flag != flags.back())
 			{
-				value += "\"" + flag + "\"" + ", ";
+				value += Quote(flag) + ", ";
 			}
 		}
-		value += "\"" + flags.back() + "\"" + "}";
+		value += Quote(flags.back()) + "}";
 		return value;
 	}
 

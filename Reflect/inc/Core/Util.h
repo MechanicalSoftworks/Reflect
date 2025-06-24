@@ -24,6 +24,8 @@ namespace Reflect
 		template<size_t N>
 		struct StringLiteral
 		{
+			constexpr StringLiteral() = default;
+			
 			constexpr StringLiteral(const char(&str)[N])
 			{
 				std::copy_n(str, N, value);
@@ -58,6 +60,19 @@ namespace Reflect
 
 			template<size_t N1> constexpr auto operator==(const char(&rhs)[N1]) { return N == N1 && std::equal(value, value + N, rhs); }
 			template<size_t N1> constexpr auto operator!=(const char(&rhs)[N1]) { return !(*this == rhs); }
+
+			constexpr auto size() const { return N; }
+
+			template<size_t Start, size_t Length>
+			constexpr auto substr() const
+			{
+				static_assert(Start + Length <= N, "substring out of bounds");
+
+				StringLiteral<Length + 1> x;
+				std::copy_n(value + Start, Length, x.value);
+				x.value[Length] = 0;
+				return x;
+			}
 		
 			char value[N];
 		};
@@ -624,6 +639,28 @@ namespace Reflect
 			}
 
 			return str;
+		}
+
+		template <Util::StringLiteral Str>
+		constexpr auto trim_quotes()
+		{
+			constexpr auto& s = Str.value;
+			constexpr size_t N = Str.size();
+
+			if constexpr (N >= 2 && s[0] == '"' && s[N - 2] == '"')
+			{
+				return Str.template substr<1, N - 3>();
+			}
+			else
+			{
+				return Str;
+			}
+		}
+
+		template <Util::StringLiteral K, Util::StringLiteral V>
+		constexpr auto kv()
+		{
+			return trim_quotes<K>() + Util::StringLiteral{ "=" } + trim_quotes<V>();
 		}
 	}
 }

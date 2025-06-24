@@ -181,7 +181,7 @@ namespace Reflect
 		ReflectContainerData containerData = {};
 
 		containerData.ReflectType = type;
-		fileData.Cursor = reflectStart + static_cast<int>(keyword.length()) + 1;
+		fileData.Cursor = reflectStart + static_cast<int>(keyword.length());
 		containerData.ContainerProps = ReflectFlags(fileData);
 
 		const char* kw = "";
@@ -554,33 +554,53 @@ namespace Reflect
 		// Get the flags passed though the REFLECT macro.
 		std::string flag;
 		std::vector<std::string> flags;
+		int depth = 0;
 
 		EatWhitespace(fileData, fileData.Data.length());
 
 		if (fileData.Data[fileData.Cursor] == '(')
 		{
 			++fileData.Cursor;
+			++depth;
 		}
 
 		EatWhitespace(fileData, fileData.Data.length());
-		while (fileData.Data[fileData.Cursor] != ')')
+		while (depth > 0)
 		{
 			char c = fileData.Data[fileData.Cursor++];
+			if (c == ')')
+			{
+				--depth;
+			}
+			else if (c == '(')
+			{
+				++depth;
+			}
+
+			if (!depth)
+			{
+				break;
+			}
+			
 			if (c == ',')
 			{
-				if (!flag.empty())
+				if (depth == 1)
 				{
-					flags.push_back(flag);
+					if (!flag.empty())
+					{
+						flags.push_back(flag);
+					}
+					flag = "";
+					EatWhitespace(fileData, fileData.Data.length());
 				}
-				flag = "";
-				EatWhitespace(fileData, fileData.Data.length());
-			}
-			else
-			{
-				if (c != ' ' && c != '\t' && c != '\r' && c != '\n')
+				else
 				{
 					flag += c;
 				}
+			}
+			else if (c != ' ' && c != '\t' && c != '\r' && c != '\n')
+			{
+				flag += c;
 			}
 		}
 		++fileData.Cursor;
