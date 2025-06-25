@@ -615,4 +615,4 @@ namespace Reflect
 #define REFLECT_STRUCT(...)
 #define REFLECT_CLASS(...)
 #define REFLECT_ENUM(...)
-#define REFLECT_KV(k, v)	Reflect::Util::kv<REFLECT_STRINGIFY(k), REFLECT_STRINGIFY(v)>()
+#define REFLECT_KV(k, v)	Reflect::Util::kv<k, v>()
