@@ -530,8 +530,8 @@ namespace Reflect
 		file << "#define " + currentFileId + "_METHODS \\\n";
 		WRITE_PUBLIC();
 
-		file << "\tstatic const auto & ToString(" << data.Name << " v) { return StaticEnum.ToString(v); }\\\n";
-		file << "\tconst auto& ToString() const { return StaticEnum.ToString(Value); }\\\n";
+		file << "\tstatic auto ToString(" << data.Name << " v) { return StaticEnum.ToString(v); }\\\n";
+		file << "\tauto ToString() const { return StaticEnum.ToString(Value); }\\\n";
 
 		file << "\tstatic auto Parse(const std::string_view& value)		{ return " << data.Name << "((Values)const_cast<Reflect::Enum&>(StaticEnum).Parse(value)); }\\\n";
 		file << "\tstatic auto TryParse(const std::string_view& value) {\\\n\
@@ -544,13 +544,13 @@ namespace Reflect
 		file << "\tstatic auto GetPropertyValue(const std::string_view& flag)	{ return StaticEnum.GetPropertyValue(flag); }\\\n";
 		file << "\tstatic auto TryGetPropertyValue(const std::string_view& flag)	{ return StaticEnum.TryGetPropertyValue(flag); }\\\n";
 
-		file << "\tconst auto& GetConstant() const	{ return StaticEnum.GetConstant(Value); }\\\n";
+		file << "\tauto GetConstant() const	{ return StaticEnum.GetConstant(Value); }\\\n";
 
 		file << "\tstd::string ToBitfieldString() const {\\\n";
 		file << "\t\tstd::string s;\\\n";
 		file << "\t\tfor (const auto& it : StaticEnum.Values) {\\\n";
 		file << "\t\t\tif (Value & it.Value) {\\\n";
-		file << "\t\t\t\ts.reserve(s.length() + it.Name.length() + 1);\\\n";
+		file << "\t\t\t\ts.reserve(s.length() + std::strlen(it.Name) + 1);\\\n";
 		file << "\t\t\t\tif (s.length()) {\\\n";
 		file << "\t\t\t\t\ts += '|';\\\n";
 		file << "\t\t\t\t}\\\n";

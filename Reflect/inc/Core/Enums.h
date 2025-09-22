@@ -50,7 +50,7 @@ namespace Reflect
 
 	struct REFLECT_DLL EnumConstant
 	{
-		constexpr EnumConstant(const std::string_view& name, int64_t value, const std::string_view& label, const std::vector<std::string>& flags)
+		constexpr EnumConstant(const char* name, int64_t value, const char* label, const std::vector<std::string>& flags)
 			: Name(name)
 			, Value(value)
 			, DisplayLabel(label)
@@ -62,21 +62,21 @@ namespace Reflect
 			return Util::ContainsProperty(Flags, flags);
 		}
 
-		std::string_view GetPropertyValue(const std::string_view& flag) const;
+		std::string_view GetPropertyValue(std::string_view flag) const;
 
-		auto TryGetPropertyValue(const std::string_view& flag) const
+		auto TryGetPropertyValue(std::string_view flag) const
 		{
 			return Util::TryGetPropertyValue(Flags, flag);
 		}
 
 		template<typename E>
-		auto GetPropertyEnum(const std::string_view& flag) const -> E
+		auto GetPropertyEnum(std::string_view flag) const -> E
 		{
 			return E::Parse(GetPropertyValue(flag));
 		}
 
 		template<typename E>
-		auto TryParsePropertyEnum(const std::string_view& flag) const -> std::optional<E>
+		auto TryParsePropertyEnum(std::string_view flag) const -> std::optional<E>
 		{
 			const auto str = TryGetPropertyValue(flag);
 			if (!str)
@@ -87,9 +87,9 @@ namespace Reflect
 			return E::TryParse(*str);
 		}
 			
-		const std::string_view				Name;
+		const char*							Name;
 		const int64_t						Value;
-		const std::string_view				DisplayLabel;
+		const char*							DisplayLabel;
 		const std::vector<std::string>		Flags;
 	};
 
@@ -105,7 +105,7 @@ namespace Reflect
 		using LoadFuncType	= ConstantType(*)(const void*);
 		using StoreFuncType	= void(*)(void*, ConstantType);
 
-		Enum(const std::string_view& name, const std::string& value_type_name, std::vector<std::string>&& strProperties, std::vector<Reflect::EnumConstant>&& values, const LoadFuncType& load, const StoreFuncType& store)
+		Enum(std::string_view name, const std::string& value_type_name, std::vector<std::string>&& strProperties, std::vector<Reflect::EnumConstant>&& values, const LoadFuncType& load, const StoreFuncType& store)
 			: Name(name)
 			, ValueTypeName(value_type_name)
 			, StrProperties(std::move(strProperties))
@@ -121,19 +121,19 @@ namespace Reflect
 			return Util::ContainsProperty(StrProperties, flags);
 		}
 
-		std::string_view GetPropertyValue(const std::string_view& flag) const;
+		std::string_view GetPropertyValue(std::string_view flag) const;
 
-		auto TryGetPropertyValue(const std::string_view& flag) const
+		auto TryGetPropertyValue(std::string_view flag) const
 		{
 			return Util::TryGetPropertyValue(StrProperties, flag);
 		}
 
-		const auto& GetConstant(ConstantType value) const
+		auto GetConstant(ConstantType value) const
 		{
 			return *ValueToConstant.at(value);
 		}
 
-		bool TryParseTo(const std::string_view& str, void* ptr) const
+		bool TryParseTo(std::string_view str, void* ptr) const
 		{
 			const auto it = StringToConstant.find(str);
 			if (it == StringToConstant.end())
@@ -163,11 +163,11 @@ namespace Reflect
 			Store(ptr, Values.at(index).Value);
 		}
 
-		const std::string_view& ToString(ConstantType v) const;
-		const ConstantType& Parse(const std::string_view& v) const;
+		std::string_view ToString(ConstantType v) const;
+		const ConstantType& Parse(std::string_view v) const;
 
 		template<typename T>
-		auto TryParse(const std::string_view& value) -> std::optional<T>
+		auto TryParse(std::string_view value) -> std::optional<T>
 		{
 			const auto it = StringToConstant.find(value);
 			if (it == StringToConstant.end())
@@ -178,7 +178,7 @@ namespace Reflect
 			return std::optional<T>{ std::in_place, static_cast<T>(it->second->Value) };
 		}
 
-		uint32_t ParseBitfieldString(const std::string_view& values) const
+		uint32_t ParseBitfieldString(std::string_view values) const
 		{
 			uint32_t  v = 0;
 

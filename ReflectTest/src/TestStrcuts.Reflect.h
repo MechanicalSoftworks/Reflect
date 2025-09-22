@@ -61,8 +61,8 @@ protected:\
 
 #define _TestStrcuts_Source_h_25_METHODS \
 public:\
-	static const auto & ToString(E v) { return StaticEnum.ToString(v); }\
-	const auto& ToString() const { return StaticEnum.ToString(Value); }\
+	static auto ToString(E v) { return StaticEnum.ToString(v); }\
+	auto ToString() const { return StaticEnum.ToString(Value); }\
 	static auto Parse(const std::string_view& value)		{ return E((Values)const_cast<Reflect::Enum&>(StaticEnum).Parse(value)); }\
 	static auto TryParse(const std::string_view& value) {\
 	const auto r = const_cast<Reflect::Enum&>(StaticEnum).TryParse<decltype(E::Value)>(value);\
@@ -72,12 +72,12 @@ public:\
 	static auto ContainsProperty(std::vector<std::string> const& flags)	{ return StaticEnum.ContainsProperty(flags); }\
 	static auto GetPropertyValue(const std::string_view& flag)	{ return StaticEnum.GetPropertyValue(flag); }\
 	static auto TryGetPropertyValue(const std::string_view& flag)	{ return StaticEnum.TryGetPropertyValue(flag); }\
-	const auto& GetConstant() const	{ return StaticEnum.GetConstant(Value); }\
+	auto GetConstant() const	{ return StaticEnum.GetConstant(Value); }\
 	std::string ToBitfieldString() const {\
 		std::string s;\
 		for (const auto& it : StaticEnum.Values) {\
 			if (Value & it.Value) {\
-				s.reserve(s.length() + it.Name.length() + 1);\
+				s.reserve(s.length() + std::strlen(it.Name) + 1);\
 				if (s.length()) {\
 					s += '|';\
 				}\
