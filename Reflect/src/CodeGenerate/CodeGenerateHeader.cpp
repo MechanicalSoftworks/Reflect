@@ -42,6 +42,7 @@ namespace Reflect
 		CodeGenerate::IncludeHeader("Core/Core.h", file);
 		CodeGenerate::IncludeHeader("Core/Enums.h", file);
 		CodeGenerate::IncludeHeader("Core/Util.h", file);
+		CodeGenerate::IncludeHeader("cstring", file, true);
 
 		const auto reflectGuard = GetCurrentPathMacro(data) + ReflectFileHeaderGuard;
 

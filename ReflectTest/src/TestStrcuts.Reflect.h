@@ -3,6 +3,7 @@
 #include "Core/Core.h"
 #include "Core/Enums.h"
 #include "Core/Util.h"
+#include <cstring>
 
 #ifdef C__mechsrc_terapixel_Dev_ThirdParty_Reflect_ReflectTest_src_TestStrcuts_h_reflect_h
 #error "C__mechsrc_terapixel_Dev_ThirdParty_Reflect_ReflectTest_src_TestStrcuts_h_reflect.h already included, missing 'pragma once' in TestStrcuts.h"
