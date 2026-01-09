@@ -12,6 +12,7 @@
 #include <set>
 #include <functional>
 #include <optional>
+#include <span>
 
 namespace Reflect
 {
@@ -192,7 +193,7 @@ namespace Reflect
 			return {};
 		}
 
-		static constexpr bool ContainsProperty(const std::vector<std::string>& properties, std::vector<std::string> const& flags)
+		static constexpr bool ContainsProperty(const std::vector<std::string>& properties, std::span<std::string_view> flags)
 		{
 			for (auto const& flag : flags)
 			{
@@ -205,6 +206,12 @@ namespace Reflect
 				}
 			}
 			return false;
+		}
+
+		static constexpr bool ContainsProperty(const std::vector<std::string>& properties, std::string_view flag)
+		{
+			std::array x{ flag };
+			return ContainsProperty(properties, x);
 		}
 
 		[[nodiscard]] static auto		SplitStringView(const std::string_view& str, char delim)

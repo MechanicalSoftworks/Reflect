@@ -179,7 +179,7 @@ namespace Reflect
 
 	void CodeGenerateHeader::WriteEnumMacros(const Reflect::ReflectContainerData& reflectData, const FileParsedData& data, std::ostream& file, const std::string& CurrentFileId, const CodeGenerateAddtionalOptions& addtionalOptions)
 	{
-		if (!Util::ContainsProperty(reflectData.ContainerProps, { "ValueType" }))
+		if (!Util::ContainsProperty(reflectData.ContainerProps, "ValueType"))
 		{
 			file << "#error \"Enum " << reflectData.Name << " is missing ValueType\"\n";
 			return;
@@ -541,8 +541,8 @@ namespace Reflect
 \treturn std::optional<" << data.Name << ">{};\\\n\
 }\\\n";
 		
-		file << "\tstatic auto ContainsProperty(std::vector<std::string> const& flags)	{ return StaticEnum.ContainsProperty(flags); }\\\n";
-		file << "\tstatic auto GetPropertyValue(const std::string_view& flag)	{ return StaticEnum.GetPropertyValue(flag); }\\\n";
+		file << "\tstatic auto ContainsProperty(std::span<std::string_view> flags)	{ return StaticEnum.ContainsProperty(flags); }\\\n";
+		file << "\tstatic auto GetPropertyValue(const std::string_view& flag)		{ return StaticEnum.GetPropertyValue(flag); }\\\n";
 		file << "\tstatic auto TryGetPropertyValue(const std::string_view& flag)	{ return StaticEnum.TryGetPropertyValue(flag); }\\\n";
 
 		file << "\tauto GetConstant() const	{ return StaticEnum.GetConstant(Value); }\\\n";

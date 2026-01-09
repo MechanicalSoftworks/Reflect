@@ -57,7 +57,7 @@ namespace Reflect
 			, Flags(flags)
 		{}
 
-		bool ContainsProperty(std::vector<std::string> const& flags) const
+		bool ContainsProperty(std::span<std::string_view> flags) const
 		{
 			return Util::ContainsProperty(Flags, flags);
 		}
@@ -116,7 +116,7 @@ namespace Reflect
 			, Store(store)
 		{}
 
-		bool ContainsProperty(std::vector<std::string> const& flags) const
+		bool ContainsProperty(std::span<std::string_view> flags) const
 		{
 			return Util::ContainsProperty(StrProperties, flags);
 		}

@@ -50,7 +50,7 @@ void GetMemberWithFlags()
 {
 	Player player(Reflect::Constructor(nullptr));
 	auto member = player.GetMember("");
-	auto membersWithPublic = player.GetMembers({ "Public" });
+	auto membersWithPublic = player.GetMembers({ "Public" }, *std::pmr::get_default_resource());
 	int& friendInt = *membersWithPublic[1].ConvertToType<int>();
 	friendInt = 12;
 }

@@ -142,7 +142,7 @@ namespace Reflect
 			, Write(write)
 		{ }
 
-		constexpr bool ContainsProperty(std::vector<std::string> const& flags) const
+		constexpr bool ContainsProperty(std::span<std::string_view> flags) const
 		{
 			for (auto const& flag : flags)
 			{
@@ -155,6 +155,12 @@ namespace Reflect
 				}
 			}
 			return false;
+		}
+
+		constexpr bool ContainsProperty(std::string_view flag) const
+		{
+			std::array x{ flag };
+			return ContainsProperty(x);
 		}
 
 		constexpr bool GetPropertyValue(const std::string_view &flag, std::string& value) const
@@ -446,13 +452,19 @@ namespace Reflect
 			return ReflectFunction(nullptr, nullptr);
 		}
 
-		REFLECT_DLL constexpr auto GetMembers(std::vector<std::string> const& flags, IReflect* instance = nullptr) const
+		REFLECT_DLL constexpr auto GetMembers(std::span<std::string_view> flags, std::pmr::memory_resource& memory, IReflect* instance = nullptr) const
 		{
-			std::vector<Reflect::ReflectMember> members;
+			std::pmr::vector<Reflect::ReflectMember> members{ &memory };
 
 			GetMembersInternal(members, flags, instance);
 			
 			return members;
+		}
+
+		REFLECT_DLL constexpr auto GetMembers(std::string_view flag, std::pmr::memory_resource& memory, IReflect* instance = nullptr) const
+		{
+			std::array x{ flag };
+			return GetMembers(x, memory, instance);
 		}
 
 		template<typename T>
@@ -469,9 +481,15 @@ namespace Reflect
 			return false;
 		}
 
-		constexpr bool ContainsProperty(std::vector<std::string> const& flags) const
+		constexpr bool ContainsProperty(std::span<std::string_view> flags) const
 		{
 			return Util::ContainsProperty(StrProperties, flags);
+		}
+
+		constexpr bool ContainsProperty(std::string_view flag) const
+		{
+			std::array x{ flag };
+			return Util::ContainsProperty(StrProperties, x);
 		}
 
 		constexpr auto GetPropertyValue(const std::string_view &flag) const
@@ -494,7 +512,7 @@ namespace Reflect
 		const std::vector<ReflectMemberFunction>	MemberFunctions;
 
 	private:
-		REFLECT_DLL constexpr void GetMembersInternal(std::vector<Reflect::ReflectMember>& members, std::vector<std::string> const& flags, IReflect* instance) const
+		REFLECT_DLL constexpr void GetMembersInternal(std::pmr::vector<Reflect::ReflectMember>& members, std::span<std::string_view> flags, IReflect* instance) const
 		{
 			if (SuperClass)
 				SuperClass->GetMembersInternal(members, flags, instance);
@@ -543,9 +561,10 @@ namespace Reflect
 		virtual std::size_t GetHashCode() const { return 0; }
 
 		// Reflection.
-		auto GetFunction(const std::string_view& functionName) const	{ return GetClass().GetFunction(functionName, const_cast<IReflect*>(this)); }
-		auto GetMember(const std::string_view& memberName) const		{ return GetClass().GetMember(memberName, const_cast<IReflect*>(this)); }
-		auto GetMembers(std::vector<std::string> const& flags) const	{ return GetClass().GetMembers(flags, const_cast<IReflect*>(this)); }
+		auto GetFunction(const std::string_view& functionName) const								{ return GetClass().GetFunction(functionName, const_cast<IReflect*>(this)); }
+		auto GetMember(const std::string_view& memberName) const									{ return GetClass().GetMember(memberName, const_cast<IReflect*>(this)); }
+		auto GetMembers(std::string_view flag, std::pmr::memory_resource& memory) const				{ return GetClass().GetMembers(flag, memory, const_cast<IReflect*>(this)); }
+		auto GetMembers(std::span<std::string_view> flags, std::pmr::memory_resource& memory) const	{ return GetClass().GetMembers(flags, memory, const_cast<IReflect*>(this)); }
 		
 		// Serialisation.
 		virtual void Serialise(ISerialiser& s, std::ostream& out) const {}

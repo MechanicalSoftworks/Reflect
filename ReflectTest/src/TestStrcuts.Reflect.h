@@ -70,8 +70,8 @@ public:\
 	if (r) return std::optional<E>{ std::in_place, *r };\
 	return std::optional<E>{};\
 }\
-	static auto ContainsProperty(std::vector<std::string> const& flags)	{ return StaticEnum.ContainsProperty(flags); }\
-	static auto GetPropertyValue(const std::string_view& flag)	{ return StaticEnum.GetPropertyValue(flag); }\
+	static auto ContainsProperty(std::span<std::string_view> flags)	{ return StaticEnum.ContainsProperty(flags); }\
+	static auto GetPropertyValue(const std::string_view& flag)		{ return StaticEnum.GetPropertyValue(flag); }\
 	static auto TryGetPropertyValue(const std::string_view& flag)	{ return StaticEnum.TryGetPropertyValue(flag); }\
 	auto GetConstant() const	{ return StaticEnum.GetConstant(Value); }\
 	std::string ToBitfieldString() const {\
