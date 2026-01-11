@@ -14,7 +14,7 @@ void aligned_free(void* p) noexcept { std::free(p); }
 void FuncNoReturn()
 {
 	// Get a function with no return value.
-	Player player(Reflect::Constructor(nullptr));
+	Player player(Reflect::Constructor(*std::pmr::get_default_resource(), nullptr));
 	auto playerGetId = player.GetFunction("PrintHelloWorld");
 	std::cout << Reflect::ReflectReturnCodeToString(playerGetId.Invoke());
 }
@@ -23,7 +23,7 @@ void FuncReturnValue()
 {
 	// Get a function with a return value std::string.
 	// The return value with be set to playerId.
-	Player player(Reflect::Constructor(nullptr));
+	Player player(Reflect::Constructor(*std::pmr::get_default_resource(), nullptr));
 	Reflect::ReflectFunction playerGetId = player.GetFunction("GetId");
 	std::string playerId;
 	std::cout << Reflect::ReflectReturnCodeToString(playerGetId.Invoke(&playerId)) << ", Id = " << playerId << std::endl;
@@ -33,7 +33,7 @@ void FuncWithParameters()
 {
 	// Get a function with no return value but which has a single
 	// parameter.
-	Player player(Reflect::Constructor(nullptr));
+	Player player(Reflect::Constructor(*std::pmr::get_default_resource(), nullptr));
 	Reflect::ReflectFunction parameterFunc = player.GetFunction("GetOnlineFriendsCount");
 	
 	// Setup the parameter to send to the function. This is order
@@ -48,7 +48,7 @@ void FuncWithParameters()
 
 void GetMemberWithFlags()
 {
-	Player player(Reflect::Constructor(nullptr));
+	Player player(Reflect::Constructor(*std::pmr::get_default_resource(), nullptr));
 	auto member = player.GetMember("");
 	auto membersWithPublic = player.GetMembers({ "Public" }, *std::pmr::get_default_resource());
 	int& friendInt = *membersWithPublic[1].ConvertToType<int>();
@@ -58,11 +58,11 @@ void GetMemberWithFlags()
 void StaticClass()
 {
 	const auto& staticClass = Reflect::Class::Lookup("Player");
-	auto player = (Player*)staticClass.Allocator.Allocate();
-	staticClass.Allocator.Construct(player, Reflect::Constructor(nullptr));
+	auto player = (Player*)staticClass.Allocator.New(
+		Reflect::Constructor(*std::pmr::get_default_resource(), nullptr)
+	);
 	player->Tick();
-	staticClass.Allocator.Destroy(player);
-	staticClass.Allocator.Deallocate(player);
+	staticClass.Allocator.Delete(*std::pmr::get_default_resource(), player);
 }
 
 int main(void)
@@ -78,7 +78,7 @@ int main(void)
 	static_assert(Reflect::Util::GetTypeName<std::vector<int>>() == "std::vector<int32>");
 
 	{
-		Player p(Reflect::Constructor(nullptr));
+		Player p(Reflect::Constructor(*std::pmr::get_default_resource(), nullptr));
 
 		ForEachProperty(p,
 			[](auto&& property, auto&& arg) {

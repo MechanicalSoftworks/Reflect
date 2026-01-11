@@ -350,42 +350,49 @@ namespace Reflect
 
 	class REFLECT_DLL ClassAllocator
 	{
-		using AllocateType   = IReflect*(*)();
-		using ConstructType  = void(*)(IReflect* obj, const Constructor& init);
-		using DestroyType    = void(*)(IReflect* obj);
-		using DeallocateType = void(*)(IReflect* obj);
+		using NewType    = IReflect*(*)(const Constructor& init);
+		using DeleteType = void(*)(std::pmr::memory_resource& memory, IReflect* p);
 
-		template<typename T> static IReflect* AllocateObject() { std::allocator<T> a; return a.allocate(1); }
-		template<typename T> static void ConstructObject(IReflect* obj, const Constructor& init) { new((T*)obj) T(init); }
-		template<typename T> static void DestroyObject(IReflect* obj) { ((T*)obj)->~T(); }
-		template<typename T> static void DeallocateObject(IReflect* obj) { std::allocator<T> a; return a.deallocate((T*)obj, 1); }
+		template<typename T>
+		static IReflect* NewInternal(const Constructor& init)
+		{
+			std::pmr::polymorphic_allocator<T> allocator{ &init.Memory };
 
-		constexpr ClassAllocator(const AllocateType& allocate, const ConstructType& construct, const DestroyType& destroy, const DeallocateType& deallocate)
-			: Allocate(allocate)
-			, Construct(construct)
-			, Destroy(destroy)
-			, Deallocate(deallocate)
+			return allocator.new_object<T>(init);
+		}
+
+		template<typename T>
+		static void DeleteInternal(std::pmr::memory_resource& memory, IReflect* p)
+		{
+			std::pmr::polymorphic_allocator<T> allocator{ &memory };
+
+			return allocator.delete_object<T>(
+				dynamic_cast<T*>(p)
+			);
+		}
+
+		constexpr ClassAllocator(const NewType& newFunc, const DeleteType& deleteFunc)
+			: New{ newFunc }
+			, Delete{ deleteFunc }
 		{}
 
 	public:
-		const AllocateType   Allocate;
-		const ConstructType  Construct;
-		const DestroyType    Destroy;
-		const DeallocateType Deallocate;
+		const NewType    New;
+		const DeleteType Delete;
 
-		operator bool() const { return Allocate && Construct && Destroy && Deallocate; }
+		operator bool() const { return New && Delete; }
 
 		template<typename T>
 		static constexpr ClassAllocator Create()
 		{
-			return ClassAllocator(AllocateObject<T>, ConstructObject<T>, DestroyObject<T>, DeallocateObject<T>);
+			return ClassAllocator(NewInternal<T>, DeleteInternal<T>);
 		}
 
 		// !!! For some reason, Visual Studio 2022 has compile errors when this is made constexpr, but only for templated classes !!!
 		template<typename T>
 		static ClassAllocator Create(std::nullptr_t)
 		{
-			return ClassAllocator(nullptr, nullptr, nullptr, nullptr);
+			return ClassAllocator(nullptr, nullptr);
 		}
 	};
 
@@ -539,15 +546,17 @@ namespace Reflect
 
 	struct Constructor
 	{
-		Constructor(IReflect* outer = nullptr, uint64_t object_flags = 0, uint64_t allocation_flags = 0)
-			: Outer(outer)
+		Constructor(std::pmr::memory_resource& memory, IReflect* outer = nullptr, uint64_t object_flags = 0, uint64_t allocation_flags = 0)
+			: Memory{ memory }
+			, Outer(outer)
 			, ObjectFlags(object_flags)
 			, AllocationFlags(allocation_flags)
 		{}
 
-		IReflect* const 	Outer;
-		const uint64_t		ObjectFlags;
-		const uint64_t		AllocationFlags;
+		std::pmr::memory_resource&	Memory;
+		IReflect* const 			Outer;
+		const uint64_t				ObjectFlags;
+		const uint64_t				AllocationFlags;
 	};
 
 	struct REFLECT_DLL IReflect
