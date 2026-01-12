@@ -32,6 +32,12 @@ namespace Reflect
 				std::copy_n(str, N, value);
 			}
 
+			template<size_t O>
+			constexpr StringLiteral(const std::array<char, O>& str)
+			{
+				std::copy_n(str.data(), std::min(N, O), value);
+			}
+
 			constexpr StringLiteral(std::string_view s)
 			{
 				std::copy_n(s.data(), N, value);
