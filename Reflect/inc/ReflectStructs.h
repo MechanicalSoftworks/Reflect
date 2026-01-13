@@ -16,7 +16,31 @@ namespace Reflect
 
 	struct IReflect;
 	class Class;
-	struct Constructor;
+
+	class REFLECT_DLL LinkClass
+	{
+	public:
+		LinkClass(const Class& c);
+		~LinkClass();
+
+	private:
+		const Class& m_class;
+	};
+
+	struct Constructor
+	{
+		Constructor(std::pmr::memory_resource& memory, IReflect* outer = nullptr, uint64_t object_flags = 0, uint64_t allocation_flags = 0)
+			: Memory{ memory }
+			, Outer(outer)
+			, ObjectFlags(object_flags)
+			, AllocationFlags(allocation_flags)
+		{}
+
+		std::pmr::memory_resource&	Memory;
+		IReflect* const 			Outer;
+		const uint64_t				ObjectFlags;
+		const uint64_t				AllocationFlags;
+	};
 
 	struct ReflectTypeNameData
 	{
@@ -532,31 +556,6 @@ namespace Reflect
 				}
 			}
 		}
-	};
-
-	class REFLECT_DLL LinkClass
-	{
-	public:
-		LinkClass(const Class& c);
-		~LinkClass();
-
-	private:
-		const Class& m_class;
-	};
-
-	struct Constructor
-	{
-		Constructor(std::pmr::memory_resource& memory, IReflect* outer = nullptr, uint64_t object_flags = 0, uint64_t allocation_flags = 0)
-			: Memory{ memory }
-			, Outer(outer)
-			, ObjectFlags(object_flags)
-			, AllocationFlags(allocation_flags)
-		{}
-
-		std::pmr::memory_resource&	Memory;
-		IReflect* const 			Outer;
-		const uint64_t				ObjectFlags;
-		const uint64_t				AllocationFlags;
 	};
 
 	struct REFLECT_DLL IReflect
