@@ -5,7 +5,7 @@
 
 namespace Reflect
 {
-	using class_map_t = std::map<std::string, Class*>;
+	using class_map_t = std::pmr::map<std::string_view, Class*, std::less<>>;
 
 	// Static initialisation order is important, but can't be guaranteed.
 	// So we allocate stack memory for the map, and manually invoke the class constructor when its used.
@@ -39,13 +39,13 @@ namespace Reflect
 		}
 	}
 
-	REFLECT_DLL const Class* Class::TryLookup(const std::string_view& name)
+	REFLECT_DLL const Class* Class::TryLookup(const std::string_view name)
 	{
-		auto it = s_classes.find(std::string(name));
+		auto it = s_classes.find(name);
 		return it != s_classes.end() ? it->second : nullptr;
 	}
 
-	REFLECT_DLL const Class& Class::Lookup(const std::string_view& name)
+	REFLECT_DLL const Class& Class::Lookup(const std::string_view name)
 	{
 		const auto* ptr = TryLookup(name);
 		if (!ptr)

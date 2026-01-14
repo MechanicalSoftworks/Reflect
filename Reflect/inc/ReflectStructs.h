@@ -187,7 +187,8 @@ namespace Reflect
 			return ContainsProperty(x);
 		}
 
-		constexpr bool GetPropertyValue(const std::string_view &flag, std::string& value) const
+		template<typename Char, typename Traits, typename Allocator>
+		constexpr bool GetPropertyValue(const std::string_view flag, std::basic_string<Char, Traits, Allocator>& value) const
 		{
 			for (auto const& p : StrProperties)
 			{
@@ -244,7 +245,7 @@ namespace Reflect
 	public:
 		struct Arg
 		{
-			Arg(const std::string_view& type, void* ptr)
+			Arg(const std::string_view type, void* ptr)
 				: Type(type)
 				, Ptr(ptr)
 			{ }
@@ -435,8 +436,8 @@ namespace Reflect
 		}
 
 		// Reflect!
-		REFLECT_DLL static const Class* TryLookup(const std::string_view &name);
-		REFLECT_DLL static const Class& Lookup(const std::string_view &name);
+		REFLECT_DLL static const Class* TryLookup(const std::string_view name);
+		REFLECT_DLL static const Class& Lookup(const std::string_view name);
 		REFLECT_DLL static std::vector<std::reference_wrapper<Class>> LookupWhere(const std::function<bool(const Class&)>& pred);
 
 		REFLECT_DLL static std::vector<std::reference_wrapper<Class>> LookupDescendantsOf(const Class& c);
@@ -451,7 +452,7 @@ namespace Reflect
 				(SuperClass ? SuperClass->IsOrDescendantOf(c) : false);
 		}
 
-		REFLECT_DLL constexpr auto GetMember(std::string_view const& memberName, IReflect* instance = nullptr) const
+		REFLECT_DLL constexpr auto GetMember(const std::string_view memberName, IReflect* instance = nullptr) const
 		{
 			for (const auto* c = this; c != nullptr; c = c->SuperClass)
 			{
@@ -467,7 +468,7 @@ namespace Reflect
 			return ReflectMember{};
 		}
 
-		REFLECT_DLL constexpr auto GetFunction(std::string_view const& funcName, IReflect* instance = nullptr) const
+		REFLECT_DLL constexpr auto GetFunction(const std::string_view funcName, IReflect* instance = nullptr) const
 		{
 			for (const auto* c = this; c != nullptr; c = c->SuperClass)
 			{
@@ -523,12 +524,12 @@ namespace Reflect
 			return Util::ContainsProperty(StrProperties, x);
 		}
 
-		constexpr auto GetPropertyValue(const std::string_view &flag) const
+		constexpr auto GetPropertyValue(const std::string_view flag) const
 		{
 			return *Util::TryGetPropertyValue(StrProperties, flag);
 		}
 
-		constexpr auto TryGetPropertyValue(const std::string_view& flag) const
+		constexpr auto TryGetPropertyValue(const std::string_view flag) const
 		{
 			return Util::TryGetPropertyValue(StrProperties, flag);
 		}
@@ -569,8 +570,8 @@ namespace Reflect
 		virtual std::size_t GetHashCode() const { return 0; }
 
 		// Reflection.
-		auto GetFunction(const std::string_view& functionName) const								{ return GetClass().GetFunction(functionName, const_cast<IReflect*>(this)); }
-		auto GetMember(const std::string_view& memberName) const									{ return GetClass().GetMember(memberName, const_cast<IReflect*>(this)); }
+		auto GetFunction(const std::string_view functionName) const									{ return GetClass().GetFunction(functionName, const_cast<IReflect*>(this)); }
+		auto GetMember(const std::string_view memberName) const										{ return GetClass().GetMember(memberName, const_cast<IReflect*>(this)); }
 		auto GetMembers(std::string_view flag, std::pmr::memory_resource& memory) const				{ return GetClass().GetMembers(flag, memory, const_cast<IReflect*>(this)); }
 		auto GetMembers(std::span<std::string_view> flags, std::pmr::memory_resource& memory) const	{ return GetClass().GetMembers(flags, memory, const_cast<IReflect*>(this)); }
 		

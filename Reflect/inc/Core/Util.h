@@ -36,6 +36,7 @@ namespace Reflect
 			constexpr StringLiteral(const std::array<char, O>& str)
 			{
 				std::copy_n(str.data(), std::min(N, O), value);
+				value[std::min(N, O) - 1] = 0;
 			}
 
 			constexpr StringLiteral(std::string_view s)
@@ -62,8 +63,8 @@ namespace Reflect
 			template<size_t N1> constexpr auto operator==(const StringLiteral<N1>& rhs) const { return N == N1 && (std::string_view)*this == (std::string_view)rhs; }
 			template<size_t N1> constexpr auto operator!=(const StringLiteral<N1>& rhs) const { return !(*this == rhs); }
 
-			constexpr auto operator==(const std::string_view& rhs) const { return (std::string_view)*this == rhs; }
-			constexpr auto operator!=(const std::string_view& rhs) const { return (std::string_view)*this != rhs; }
+			constexpr auto operator==(const std::string_view rhs) const { return (std::string_view)*this == rhs; }
+			constexpr auto operator!=(const std::string_view rhs) const { return (std::string_view)*this != rhs; }
 
 			template<size_t N1> constexpr auto operator==(const char(&rhs)[N1]) { return N == N1 && std::equal(value, value + N, rhs); }
 			template<size_t N1> constexpr auto operator!=(const char(&rhs)[N1]) { return !(*this == rhs); }
@@ -178,7 +179,7 @@ namespace Reflect
 			return str;
 		}
 
-		constexpr static auto TryGetPropertyValue(const std::vector<std::string>& properties, const std::string_view& flag) -> std::optional<std::string_view>
+		constexpr static auto TryGetPropertyValue(const std::vector<std::string>& properties, const std::string_view flag) -> std::optional<std::string_view>
 		{
 			for (auto const& p : properties)
 			{
@@ -220,7 +221,7 @@ namespace Reflect
 			return ContainsProperty(properties, x);
 		}
 
-		[[nodiscard]] static auto		SplitStringView(const std::string_view& str, char delim)
+		[[nodiscard]] static auto		SplitStringView(const std::string_view str, char delim)
 		{
 			std::vector<std::string_view> v;
 
@@ -241,17 +242,17 @@ namespace Reflect
 			return v;
 		}
 
-		[[nodiscard]] static std::string_view	ltrim_stringview(const std::string_view& str, const char* chars = "\t\n\v\f\r ")
+		[[nodiscard]] static std::string_view	ltrim_stringview(const std::string_view str, const char* chars = "\t\n\v\f\r ")
 		{
 			return str.substr(str.find_first_not_of(chars));
 		}
 
-		[[nodiscard]] static std::string_view	rtrim_stringview(const std::string_view& str, const char* chars = "\t\n\v\f\r ")
+		[[nodiscard]] static std::string_view	rtrim_stringview(const std::string_view str, const char* chars = "\t\n\v\f\r ")
 		{
 			return str.substr(0, str.find_last_not_of(chars) + 1);
 		}
 
-		[[nodiscard]] static std::string_view	trim_stringview(const std::string_view& str, const char* chars = "\t\n\v\f\r ")
+		[[nodiscard]] static std::string_view	trim_stringview(const std::string_view str, const char* chars = "\t\n\v\f\r ")
 		{
 			return rtrim_stringview(ltrim_stringview(str, chars), chars);
 		}
@@ -371,6 +372,20 @@ namespace Reflect
 					return r;
 				}
 
+				template<size_t N>
+				constexpr auto find_template_args(const StringLiteral<N>& expr)
+				{
+					for (size_t i = 0; i < N; ++i)
+					{
+						if (expr.value[i] == '<')
+						{
+							return i;
+						}
+					}
+
+					return std::string::npos;
+				}
+
 				// MSVC specifies "class std::string", whereas GCC specifies "std::string".
 				// Strip off "class ", "struct " and "enum " for MSVC to make them the same.
 				template <size_t N>
@@ -457,56 +472,59 @@ namespace Reflect
 				static constexpr inline auto value = type_name<T>();
 			};
 
-			template <> struct TypeNameImpl<void>               { static constexpr inline auto value = StringLiteral{ "void" }; };
-			
-			template <> struct TypeNameImpl<bool>               { static constexpr inline auto value = StringLiteral{ "bool" }; };
-			
-			template <> struct TypeNameImpl<char>               { static constexpr inline auto value = StringLiteral{ "int8" }; };
-			template <> struct TypeNameImpl<unsigned char>      { static constexpr inline auto value = StringLiteral{ "uint8" }; };
+			template <> struct TypeNameImpl<void>                           { static constexpr inline auto value = StringLiteral{ "void" }; };
 
-			template <> struct TypeNameImpl<short>              { static constexpr inline auto value = StringLiteral{ "int16" }; };
-			template <> struct TypeNameImpl<unsigned short>     { static constexpr inline auto value = StringLiteral{ "uint16" }; };
+			template <> struct TypeNameImpl<bool>                           { static constexpr inline auto value = StringLiteral{ "bool" }; };
 
-			template <> struct TypeNameImpl<int>                { static constexpr inline auto value = StringLiteral{ "int32" }; };
-			template <> struct TypeNameImpl<unsigned int>       { static constexpr inline auto value = StringLiteral{ "uint32" }; };
+			template <> struct TypeNameImpl<char>                           { static constexpr inline auto value = StringLiteral{ "int8" }; };
+			template <> struct TypeNameImpl<unsigned char>                  { static constexpr inline auto value = StringLiteral{ "uint8" }; };
 
-			template <> struct TypeNameImpl<long>               { static constexpr inline auto value = StringLiteral{ "int32" }; };
-			template <> struct TypeNameImpl<unsigned long>      { static constexpr inline auto value = StringLiteral{ "uint32" }; };
+			template <> struct TypeNameImpl<short>                          { static constexpr inline auto value = StringLiteral{ "int16" }; };
+			template <> struct TypeNameImpl<unsigned short>                 { static constexpr inline auto value = StringLiteral{ "uint16" }; };
 
-			template <> struct TypeNameImpl<long long>          { static constexpr inline auto value = StringLiteral{ "int64" }; };
-			template <> struct TypeNameImpl<unsigned long long> { static constexpr inline auto value = StringLiteral{ "uint64" }; };
+			template <> struct TypeNameImpl<int>                            { static constexpr inline auto value = StringLiteral{ "int32" }; };
+			template <> struct TypeNameImpl<unsigned int>                   { static constexpr inline auto value = StringLiteral{ "uint32" }; };
 
-			template <> struct TypeNameImpl<float>              { static constexpr inline auto value = StringLiteral{ "float32" }; };
-			template <> struct TypeNameImpl<double>             { static constexpr inline auto value = StringLiteral{ "float64" }; };
+			template <> struct TypeNameImpl<long>                           { static constexpr inline auto value = StringLiteral{ "int32" }; };
+			template <> struct TypeNameImpl<unsigned long>                  { static constexpr inline auto value = StringLiteral{ "uint32" }; };
+
+			template <> struct TypeNameImpl<long long>                      { static constexpr inline auto value = StringLiteral{ "int64" }; };
+			template <> struct TypeNameImpl<unsigned long long>             { static constexpr inline auto value = StringLiteral{ "uint64" }; };
+
+			template <> struct TypeNameImpl<float>                          { static constexpr inline auto value = StringLiteral{ "float32" }; };
+			template <> struct TypeNameImpl<double>                         { static constexpr inline auto value = StringLiteral{ "float64" }; };
+
+			template <typename Traits, typename Allocator>
+			struct TypeNameImpl<std::basic_string<char, Traits, Allocator>> { static constexpr inline auto value = StringLiteral{ "std::string" }; };
 
 			template <>
-			struct TypeNameImpl<std::string>                    { static constexpr inline auto value = StringLiteral{ "std::string" }; };
+			struct TypeNameImpl<std::string_view>                           { static constexpr inline auto value = StringLiteral{ "std::string_view" }; };
 
 			template <typename T>
-			struct TypeNameImpl<std::unique_ptr<T>>             { static constexpr inline auto value = StringLiteral{ "std::unique_ptr<" } + TypeNameImpl<T>::value + ">"; };
+			struct TypeNameImpl<std::unique_ptr<T>>                         { static constexpr inline auto value = StringLiteral{ "std::unique_ptr<" } + TypeNameImpl<T>::value + ">"; };
 
 			template <typename T>
-			struct TypeNameImpl<std::shared_ptr<T>>             { static constexpr inline auto value = StringLiteral{ "std::shared_ptr<" } + TypeNameImpl<T>::value + ">"; };
+			struct TypeNameImpl<std::shared_ptr<T>>                         { static constexpr inline auto value = StringLiteral{ "std::shared_ptr<" } + TypeNameImpl<T>::value + ">"; };
 
 			template <typename T>
-			struct TypeNameImpl<std::weak_ptr<T>>               { static constexpr inline auto value = StringLiteral{ "std::weak_ptr<" }   + TypeNameImpl<T>::value + ">"; };
+			struct TypeNameImpl<std::weak_ptr<T>>                           { static constexpr inline auto value = StringLiteral{ "std::weak_ptr<" }   + TypeNameImpl<T>::value + ">"; };
 
 			template <typename T>
-			struct TypeNameImpl<std::vector<T>>                 { static constexpr inline auto value = StringLiteral{ "std::vector<" }     + TypeNameImpl<T>::value + ">"; };
+			struct TypeNameImpl<std::vector<T>>                             { static constexpr inline auto value = StringLiteral{ "std::vector<" }     + TypeNameImpl<T>::value + ">"; };
 
 			template <typename T>
-			struct TypeNameImpl<std::set<T>>                    { static constexpr inline auto value = StringLiteral{ "std::set<" }        + TypeNameImpl<T>::value + ">"; };
+			struct TypeNameImpl<std::set<T>>                                { static constexpr inline auto value = StringLiteral{ "std::set<" }        + TypeNameImpl<T>::value + ">"; };
 
 			template <typename K, typename V>
-			struct TypeNameImpl<std::map<K, V>>                 { static constexpr inline auto value = StringLiteral{ "std::map<" }        + TypeNameImpl<K>::value + "," + TypeNameImpl<V>::value + ">"; };
+			struct TypeNameImpl<std::map<K, V>>                             { static constexpr inline auto value = StringLiteral{ "std::map<" }        + TypeNameImpl<K>::value + "," + TypeNameImpl<V>::value + ">"; };
 
 			template <typename T>
-			struct TypeNameImpl<std::atomic<T>>                 { static constexpr inline auto value = StringLiteral{ "std::atomic<" }     + TypeNameImpl<T>::value + ">"; };
+			struct TypeNameImpl<std::atomic<T>>                             { static constexpr inline auto value = StringLiteral{ "std::atomic<" }     + TypeNameImpl<T>::value + ">"; };
 
 			template <typename T>
-			struct TypeNameImpl<T*>                             { static constexpr inline auto value = TypeNameImpl<T>::value + "*"; };
+			struct TypeNameImpl<T*>                                         { static constexpr inline auto value = TypeNameImpl<T>::value + "*"; };
 
-			template<typename TFirst>
+			template<typename TTuple>
 			struct CallableSignatureStringBuilder;
 
 			template<>
@@ -525,6 +543,18 @@ namespace Reflect
 			struct CallableSignatureStringBuilder<std::tuple<TFirst, TRest...>>
 			{
 				static constexpr inline StringLiteral value = TypeNameImpl<TFirst>::value + "," + CallableSignatureStringBuilder<std::tuple<TRest...>>::value;
+			};
+
+			template <template <typename...> class T, typename... Args>
+			struct TypeNameImpl<T<Args...>>
+			{
+				static inline constexpr auto value = []
+				{
+					constexpr auto base_name = type_name<T<Args...>>();
+					constexpr auto template_start = detail::impl::find_template_args(base_name);
+
+					return base_name.substr<0, template_start>() + "<" + CallableSignatureStringBuilder<std::tuple<Args...>>::value + ">";
+				}();
 			};
 		}
 
@@ -633,7 +663,7 @@ namespace Reflect
 		template<class T, class U> struct match_const { using type = U; };
 		template<class T, class U> struct match_const<const T, U> { using type = const U; };
 
-		[[nodiscard]] static std::string replace_all(const std::string_view& s, const std::string_view& pattern, const std::string_view& replacement)
+		[[nodiscard]] static std::string replace_all(const std::string_view s, const std::string_view pattern, const std::string_view replacement)
 		{
 			std::string str(s);
 
