@@ -169,10 +169,10 @@ namespace Reflect
 	//
 	// Filter properties based on attributes.
 	//
-	template<typename T, Util::StringLiteral... flags>
-		requires Util::StringLiteralList<flags...>&& Reflected<std::decay_t<T>>
-	void ForEachProperty(T&& t, auto&& fn)
+	template<Util::StringLiteral... flags>
+	void ForEachProperty(auto&& t, auto&& fn)
 	{
+		using T = decltype(t);
 		using TDecay = typename std::decay<T>::type;
 
 		constexpr auto properties = FilterProperties<T, flags...>();
@@ -191,7 +191,7 @@ namespace Reflect
 			using TValue = std::remove_reference_t<T>;
 			using TSuper = Util::match_const<TValue, typename TDecay::SuperClass>::type;
 
-			ForEachProperty<TSuper, flags...>(std::move(static_cast<TSuper&>(t)), std::move(fn));
+			ForEachProperty<flags...>(static_cast<TSuper&>(t), std::move(fn));
 		}
 	}
 
@@ -199,7 +199,6 @@ namespace Reflect
 	// Filter properties based on attributes (no object).
 	//
 	template<typename T, Util::StringLiteral... flags>
-		requires Util::StringLiteralList<flags...>&& Reflected<std::decay_t<T>>
 	void ForEachProperty(auto&& fn)
 	{
 		using TDecay = typename std::decay<T>::type;
