@@ -578,7 +578,6 @@ namespace Reflect
 		// Serialisation.
 		virtual void Serialise(ISerialiser& s, std::ostream& out) const {}
 		virtual void Unserialise(IUnserialiser& u, std::istream& in) {}
-		virtual void PostUnserialise() {}
 
 		// Cleanup.
 		virtual void Dispose() noexcept {}							// Kick off the destruction of threaded resources.
