@@ -170,6 +170,7 @@ namespace Reflect
 	// Filter properties based on attributes.
 	//
 	template<Util::StringLiteral... flags>
+		requires (sizeof...(flags) != 0)
 	void ForEachProperty(auto&& t, auto&& fn)
 	{
 		using T = decltype(t);

@@ -81,13 +81,13 @@ int main(void)
 		Player p(Reflect::Constructor(*std::pmr::get_default_resource(), nullptr));
 
 		ForEachProperty(p,
-			[](auto&& property, auto&& arg) {
+			[]<typename F, typename TAttributes>(const Reflect::StaticField<F, TAttributes>& property, F& arg) {
 				std::cout << property.Name << ": " << arg << std::endl;
 			}
 		);
 
-		ForEachProperty<decltype(p), "Serialise">(std::move(p),
-			[](auto&& property, auto&& arg) {
+		ForEachProperty<"Serialise">(p,
+			[]<typename F, typename TAttributes>(const Reflect::StaticField<F, TAttributes>& property, F& arg) {
 				std::cout << property.Name << ": " << arg << std::endl;
 			}
 		);
