@@ -47,6 +47,10 @@ add_subdirectory(ReflectTest)
 #===============================================================================
 install(TARGETS Reflect ReflectDLL ReflectEXE
 	EXPORT ${PROJECT_NAME}Targets
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/$<CONFIG>
+	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/$<CONFIG>
+	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/$<CONFIG>
+	PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 include(CMakePackageConfigHelpers)

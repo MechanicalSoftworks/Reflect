@@ -15,4 +15,9 @@ target_include_directories(ReflectTest
 target_compile_definitions(ReflectTest PRIVATE -DPLATFORM_WINDOWS)
 target_link_libraries(ReflectTest Reflect)
 
-install(TARGETS ReflectTest)
+install(TARGETS ReflectTest
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/$<CONFIG>
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/$<CONFIG>
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/$<CONFIG>
+    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
