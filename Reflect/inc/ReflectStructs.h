@@ -139,8 +139,8 @@ namespace Reflect
 	class ISerialiser { public: virtual ~ISerialiser() {} };
 	class IUnserialiser { public: virtual ~IUnserialiser() {} };
 
-	using ReadMemberType = void (*)(IUnserialiser& u, std::istream& in, void* self);
-	using WriteMemberType = void (*)(ISerialiser& s, std::ostream& out, const void* self);
+	using ReadMemberType = void (*)(IUnserialiser& u, void* self);
+	using WriteMemberType = void (*)(ISerialiser& s, const void* self);
 
 	struct ReflectMemberProp
 	{
@@ -366,8 +366,8 @@ namespace Reflect
 		const auto& GetName() const		{ return Properties->Name; }
 		const auto& GetTypeName() const	{ return Properties->Type; }
 
-		void Read(IUnserialiser& u, std::istream& in)        { Properties->Read (u,  in, RawPointer); }
-		void Write(ISerialiser& s,  std::ostream& out) const { Properties->Write(s, out, RawPointer); }
+		void Read(IUnserialiser& u)      { Properties->Read (u, RawPointer); }
+		void Write(ISerialiser& s) const { Properties->Write(s, RawPointer); }
 
 		template<typename T> REFLECT_DLL       T* ConvertToType();
 		template<typename T> REFLECT_DLL const T* ConvertToType() const;
@@ -576,8 +576,8 @@ namespace Reflect
 		auto GetMembers(std::span<std::string_view> flags, std::pmr::memory_resource& memory) const	{ return GetClass().GetMembers(flags, memory, const_cast<IReflect*>(this)); }
 		
 		// Serialisation.
-		virtual void Serialise(ISerialiser& s, std::ostream& out) const {}
-		virtual void Unserialise(IUnserialiser& u, std::istream& in) {}
+		virtual void Serialise(ISerialiser& s) const {}
+		virtual void Unserialise(IUnserialiser& u) {}
 
 		// Cleanup.
 		virtual void Dispose() noexcept {}							// Kick off the destruction of threaded resources.
