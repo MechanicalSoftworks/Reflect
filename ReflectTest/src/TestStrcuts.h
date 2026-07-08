@@ -3,8 +3,8 @@
 #include <Reflect.h>
 #include "TestStrcuts.Reflect.h"
 
-template<typename S, typename T> void DispatchSerialise(S& s, const T& obj) {}
-template<typename U, typename T> void DispatchUnserialise(U& u, T& obj) {}
+template<typename T> void DispatchSerialise(Reflect::ISerialiser& s, const T& obj) {}
+template<typename T> void DispatchUnserialise(Reflect::IUnserialiser& u, T& obj) {}
 
 #define EXPORT
 
