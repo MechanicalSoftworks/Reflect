@@ -10,7 +10,7 @@
 #endif //C__mechsrc_terapixel_Dev_ThirdParty_Reflect_ReflectTest_src_TestStrcuts_h_reflect_h
 #define C__mechsrc_terapixel_Dev_ThirdParty_Reflect_ReflectTest_src_TestStrcuts_h_reflect_h
 
-#define _TestStrcuts_Source_h_25_STATIC_ENUM \
+#define _TestStrcuts_Source_h_28_STATIC_ENUM \
 public:\
 	using ThisClass = E;\
 	using SuperClass = Reflect::IEnum;\
@@ -34,7 +34,7 @@ public:\
 
 
 
-#define _TestStrcuts_Source_h_25_OPERATORS \
+#define _TestStrcuts_Source_h_28_OPERATORS \
 public:\
 	constexpr operator Values() const { return Values(Value); }\
 	explicit operator bool() const = delete;\
@@ -45,7 +45,7 @@ public:\
 	constexpr auto& operator|=(const E& rhs) { Value = (Values)(Value | rhs.Value); return *this; }\
 
 
-#define _TestStrcuts_Source_h_25_VALUES \
+#define _TestStrcuts_Source_h_28_VALUES \
 public:\
 	static constexpr std::array<std::pair<std::string_view, Values>, 4> Names{\
 		std::pair{ "Value1", Values(0) },\
@@ -55,12 +55,12 @@ public:\
 	};\
 
 
-#define _TestStrcuts_Source_h_25_MEMBERS \
+#define _TestStrcuts_Source_h_28_MEMBERS \
 protected:\
 	Values Value = (Values)0;\
 
 
-#define _TestStrcuts_Source_h_25_METHODS \
+#define _TestStrcuts_Source_h_28_METHODS \
 public:\
 	static auto ToString(E v) { return StaticEnum.ToString(v); }\
 	auto ToString() const { return StaticEnum.ToString(Value); }\
@@ -92,21 +92,21 @@ public:\
 	void	store(ValueType v)		{ Value = (Values)v; }\
 
 
-#define _TestStrcuts_Source_h_25_GENERATED_BODY \
-_TestStrcuts_Source_h_25_STATIC_ENUM \
-_TestStrcuts_Source_h_25_OPERATORS \
-_TestStrcuts_Source_h_25_VALUES \
-_TestStrcuts_Source_h_25_MEMBERS \
-_TestStrcuts_Source_h_25_METHODS \
+#define _TestStrcuts_Source_h_28_GENERATED_BODY \
+_TestStrcuts_Source_h_28_STATIC_ENUM \
+_TestStrcuts_Source_h_28_OPERATORS \
+_TestStrcuts_Source_h_28_VALUES \
+_TestStrcuts_Source_h_28_MEMBERS \
+_TestStrcuts_Source_h_28_METHODS \
 
 
-#define _TestStrcuts_Source_h_35_PROPERTIES_OFFSET \
+#define _TestStrcuts_Source_h_38_PROPERTIES_OFFSET \
 private:\
 	static constexpr int __OFFSETOF__Friends() { return offsetof(S, Friends); }; \
 	static constexpr int __OFFSETOF__TimeOnline() { return offsetof(S, TimeOnline); }; \
 
 
-#define _TestStrcuts_Source_h_35_STATIC_CLASS \
+#define _TestStrcuts_Source_h_38_STATIC_CLASS \
 public:\
 	using ThisClass = S;\
 	using SuperClass = Reflect::IReflect;\
@@ -129,33 +129,33 @@ private:\
 	const Reflect::LinkClass& GetLinkClass() const override { return Linker; }\
 
 
-#define _TestStrcuts_Source_h_35_PROPERTIES \
+#define _TestStrcuts_Source_h_38_PROPERTIES \
 public:\
 	static constexpr const char* nameof_Friends = "Friends";\
 	static constexpr const char* nameof_TimeOnline = "TimeOnline";\
 private:\
 
 
-#define _TestStrcuts_Source_h_35_FUNCTION_DECLARE \
+#define _TestStrcuts_Source_h_38_FUNCTION_DECLARE \
 public:\
-	void Serialise(Reflect::ISerialiser &s) const override { DispatchSerialise(s, *this); }\
-	void Unserialise(Reflect::IUnserialiser& u) override    { DispatchUnserialise(u, *this); }\
+	void Serialise(Reflect::ISerialiser &s) const override { DispatchWriteElement(s, *this); }\
+	void Unserialise(Reflect::IUnserialiser& u) override    { DispatchReadElement(u, *this); }\
 private:\
 
 
-#define _TestStrcuts_Source_h_35_GENERATED_BODY \
-_TestStrcuts_Source_h_35_PROPERTIES_OFFSET \
-_TestStrcuts_Source_h_35_PROPERTIES \
-_TestStrcuts_Source_h_35_FUNCTION_DECLARE \
-_TestStrcuts_Source_h_35_STATIC_CLASS \
+#define _TestStrcuts_Source_h_38_GENERATED_BODY \
+_TestStrcuts_Source_h_38_PROPERTIES_OFFSET \
+_TestStrcuts_Source_h_38_PROPERTIES \
+_TestStrcuts_Source_h_38_FUNCTION_DECLARE \
+_TestStrcuts_Source_h_38_STATIC_CLASS \
 
 
-#define _TestStrcuts_Source_h_55_PROPERTIES_OFFSET \
+#define _TestStrcuts_Source_h_58_PROPERTIES_OFFSET \
 private:\
 	static constexpr int __OFFSETOF__Property() { return offsetof(TemplatedClass, Property); }; \
 
 
-#define _TestStrcuts_Source_h_55_STATIC_CLASS \
+#define _TestStrcuts_Source_h_58_STATIC_CLASS \
 public:\
 	using ThisClass = TemplatedClass;\
 	using SuperClass = Reflect::IReflect;\
@@ -177,31 +177,31 @@ private:\
 	const Reflect::LinkClass& GetLinkClass() const override { return Linker; }\
 
 
-#define _TestStrcuts_Source_h_55_PROPERTIES \
+#define _TestStrcuts_Source_h_58_PROPERTIES \
 public:\
 	static constexpr const char* nameof_Property = "Property";\
 private:\
 
 
-#define _TestStrcuts_Source_h_55_FUNCTION_DECLARE \
+#define _TestStrcuts_Source_h_58_FUNCTION_DECLARE \
 public:\
-	void Serialise(Reflect::ISerialiser &s) const override { DispatchSerialise(s, *this); }\
-	void Unserialise(Reflect::IUnserialiser& u) override    { DispatchUnserialise(u, *this); }\
+	void Serialise(Reflect::ISerialiser &s) const override { DispatchWriteElement(s, *this); }\
+	void Unserialise(Reflect::IUnserialiser& u) override    { DispatchReadElement(u, *this); }\
 private:\
 
 
-#define _TestStrcuts_Source_h_55_GENERATED_BODY \
-_TestStrcuts_Source_h_55_PROPERTIES_OFFSET \
-_TestStrcuts_Source_h_55_PROPERTIES \
-_TestStrcuts_Source_h_55_FUNCTION_DECLARE \
-_TestStrcuts_Source_h_55_STATIC_CLASS \
+#define _TestStrcuts_Source_h_58_GENERATED_BODY \
+_TestStrcuts_Source_h_58_PROPERTIES_OFFSET \
+_TestStrcuts_Source_h_58_PROPERTIES \
+_TestStrcuts_Source_h_58_FUNCTION_DECLARE \
+_TestStrcuts_Source_h_58_STATIC_CLASS \
 
 
-#define _TestStrcuts_Source_h_67_PROPERTIES_OFFSET \
+#define _TestStrcuts_Source_h_70_PROPERTIES_OFFSET \
 private:\
 
 
-#define _TestStrcuts_Source_h_67_STATIC_CLASS \
+#define _TestStrcuts_Source_h_70_STATIC_CLASS \
 public:\
 	using ThisClass = Actor;\
 	using SuperClass = Reflect::IReflect;\
@@ -221,33 +221,33 @@ private:\
 	const Reflect::LinkClass& GetLinkClass() const override { return Linker; }\
 
 
-#define _TestStrcuts_Source_h_67_PROPERTIES \
+#define _TestStrcuts_Source_h_70_PROPERTIES \
 public:\
 private:\
 
 
-#define _TestStrcuts_Source_h_67_FUNCTION_DECLARE \
+#define _TestStrcuts_Source_h_70_FUNCTION_DECLARE \
 public:\
-	void Serialise(Reflect::ISerialiser &s) const override { DispatchSerialise(s, *this); }\
-	void Unserialise(Reflect::IUnserialiser& u) override    { DispatchUnserialise(u, *this); }\
+	void Serialise(Reflect::ISerialiser &s) const override { DispatchWriteElement(s, *this); }\
+	void Unserialise(Reflect::IUnserialiser& u) override    { DispatchReadElement(u, *this); }\
 private:\
 
 
-#define _TestStrcuts_Source_h_67_GENERATED_BODY \
-_TestStrcuts_Source_h_67_PROPERTIES_OFFSET \
-_TestStrcuts_Source_h_67_PROPERTIES \
-_TestStrcuts_Source_h_67_FUNCTION_DECLARE \
-_TestStrcuts_Source_h_67_STATIC_CLASS \
+#define _TestStrcuts_Source_h_70_GENERATED_BODY \
+_TestStrcuts_Source_h_70_PROPERTIES_OFFSET \
+_TestStrcuts_Source_h_70_PROPERTIES \
+_TestStrcuts_Source_h_70_FUNCTION_DECLARE \
+_TestStrcuts_Source_h_70_STATIC_CLASS \
 
 
-#define _TestStrcuts_Source_h_81_PROPERTIES_OFFSET \
+#define _TestStrcuts_Source_h_84_PROPERTIES_OFFSET \
 private:\
 	static constexpr int __OFFSETOF__Id() { return offsetof(Player, Id); }; \
 	static constexpr int __OFFSETOF__Friends() { return offsetof(Player, Friends); }; \
 	static constexpr int __OFFSETOF__TimeOnline() { return offsetof(Player, TimeOnline); }; \
 
 
-#define _TestStrcuts_Source_h_81_STATIC_CLASS \
+#define _TestStrcuts_Source_h_84_STATIC_CLASS \
 public:\
 	using ThisClass = Player;\
 	using SuperClass = Actor;\
@@ -275,7 +275,7 @@ private:\
 	const Reflect::LinkClass& GetLinkClass() const override { return Linker; }\
 
 
-#define _TestStrcuts_Source_h_81_PROPERTIES \
+#define _TestStrcuts_Source_h_84_PROPERTIES \
 public:\
 	static constexpr const char* nameof_Id = "Id";\
 	static constexpr const char* nameof_Friends = "Friends";\
@@ -283,10 +283,10 @@ public:\
 private:\
 
 
-#define _TestStrcuts_Source_h_81_FUNCTION_DECLARE \
+#define _TestStrcuts_Source_h_84_FUNCTION_DECLARE \
 public:\
-	void Serialise(Reflect::ISerialiser &s) const override { DispatchSerialise(s, *this); }\
-	void Unserialise(Reflect::IUnserialiser& u) override    { DispatchUnserialise(u, *this); }\
+	void Serialise(Reflect::ISerialiser &s) const override { DispatchWriteElement(s, *this); }\
+	void Unserialise(Reflect::IUnserialiser& u) override    { DispatchReadElement(u, *this); }\
 private:\
 	static Reflect::ReflectReturnCode __REFLECT_FUNC__GetOnlineFriendsCount(void* objectPtr, void* returnValuePtr, Reflect::FunctionPtrArgs& functionArgs)\
 	{\
@@ -309,11 +309,11 @@ private:\
 	}\
 
 
-#define _TestStrcuts_Source_h_81_GENERATED_BODY \
-_TestStrcuts_Source_h_81_PROPERTIES_OFFSET \
-_TestStrcuts_Source_h_81_PROPERTIES \
-_TestStrcuts_Source_h_81_FUNCTION_DECLARE \
-_TestStrcuts_Source_h_81_STATIC_CLASS \
+#define _TestStrcuts_Source_h_84_GENERATED_BODY \
+_TestStrcuts_Source_h_84_PROPERTIES_OFFSET \
+_TestStrcuts_Source_h_84_PROPERTIES \
+_TestStrcuts_Source_h_84_FUNCTION_DECLARE \
+_TestStrcuts_Source_h_84_STATIC_CLASS \
 
 
 #undef CURRENT_FILE_ID

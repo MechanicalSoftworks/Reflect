@@ -3,8 +3,11 @@
 #include <Reflect.h>
 #include "TestStrcuts.Reflect.h"
 
-template<typename T> void DispatchSerialise(Reflect::ISerialiser& s, const T& obj) {}
-template<typename T> void DispatchUnserialise(Reflect::IUnserialiser& u, T& obj) {}
+template<typename T> void DispatchWriteProperty(Reflect::ISerialiser& s, const std::string_view name, const T& obj) {}
+template<typename T> void DispatchReadProperty(Reflect::IUnserialiser& u, const std::string_view name, T& obj) {}
+
+template<typename T> void DispatchWriteElement(Reflect::ISerialiser& s, const T& obj) {}
+template<typename T> void DispatchReadElement(Reflect::IUnserialiser& u, T& obj) {}
 
 #define EXPORT
 

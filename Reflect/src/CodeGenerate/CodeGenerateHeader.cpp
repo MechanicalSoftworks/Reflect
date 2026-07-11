@@ -254,8 +254,8 @@ namespace Reflect
 					continue;
 				}
 				
-				file << "\tstatic void __READ__" << member.Name << "(Reflect::IUnserialiser& u, void* field) { DispatchUnserialise(u, *reinterpret_cast<" << member.Type << "*>(field)); }\\\n";
-				file << "\tstatic void __WRITE__" << member.Name << "(Reflect::ISerialiser& s, const void* field) { DispatchSerialise(s, *(reinterpret_cast<const " << member.Type << "*>(field))); }\\\n";
+				file << "\tstatic void __READ__" << member.Name << "(Reflect::IUnserialiser& u, void* field) { DispatchReadProperty(u, \"" << member.Name << "\", *reinterpret_cast<" << member.Type << "*>(field)); }\\\n";
+				file << "\tstatic void __WRITE__" << member.Name << "(Reflect::ISerialiser& s, const void* field) { DispatchWriteProperty(s, \"" << member.Name << "\", *(reinterpret_cast<const " << member.Type << "*>(field))); }\\\n";
 			}
 		}
 
@@ -310,8 +310,8 @@ namespace Reflect
 		file << "#define " + currentFileId + "_FUNCTION_DECLARE \\\n";
 		WRITE_PUBLIC();
 			file << "\tstd::size_t GetHashCode() const override { return std::hash<ThisClass>{}(*this); }\\\n";
-			file << "\tvoid Serialise(Reflect::ISerialiser &s) const override { DispatchSerialise(s, *this); }\\\n";
-			file << "\tvoid Unserialise(Reflect::IUnserialiser& u) override   { DispatchUnserialise(u, *this); }\\\n";
+			file << "\tvoid Serialise(Reflect::ISerialiser &s) const override { DispatchWriteElement(s, *this); }\\\n";
+			file << "\tvoid Unserialise(Reflect::IUnserialiser& u) override   { DispatchReadElement(u, *this); }\\\n";
 		WRITE_PRIVATE();
 		for (const auto& func : data.Functions)
 		{
