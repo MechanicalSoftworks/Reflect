@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 project (Reflect VERSION 2.0.0)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 add_compile_options($<$<CXX_COMPILER_ID:MSVC>:/MP>)
 
 if (UNIX)

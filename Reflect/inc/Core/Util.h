@@ -553,7 +553,7 @@ namespace Reflect
 					constexpr auto base_name = type_name<T<Args...>>();
 					constexpr auto template_start = detail::impl::find_template_args(base_name);
 
-					return base_name.substr<0, template_start>() + "<" + CallableSignatureStringBuilder<std::tuple<Args...>>::value + ">";
+					return base_name.template substr<0, template_start>() + "<" + CallableSignatureStringBuilder<std::tuple<Args...>>::value + ">";
 				}();
 			};
 		}

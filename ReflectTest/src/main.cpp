@@ -2,6 +2,7 @@
 #include "TestStrcuts.h"
 #include <iostream>
 #include <cstdlib>
+#include <memory_resource>
 
 #ifdef _MSC_VER
 void* aligned_alloc(std::size_t size, std::size_t alignment) { return _aligned_malloc(size, alignment); }

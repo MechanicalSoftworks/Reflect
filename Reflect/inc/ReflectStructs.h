@@ -383,7 +383,7 @@ namespace Reflect
 		{
 			std::pmr::polymorphic_allocator<T> allocator{ &init.Memory };
 
-			return allocator.new_object<T>(init);
+			return allocator.template new_object<T>(init);
 		}
 
 		template<typename T>
@@ -391,7 +391,7 @@ namespace Reflect
 		{
 			std::pmr::polymorphic_allocator<T> allocator{ &memory };
 
-			return allocator.delete_object<T>(
+			return allocator.template delete_object<T>(
 				dynamic_cast<T*>(p)
 			);
 		}
